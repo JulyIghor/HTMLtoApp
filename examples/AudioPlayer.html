@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="htmltoapp:open-with" content="role=viewer; files=mp3,m4a,aac,wav,aif,aiff; folders=true; camera=false; microphone=false; location=false">
+  <title>AudioPlayer</title>
+  <style>
+    :root {
+      --bg: #161018;
+      --panel: rgba(31, 21, 35, 0.86);
+      --line: rgba(255,255,255,0.08);
+      --text: #f6f0f9;
+      --muted: #baaec1;
+      --accent: #f4a75f;
+      --accent-2: #93e2d9;
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; font-family: "Avenir Next", "Segoe UI", sans-serif; color: var(--text); background: var(--bg); }
+    body {
+      background:
+        radial-gradient(circle at top left, rgba(244,167,95,0.13), transparent 28%),
+        radial-gradient(circle at bottom right, rgba(147,226,217,0.14), transparent 30%),
+        linear-gradient(180deg, #241728, #140f17 65%);
+    }
+    .app {
+      height: 100%;
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+    }
+    .hero, .queue {
+      background: var(--panel);
+      backdrop-filter: blur(18px);
+    }
+    .hero {
+      border-right: 1px solid var(--line);
+      display: grid;
+      place-items: center;
+      padding: 28px;
+    }
+    .player-card {
+      width: min(640px, 100%);
+      border-radius: 34px;
+      border: 1px solid var(--line);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.07), rgba(255,255,255,0.03)),
+        radial-gradient(circle at top right, rgba(244,167,95,0.16), transparent 24%);
+      box-shadow: 0 32px 120px rgba(0,0,0,0.3);
+      padding: 28px;
+      display: grid;
+      gap: 18px;
+    }
+    .eyebrow {
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--accent-2);
+      font-weight: 800;
+    }
+    h1 {
+      margin: 8px 0 0;
+      font-size: 38px;
+      letter-spacing: -0.05em;
+    }
+    .subtitle, .path, .queue-head p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+    .visualizer {
+      height: 180px;
+      border-radius: 26px;
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01));
+      display: flex;
+      align-items: end;
+      justify-content: center;
+      gap: 8px;
+      padding: 24px;
+      overflow: hidden;
+    }
+    .bar {
+      width: 12px;
+      min-height: 18px;
+      border-radius: 999px;
+      background: linear-gradient(180deg, var(--accent-2), var(--accent));
+      transform-origin: bottom center;
+      animation: pulse 1.1s ease-in-out infinite;
+      opacity: 0.88;
+    }
+    @keyframes pulse {
+      0%, 100% { transform: scaleY(0.32); }
+      50% { transform: scaleY(1); }
+    }
+    .progress-wrap { display: grid; gap: 8px; }
+    input[type="range"] { width: 100%; accent-color: var(--accent); }
+    .progress-meta, .controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+    .controls { flex-wrap: wrap; }
+    button {
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.06);
+      color: var(--text);
+      border-radius: 999px;
+      padding: 9px 14px;
+      cursor: pointer;
+      font: inherit;
+    }
+    button.primary {
+      background: linear-gradient(135deg, var(--accent), #f07b56);
+      color: #1f1208;
+      border-color: transparent;
+      font-weight: 800;
+    }
+    .queue {
+      display: grid;
+      grid-template-rows: auto 1fr;
+      min-height: 0;
+    }
+    .queue-head {
+      padding: 24px;
+      border-bottom: 1px solid var(--line);
+    }
+    .list {
+      overflow: auto;
+      padding: 14px;
+      display: grid;
+      gap: 10px;
+      align-content: start;
+    }
+    .track {
+      width: 100%;
+      text-align: left;
+      border-radius: 20px;
+      padding: 12px;
+    }
+    .track.active {
+      background: rgba(147,226,217,0.12);
+      border-color: rgba(147,226,217,0.35);
+    }
+    .name { font-weight: 700; font-size: 14px; }
+    .meta { font-size: 12px; color: var(--muted); margin-top: 5px; word-break: break-word; }
+    a.brand-link { color: var(--accent-2); text-decoration: none; font-weight: 700; }
+    .drop-overlay {
+      position: fixed;
+      inset: 18px;
+      border-radius: 30px;
+      border: 2px dashed rgba(147,226,217,0.55);
+      background: rgba(23, 15, 26, 0.78);
+      backdrop-filter: blur(12px);
+      display: grid;
+      place-items: center;
+      text-align: center;
+      padding: 28px;
+      z-index: 100;
+      pointer-events: none;
+    }
+    .drop-overlay strong {
+      display: block;
+      font-size: 28px;
+      letter-spacing: -0.04em;
+      margin-bottom: 8px;
+    }
+    .drop-overlay span {
+      color: var(--muted);
+      max-width: 32rem;
+      line-height: 1.5;
+    }
+    .drop-overlay[hidden] { display: none !important; }
+    @media (max-width: 960px) {
+      .app { grid-template-columns: 1fr; grid-template-rows: 1fr 320px; }
+      .hero { border-right: 0; border-bottom: 1px solid var(--line); }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <section class="hero">
+      <div class="player-card">
+        <div class="eyebrow">HTML to App Demo</div>
+        <h1 id="title">AudioPlayer</h1>
+        <p class="subtitle" id="subtitle">Open local tracks or folders through Finder, or drag them into the window to build a queue.</p>
+        <p class="subtitle" style="margin-top:8px;">Made for <a class="brand-link" href="https://htmltoapp.app">HTML to App</a>.</p>
+        <div class="visualizer" id="visualizer"></div>
+        <div class="path" id="path">Suggested extensions: mp3, wav, aac, m4a, aif, aiff</div>
+        <div class="progress-wrap">
+          <input id="scrubber" type="range" min="0" max="1" step="0.001" value="0">
+          <div class="progress-meta">
+            <span id="timeNow">0:00</span>
+            <span id="timeTotal">0:00</span>
+          </div>
+        </div>
+        <div class="controls">
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <button id="prev">Previous</button>
+            <button id="play" class="primary">Play</button>
+            <button id="next">Next</button>
+          </div>
+          <div style="display:flex; align-items:center; gap:10px;">
+            <span>Volume</span>
+            <input id="volume" type="range" min="0" max="1" step="0.01" value="1">
+          </div>
+        </div>
+      </div>
+    </section>
+    <aside class="queue">
+      <div class="queue-head">
+        <div class="eyebrow">Queue</div>
+        <h2 style="margin:8px 0 6px; font-size:28px; letter-spacing:-0.04em;">Local tracks</h2>
+        <p id="count">0 items loaded</p>
+      </div>
+      <div class="list" id="list"></div>
+    </aside>
+  </div>
+  <div class="drop-overlay" id="dropOverlay" hidden>
+    <div>
+      <strong>Drop tracks or folders</strong>
+      <span>AudioPlayer will queue supported audio files from the dropped selection.</span>
+    </div>
+  </div>
+
+  <audio id="audio"></audio>
+
+  <script>
+    const AUDIO_EXTENSIONS = new Set(["mp3", "wav", "aac", "m4a", "aif", "aiff"]);
+    const state = { tracks: [], index: 0 };
+
+    const audio = document.getElementById("audio");
+    const list = document.getElementById("list");
+    const count = document.getElementById("count");
+    const title = document.getElementById("title");
+    const subtitle = document.getElementById("subtitle");
+    const pathLabel = document.getElementById("path");
+    const scrubber = document.getElementById("scrubber");
+    const timeNow = document.getElementById("timeNow");
+    const timeTotal = document.getElementById("timeTotal");
+    const playButton = document.getElementById("play");
+    const visualizer = document.getElementById("visualizer");
+    const dropOverlay = document.getElementById("dropOverlay");
+    let dropDepth = 0;
+
+    for (let i = 0; i < 28; i += 1) {
+      const bar = document.createElement("div");
+      bar.className = "bar";
+      bar.style.animationDelay = `${i * 0.05}s`;
+      bar.style.height = `${26 + (i % 7) * 12}px`;
+      visualizer.appendChild(bar);
+    }
+
+    function extensionOf(name) {
+      const dot = name.lastIndexOf(".");
+      return dot === -1 ? "" : name.slice(dot + 1).toLowerCase();
+    }
+
+    function isAudio(item) {
+      return !item.isDirectory && AUDIO_EXTENSIONS.has(extensionOf(item.name || item.path || ""));
+    }
+
+    async function listDirectory(item) {
+      const response = await fetch(item.listingURL || item.baseURL);
+      const payload = await response.json();
+      return Array.isArray(payload.entries) ? payload.entries : [];
+    }
+
+    function makeDroppedItem(file, explicitPath = "") {
+      const rawPath = explicitPath || file.webkitRelativePath || file.name;
+      return {
+        name: file.name,
+        path: rawPath.replace(/^\/+/, "") || file.name,
+        url: URL.createObjectURL(file),
+        isDirectory: false
+      };
+    }
+
+    function readFileEntry(entry) {
+      return new Promise((resolve, reject) => entry.file(resolve, reject));
+    }
+
+    function readDirectoryBatch(reader) {
+      return new Promise((resolve, reject) => reader.readEntries(resolve, reject));
+    }
+
+    async function collectDroppedFilesFromEntry(entry) {
+      if (!entry) return [];
+      if (entry.isFile) {
+        const file = await readFileEntry(entry);
+        return [makeDroppedItem(file, entry.fullPath || file.webkitRelativePath || file.name)];
+      }
+      if (!entry.isDirectory) return [];
+
+      const files = [];
+      const reader = entry.createReader();
+      while (true) {
+        const batch = await readDirectoryBatch(reader);
+        if (!batch.length) break;
+        for (const child of batch) {
+          const childFiles = await collectDroppedFilesFromEntry(child);
+          files.push(...childFiles);
+        }
+      }
+      return files;
+    }
+
+    async function collectDroppedFiles(dataTransfer) {
+      const files = [];
+      const items = Array.from(dataTransfer.items || []);
+      if (items.length) {
+        for (const item of items) {
+          if (item.kind !== "file") continue;
+          const entry = typeof item.webkitGetAsEntry === "function" ? item.webkitGetAsEntry() : null;
+          if (entry) {
+            try {
+              const entryFiles = await collectDroppedFilesFromEntry(entry);
+              files.push(...entryFiles);
+            } catch (error) {
+              console.error("Failed to read dropped entry", error);
+            }
+            continue;
+          }
+          const file = item.getAsFile ? item.getAsFile() : null;
+          if (file) files.push(makeDroppedItem(file));
+        }
+      } else {
+        for (const file of Array.from(dataTransfer.files || []))
+          files.push(makeDroppedItem(file));
+      }
+      return files;
+    }
+
+    function dragHasFiles(event) {
+      return !!(event.dataTransfer && Array.from(event.dataTransfer.types || []).includes("Files"));
+    }
+
+    function showDropOverlay() {
+      dropOverlay.hidden = false;
+    }
+
+    function hideDropOverlay() {
+      dropDepth = 0;
+      dropOverlay.hidden = true;
+    }
+
+    async function gatherTracks(items) {
+      const tracks = [];
+      for (const item of items) {
+        if (!item) continue;
+        if (isAudio(item)) {
+          tracks.push({ name: item.name, path: item.path, url: item.url });
+          continue;
+        }
+        if (item.isDirectory && (item.listingURL || item.baseURL)) {
+          try {
+            const entries = await listDirectory(item);
+            for (const entry of entries) if (isAudio(entry)) tracks.push({ name: entry.name, path: entry.path, url: entry.url });
+          } catch (error) {
+            console.error(error);
+          }
+        }
+      }
+      return tracks;
+    }
+
+    function mergeTracks(tracks, replaceExisting) {
+      const next = replaceExisting ? [] : state.tracks.slice();
+      const seen = new Set(next.map((track) => track.path));
+      for (const track of tracks) {
+        if (!track.path || seen.has(track.path)) continue;
+        next.push(track);
+        seen.add(track.path);
+      }
+      state.tracks = next;
+      if (state.index >= state.tracks.length) state.index = 0;
+    }
+
+    function formatTime(value) {
+      if (!Number.isFinite(value)) return "0:00";
+      const minutes = Math.floor(value / 60);
+      const seconds = Math.floor(value % 60);
+      return `${minutes}:${String(seconds).padStart(2, "0")}`;
+    }
+
+    function renderQueue() {
+      list.innerHTML = "";
+      count.textContent = `${state.tracks.length} item${state.tracks.length === 1 ? "" : "s"} loaded`;
+      state.tracks.forEach((track, index) => {
+        const button = document.createElement("button");
+        button.className = "track" + (index === state.index ? " active" : "");
+        button.innerHTML = `<div class="name">${track.name}</div><div class="meta">${track.path}</div>`;
+        button.addEventListener("click", () => {
+          state.index = index;
+          renderQueue();
+          loadCurrent(true);
+        });
+        list.appendChild(button);
+      });
+    }
+
+    function loadCurrent(autoplay = false) {
+      const track = state.tracks[state.index];
+      if (!track) {
+        title.textContent = "AudioPlayer";
+        subtitle.textContent = "Open local tracks or folders through Finder to build a queue.";
+        pathLabel.textContent = "Suggested extensions: mp3, wav, aac, m4a, aif, aiff";
+        audio.removeAttribute("src");
+        return;
+      }
+      title.textContent = track.name;
+      subtitle.textContent = "Queue-driven local playback with Finder-opened files.";
+      pathLabel.textContent = track.path;
+      audio.src = track.url;
+      if (autoplay) audio.play().catch(() => {});
+    }
+
+    async function handleLaunchItems(items, replaceExisting = false) {
+      const tracks = await gatherTracks(items);
+      mergeTracks(tracks, replaceExisting);
+      renderQueue();
+      loadCurrent(replaceExisting || tracks.length > 0);
+    }
+
+    document.getElementById("play").addEventListener("click", () => {
+      if (!audio.src) return;
+      if (audio.paused) audio.play().catch(() => {});
+      else audio.pause();
+    });
+    document.getElementById("prev").addEventListener("click", () => {
+      if (!state.tracks.length) return;
+      state.index = (state.index - 1 + state.tracks.length) % state.tracks.length;
+      renderQueue();
+      loadCurrent(true);
+    });
+    document.getElementById("next").addEventListener("click", () => {
+      if (!state.tracks.length) return;
+      state.index = (state.index + 1) % state.tracks.length;
+      renderQueue();
+      loadCurrent(true);
+    });
+    document.getElementById("volume").addEventListener("input", (event) => {
+      audio.volume = Number(event.target.value);
+    });
+    scrubber.addEventListener("input", () => {
+      if (!Number.isFinite(audio.duration) || audio.duration <= 0) return;
+      audio.currentTime = Number(scrubber.value) * audio.duration;
+    });
+
+    audio.addEventListener("timeupdate", () => {
+      if (Number.isFinite(audio.duration) && audio.duration > 0) {
+        scrubber.value = String(audio.currentTime / audio.duration);
+        timeTotal.textContent = formatTime(audio.duration);
+      }
+      timeNow.textContent = formatTime(audio.currentTime);
+    });
+    audio.addEventListener("play", () => { playButton.textContent = "Pause"; visualizer.style.opacity = "1"; });
+    audio.addEventListener("pause", () => { playButton.textContent = "Play"; visualizer.style.opacity = "0.72"; });
+    audio.addEventListener("ended", () => {
+      if (!state.tracks.length) return;
+      state.index = (state.index + 1) % state.tracks.length;
+      renderQueue();
+      loadCurrent(true);
+    });
+
+    window.addEventListener("keydown", (event) => {
+      if (event.target && /input|textarea|select/i.test(event.target.tagName)) return;
+      if (event.key === " ") {
+        event.preventDefault();
+        playButton.click();
+      }
+    });
+
+    window.addEventListener("htmltoapp-open", (event) => {
+      const detail = event.detail || {};
+      handleLaunchItems(detail.items || [], !!detail.replaceExisting);
+    });
+
+    window.addEventListener("dragenter", (event) => {
+      if (!dragHasFiles(event)) return;
+      event.preventDefault();
+      dropDepth += 1;
+      showDropOverlay();
+    });
+
+    window.addEventListener("dragover", (event) => {
+      if (!dragHasFiles(event)) return;
+      event.preventDefault();
+      event.dataTransfer.dropEffect = "copy";
+      showDropOverlay();
+    });
+
+    window.addEventListener("dragleave", (event) => {
+      if (!dragHasFiles(event)) return;
+      dropDepth = Math.max(0, dropDepth - 1);
+      if (dropDepth === 0) hideDropOverlay();
+    });
+
+    window.addEventListener("drop", async (event) => {
+      if (!dragHasFiles(event)) return;
+      event.preventDefault();
+      hideDropOverlay();
+      const files = await collectDroppedFiles(event.dataTransfer);
+      if (files.length) handleLaunchItems(files, true);
+    });
+
+    handleLaunchItems((window.HTMLToApp && window.HTMLToApp.launchItems) || [], true);
+  </script>
+</body>
+</html>

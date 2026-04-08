@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="htmltoapp:open-with" content="role=viewer; files=jpg,jpeg,png,gif,webp,bmp,tif,tiff; folders=true; camera=false; microphone=false; location=false">
+  <title>ImageViewer</title>
+  <style>
+    :root {
+      --bg: #111314;
+      --panel: rgba(20, 24, 27, 0.82);
+      --panel-2: rgba(31, 37, 41, 0.9);
+      --line: rgba(255,255,255,0.08);
+      --text: #f3f5f6;
+      --muted: #9aa6ad;
+      --accent: #f49a48;
+      --accent-2: #6ed8c7;
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; background: var(--bg); color: var(--text); font-family: "Avenir Next", "Segoe UI", sans-serif; }
+    body {
+      background:
+        radial-gradient(circle at top left, rgba(244,154,72,0.14), transparent 26%),
+        radial-gradient(circle at top right, rgba(110,216,199,0.12), transparent 28%),
+        linear-gradient(180deg, #15181a, #0d0f10 60%);
+    }
+    .app {
+      height: 100%;
+      display: grid;
+      grid-template-columns: 280px minmax(0, 1fr);
+    }
+    .sidebar {
+      border-right: 1px solid var(--line);
+      background: var(--panel);
+      backdrop-filter: blur(18px);
+      display: grid;
+      grid-template-rows: auto auto 1fr;
+      min-height: 0;
+    }
+    .brand, .controls {
+      padding: 18px;
+      border-bottom: 1px solid var(--line);
+    }
+    .eyebrow {
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--accent-2);
+      font-weight: 800;
+    }
+    h1 {
+      margin: 10px 0 6px;
+      font-size: 30px;
+      letter-spacing: -0.05em;
+    }
+    .sub {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.45;
+      font-size: 14px;
+    }
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    button {
+      background: rgba(255,255,255,0.06);
+      color: var(--text);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 9px 12px;
+      cursor: pointer;
+      font: inherit;
+    }
+    button:hover { border-color: rgba(255,255,255,0.18); }
+    button.active { background: linear-gradient(135deg, var(--accent), #e9703f); color: #1a1108; border-color: transparent; font-weight: 700; }
+    .thumbs {
+      overflow: auto;
+      padding: 14px;
+      display: grid;
+      gap: 10px;
+      align-content: start;
+    }
+    .thumb {
+      display: grid;
+      grid-template-columns: 72px minmax(0, 1fr);
+      gap: 12px;
+      padding: 10px;
+      border-radius: 18px;
+      border: 1px solid transparent;
+      background: rgba(255,255,255,0.03);
+      cursor: pointer;
+    }
+    .thumb:hover { border-color: var(--line); }
+    .thumb.active { border-color: rgba(244,154,72,0.55); background: rgba(244,154,72,0.09); }
+    .thumb img {
+      width: 72px;
+      height: 72px;
+      object-fit: cover;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.05);
+    }
+    .thumb-title {
+      font-size: 13px;
+      font-weight: 700;
+      word-break: break-word;
+    }
+    .thumb-meta {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+    .stage {
+      min-width: 0;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+    }
+    .stage-header, .stage-footer {
+      padding: 16px 22px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(0,0,0,0.14);
+    }
+    .stage-footer {
+      border-bottom: 0;
+      border-top: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+      align-items: center;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .stage-main {
+      min-height: 0;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+    .frame {
+      width: 100%;
+      height: 100%;
+      border-radius: 28px;
+      border: 1px solid var(--line);
+      background:
+        linear-gradient(45deg, rgba(255,255,255,0.025) 25%, transparent 25%, transparent 75%, rgba(255,255,255,0.025) 75%),
+        linear-gradient(45deg, rgba(255,255,255,0.025) 25%, transparent 25%, transparent 75%, rgba(255,255,255,0.025) 75%),
+        linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+      background-size: 24px 24px, 24px 24px, auto;
+      background-position: 0 0, 12px 12px, 0 0;
+      overflow: hidden;
+      display: grid;
+      place-items: center;
+      position: relative;
+    }
+    .frame img {
+      max-width: 100%;
+      max-height: 100%;
+      transition: transform 120ms ease;
+      border-radius: 18px;
+      box-shadow: 0 30px 120px rgba(0,0,0,0.35);
+    }
+    .fit-contain img { object-fit: contain; width: auto; height: auto; }
+    .fit-cover img { object-fit: cover; width: 100%; height: 100%; border-radius: 0; }
+    .fit-actual img { max-width: none; max-height: none; }
+    .empty {
+      max-width: 560px;
+      text-align: center;
+      color: var(--muted);
+      padding: 24px;
+    }
+    .counter {
+      font-size: 13px;
+      color: var(--accent-2);
+      font-weight: 700;
+    }
+    a.brand-link {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 700;
+    }
+    .drop-overlay {
+      position: fixed;
+      inset: 18px;
+      border-radius: 30px;
+      border: 2px dashed rgba(244,154,72,0.55);
+      background: rgba(11, 13, 14, 0.78);
+      backdrop-filter: blur(12px);
+      display: grid;
+      place-items: center;
+      text-align: center;
+      padding: 28px;
+      z-index: 100;
+      pointer-events: none;
+    }
+    .drop-overlay strong {
+      display: block;
+      font-size: 28px;
+      letter-spacing: -0.04em;
+      margin-bottom: 8px;
+    }
+    .drop-overlay span {
+      color: var(--muted);
+      max-width: 32rem;
+      line-height: 1.5;
+    }
+    .drop-overlay[hidden] { display: none !important; }
+    @media (max-width: 900px) {
+      .app { grid-template-columns: 1fr; grid-template-rows: 280px 1fr; }
+      .sidebar { border-right: 0; border-bottom: 1px solid var(--line); }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <section class="brand">
+        <div class="eyebrow">HTML to App Demo</div>
+        <h1>ImageViewer</h1>
+        <p class="sub">Open image files directly from Finder or point the generated app at a folder to browse a local gallery.</p>
+        <p class="sub" style="margin-top:10px;">Made for <a class="brand-link" href="https://htmltoapp.app">HTML to App</a>.</p>
+      </section>
+      <section class="controls">
+        <div class="eyebrow">View Mode</div>
+        <div class="toolbar" id="modeButtons">
+          <button data-mode="contain" class="active">Fit</button>
+          <button data-mode="cover">Fill</button>
+          <button data-mode="actual">1:1</button>
+        </div>
+      </section>
+      <section class="thumbs" id="thumbs"></section>
+    </aside>
+
+    <main class="stage">
+      <header class="stage-header">
+        <div class="counter" id="counter">Waiting for images</div>
+        <div id="titleLine">Open the generated app with image files or folders to populate the gallery.</div>
+      </header>
+      <section class="stage-main">
+        <div class="frame fit-contain" id="frame">
+          <div class="empty" id="empty">
+            <h2>No images loaded</h2>
+            <p>Open image files or folders from Finder, or drag them into the window.</p>
+            <p>Suggested extensions: <strong>jpg, jpeg, png, gif, webp, bmp, tif, tiff</strong>.</p>
+          </div>
+          <img id="hero" alt="" hidden>
+        </div>
+      </section>
+      <footer class="stage-footer">
+        <div>Keyboard: <strong>←</strong> previous, <strong>→</strong> next</div>
+        <div id="footerMeta">Local file-powered gallery</div>
+      </footer>
+    </main>
+  </div>
+  <div class="drop-overlay" id="dropOverlay" hidden>
+    <div>
+      <strong>Drop images or folders</strong>
+      <span>ImageViewer will load supported image files from the dropped selection.</span>
+    </div>
+  </div>
+
+  <script>
+    const IMAGE_EXTENSIONS = new Set(["jpg", "jpeg", "png", "gif", "webp", "bmp", "tif", "tiff"]);
+    const state = {
+      items: [],
+      selectedIndex: 0,
+      mode: "contain"
+    };
+
+    const thumbs = document.getElementById("thumbs");
+    const hero = document.getElementById("hero");
+    const empty = document.getElementById("empty");
+    const frame = document.getElementById("frame");
+    const counter = document.getElementById("counter");
+    const titleLine = document.getElementById("titleLine");
+    const footerMeta = document.getElementById("footerMeta");
+    const dropOverlay = document.getElementById("dropOverlay");
+    let dropDepth = 0;
+
+    function extensionOf(name) {
+      const dot = name.lastIndexOf(".");
+      return dot === -1 ? "" : name.slice(dot + 1).toLowerCase();
+    }
+
+    function isImageItem(item) {
+      return !item.isDirectory && IMAGE_EXTENSIONS.has(extensionOf(item.name || item.path || ""));
+    }
+
+    async function listDirectory(item) {
+      const response = await fetch(item.listingURL || item.baseURL);
+      const payload = await response.json();
+      return Array.isArray(payload.entries) ? payload.entries : [];
+    }
+
+    function makeDroppedItem(file, explicitPath = "") {
+      const rawPath = explicitPath || file.webkitRelativePath || file.name;
+      return {
+        name: file.name,
+        path: rawPath.replace(/^\/+/, "") || file.name,
+        url: URL.createObjectURL(file),
+        isDirectory: false
+      };
+    }
+
+    function readFileEntry(entry) {
+      return new Promise((resolve, reject) => entry.file(resolve, reject));
+    }
+
+    function readDirectoryBatch(reader) {
+      return new Promise((resolve, reject) => reader.readEntries(resolve, reject));
+    }
+
+    async function collectDroppedFilesFromEntry(entry) {
+      if (!entry) return [];
+      if (entry.isFile) {
+        const file = await readFileEntry(entry);
+        return [makeDroppedItem(file, entry.fullPath || file.webkitRelativePath || file.name)];
+      }
+      if (!entry.isDirectory) return [];
+
+      const files = [];
+      const reader = entry.createReader();
+      while (true) {
+        const batch = await readDirectoryBatch(reader);
+        if (!batch.length) break;
+        for (const child of batch) {
+          const childFiles = await collectDroppedFilesFromEntry(child);
+          files.push(...childFiles);
+        }
+      }
+      return files;
+    }
+
+    async function collectDroppedFiles(dataTransfer) {
+      const files = [];
+      const items = Array.from(dataTransfer.items || []);
+      if (items.length) {
+        for (const item of items) {
+          if (item.kind !== "file") continue;
+          const entry = typeof item.webkitGetAsEntry === "function" ? item.webkitGetAsEntry() : null;
+          if (entry) {
+            try {
+              const entryFiles = await collectDroppedFilesFromEntry(entry);
+              files.push(...entryFiles);
+            } catch (error) {
+              console.error("Failed to read dropped entry", error);
+            }
+            continue;
+          }
+          const file = item.getAsFile ? item.getAsFile() : null;
+          if (file) files.push(makeDroppedItem(file));
+        }
+      } else {
+        for (const file of Array.from(dataTransfer.files || []))
+          files.push(makeDroppedItem(file));
+      }
+      return files;
+    }
+
+    function dragHasFiles(event) {
+      return !!(event.dataTransfer && Array.from(event.dataTransfer.types || []).includes("Files"));
+    }
+
+    function showDropOverlay() {
+      dropOverlay.hidden = false;
+    }
+
+    function hideDropOverlay() {
+      dropDepth = 0;
+      dropOverlay.hidden = true;
+    }
+
+    async function expandLaunchItems(launchItems) {
+      const results = [];
+      for (const item of launchItems) {
+        if (!item) continue;
+        if (isImageItem(item)) {
+          results.push({
+            name: item.name,
+            path: item.path,
+            url: item.url
+          });
+          continue;
+        }
+        if (item.isDirectory && (item.listingURL || item.baseURL)) {
+          try {
+            const entries = await listDirectory(item);
+            for (const entry of entries) {
+              if (isImageItem(entry)) {
+                results.push({
+                  name: entry.name,
+                  path: entry.path,
+                  url: entry.url
+                });
+              }
+            }
+          } catch (error) {
+            console.error("Failed to list directory", item, error);
+          }
+        }
+      }
+      return results;
+    }
+
+    function renderThumbs() {
+      thumbs.innerHTML = "";
+      state.items.forEach((item, index) => {
+        const button = document.createElement("button");
+        button.className = "thumb" + (index === state.selectedIndex ? " active" : "");
+        button.innerHTML = `
+          <img src="${item.url}" alt="">
+          <div>
+            <div class="thumb-title">${item.name}</div>
+            <div class="thumb-meta">${item.path}</div>
+          </div>
+        `;
+        button.addEventListener("click", () => {
+          state.selectedIndex = index;
+          renderSelection();
+          renderThumbs();
+        });
+        thumbs.appendChild(button);
+      });
+    }
+
+    function renderSelection() {
+      const item = state.items[state.selectedIndex];
+      if (!item) {
+        hero.hidden = true;
+        empty.hidden = false;
+        titleLine.textContent = "Open the generated app with image files or folders to populate the gallery.";
+        counter.textContent = "Waiting for images";
+        footerMeta.textContent = "Local file-powered gallery";
+        return;
+      }
+
+      hero.hidden = false;
+      empty.hidden = true;
+      hero.src = item.url;
+      hero.alt = item.name;
+      titleLine.textContent = item.name;
+      counter.textContent = `${state.selectedIndex + 1} of ${state.items.length}`;
+      footerMeta.textContent = item.path;
+    }
+
+    function setMode(mode) {
+      state.mode = mode;
+      frame.classList.remove("fit-contain", "fit-cover", "fit-actual");
+      frame.classList.add(`fit-${mode}`);
+      document.querySelectorAll("#modeButtons button").forEach((button) => {
+        button.classList.toggle("active", button.dataset.mode === mode);
+      });
+    }
+
+    function mergeUniqueItems(newItems, replaceExisting) {
+      const existing = replaceExisting ? [] : state.items.slice();
+      const seen = new Set(existing.map((item) => item.path));
+      for (const item of newItems) {
+        if (!item || !item.path || seen.has(item.path)) continue;
+        existing.push(item);
+        seen.add(item.path);
+      }
+      state.items = existing;
+      if (state.selectedIndex >= state.items.length) state.selectedIndex = 0;
+    }
+
+    async function handleLaunchItems(items, replaceExisting = false) {
+      const expanded = await expandLaunchItems(items);
+      mergeUniqueItems(expanded, replaceExisting);
+      renderThumbs();
+      renderSelection();
+    }
+
+    document.getElementById("modeButtons").addEventListener("click", (event) => {
+      const button = event.target.closest("button[data-mode]");
+      if (!button) return;
+      setMode(button.dataset.mode);
+    });
+
+    window.addEventListener("keydown", (event) => {
+      if (state.items.length === 0) return;
+      if (event.key === "ArrowRight") {
+        state.selectedIndex = (state.selectedIndex + 1) % state.items.length;
+        renderThumbs();
+        renderSelection();
+      } else if (event.key === "ArrowLeft") {
+        state.selectedIndex = (state.selectedIndex - 1 + state.items.length) % state.items.length;
+        renderThumbs();
+        renderSelection();
+      }
+    });
+
+    window.addEventListener("htmltoapp-open", (event) => {
+      const detail = event.detail || {};
+      handleLaunchItems(detail.items || [], !!detail.replaceExisting);
+    });
+
+    window.addEventListener("dragenter", (event) => {
+      if (!dragHasFiles(event)) return;
+      event.preventDefault();
+      dropDepth += 1;
+      showDropOverlay();
+    });
+
+    window.addEventListener("dragover", (event) => {
+      if (!dragHasFiles(event)) return;
+      event.preventDefault();
+      event.dataTransfer.dropEffect = "copy";
+      showDropOverlay();
+    });
+
+    window.addEventListener("dragleave", (event) => {
+      if (!dragHasFiles(event)) return;
+      dropDepth = Math.max(0, dropDepth - 1);
+      if (dropDepth === 0) hideDropOverlay();
+    });
+
+    window.addEventListener("drop", async (event) => {
+      if (!dragHasFiles(event)) return;
+      event.preventDefault();
+      hideDropOverlay();
+      const files = await collectDroppedFiles(event.dataTransfer);
+      if (files.length) handleLaunchItems(files, true);
+    });
+
+    setMode("contain");
+    handleLaunchItems((window.HTMLToApp && window.HTMLToApp.launchItems) || [], true);
+  </script>
+</body>
+</html>

@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="htmltoapp:open-with" content="permissions=camera">
+  <title>CameraViewer</title>
+  <style>
+    :root {
+      --bg: #091116;
+      --panel: rgba(14, 20, 25, 0.88);
+      --panel-2: rgba(23, 31, 37, 0.92);
+      --line: rgba(255,255,255,0.09);
+      --text: #eef4f7;
+      --muted: #8fa2ac;
+      --accent: #77ead6;
+      --accent-2: #ff9f5a;
+      --danger: #f28383;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      height: 100%;
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Avenir Next", "Segoe UI", sans-serif;
+    }
+    body {
+      background:
+        radial-gradient(circle at top left, rgba(119,234,214,0.12), transparent 28%),
+        radial-gradient(circle at bottom right, rgba(255,159,90,0.14), transparent 30%),
+        linear-gradient(180deg, #10181d, #071015 62%);
+    }
+    .app {
+      height: 100%;
+      display: grid;
+      grid-template-columns: 340px minmax(0, 1fr);
+    }
+    .sidebar, .stage {
+      min-height: 0;
+    }
+    .sidebar {
+      background: var(--panel);
+      backdrop-filter: blur(18px);
+      border-right: 1px solid var(--line);
+      display: grid;
+      grid-template-rows: auto auto auto 1fr;
+    }
+    .section {
+      padding: 18px;
+      border-bottom: 1px solid var(--line);
+    }
+    .eyebrow {
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      font-weight: 800;
+      color: var(--accent);
+    }
+    h1 {
+      margin: 10px 0 6px;
+      font-size: 34px;
+      letter-spacing: -0.05em;
+    }
+    .sub, .meta, .status-copy, .shot-time {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+    .row {
+      display: grid;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .row label {
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    button, select {
+      font: inherit;
+    }
+    button {
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.06);
+      color: var(--text);
+      border-radius: 999px;
+      padding: 9px 12px;
+      cursor: pointer;
+    }
+    button:hover { border-color: rgba(255,255,255,0.18); }
+    button.active {
+      background: linear-gradient(135deg, var(--accent), #52d1bf);
+      color: #062320;
+      border-color: transparent;
+      font-weight: 800;
+    }
+    button.capture {
+      background: linear-gradient(135deg, var(--accent-2), #ff7a4f);
+      color: #231107;
+      border-color: transparent;
+      font-weight: 800;
+    }
+    button.ghost {
+      background: rgba(255,255,255,0.03);
+    }
+    select {
+      width: 100%;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.06);
+      color: var(--text);
+      padding: 10px 12px;
+      outline: none;
+    }
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--danger);
+      box-shadow: 0 0 0 6px rgba(242,131,131,0.12);
+      flex: 0 0 auto;
+    }
+    .status-pill.live .dot {
+      background: var(--accent);
+      box-shadow: 0 0 0 6px rgba(119,234,214,0.12);
+    }
+    .shots {
+      overflow: auto;
+      padding: 12px;
+      display: grid;
+      gap: 10px;
+      align-content: start;
+    }
+    .shot {
+      width: 100%;
+      text-align: left;
+      border: 1px solid transparent;
+      border-radius: 20px;
+      padding: 10px;
+      background: rgba(255,255,255,0.04);
+      cursor: pointer;
+      color: inherit;
+      display: grid;
+      grid-template-columns: 86px minmax(0, 1fr);
+      gap: 12px;
+      align-items: center;
+    }
+    .shot.active {
+      border-color: rgba(255,159,90,0.36);
+      background: rgba(255,159,90,0.12);
+    }
+    .shot img {
+      width: 86px;
+      height: 64px;
+      object-fit: cover;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.05);
+    }
+    .shot-title {
+      font-size: 13px;
+      font-weight: 800;
+    }
+    .stage {
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      min-width: 0;
+    }
+    .stage-head, .stage-foot {
+      padding: 18px 22px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(0,0,0,0.14);
+    }
+    .stage-foot {
+      border-bottom: 0;
+      border-top: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: center;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .stage-main {
+      padding: 24px;
+      min-height: 0;
+    }
+    .viewer {
+      width: 100%;
+      height: 100%;
+      border-radius: 30px;
+      border: 1px solid var(--line);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01)),
+        radial-gradient(circle at top, rgba(119,234,214,0.08), transparent 28%);
+      overflow: hidden;
+      position: relative;
+      display: grid;
+      place-items: center;
+    }
+    .video-shell {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+    }
+    video, .photo-preview {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      background: #030607;
+    }
+    video.mirrored, .photo-preview.mirrored {
+      transform: scaleX(-1);
+    }
+    .photo-preview {
+      display: none;
+    }
+    .photo-preview.visible {
+      display: block;
+    }
+    .video-hidden {
+      display: none;
+    }
+    .grid-overlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 140ms ease;
+      background:
+        linear-gradient(to right, transparent 33.1%, rgba(255,255,255,0.18) 33.1%, rgba(255,255,255,0.18) 33.5%, transparent 33.5%, transparent 66.4%, rgba(255,255,255,0.18) 66.4%, rgba(255,255,255,0.18) 66.8%, transparent 66.8%),
+        linear-gradient(to bottom, transparent 33.1%, rgba(255,255,255,0.18) 33.1%, rgba(255,255,255,0.18) 33.5%, transparent 33.5%, transparent 66.4%, rgba(255,255,255,0.18) 66.4%, rgba(255,255,255,0.18) 66.8%, transparent 66.8%);
+    }
+    .grid-overlay.visible {
+      opacity: 1;
+    }
+    .badge-row {
+      position: absolute;
+      top: 18px;
+      left: 18px;
+      right: 18px;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      pointer-events: none;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(7, 11, 14, 0.58);
+      backdrop-filter: blur(14px);
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .badge .live-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #ff6d6d;
+      box-shadow: 0 0 0 5px rgba(255,109,109,0.16);
+      animation: pulse 1.3s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(0.85); opacity: 0.7; }
+    }
+    .empty {
+      max-width: 540px;
+      padding: 24px;
+      text-align: center;
+      color: var(--muted);
+    }
+    .empty strong {
+      display: block;
+      color: var(--text);
+      font-size: 28px;
+      letter-spacing: -0.04em;
+      margin-bottom: 10px;
+    }
+    .footer-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    a.brand-link {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 700;
+    }
+    .hidden-canvas {
+      display: none;
+    }
+    @media (max-width: 960px) {
+      .app {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto 1fr;
+      }
+      .sidebar {
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <section class="section">
+        <div class="eyebrow">HTML to App Demo</div>
+        <h1>CameraViewer</h1>
+        <p class="sub">Live camera preview with capture, mirroring, frame guides, and saved stills. Made for <a class="brand-link" href="https://htmltoapp.app" target="_blank" rel="noopener noreferrer">HTML to App</a>.</p>
+      </section>
+
+      <section class="section">
+        <div class="status-pill" id="status-pill">
+          <span class="dot"></span>
+          <span id="status-text">Waiting for camera access</span>
+        </div>
+        <div class="row">
+          <label for="camera-select">Camera</label>
+          <select id="camera-select"></select>
+        </div>
+        <div class="controls">
+          <button id="start-button" class="active">Start Camera</button>
+          <button id="capture-button" class="capture">Capture Still</button>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="eyebrow">Framing</div>
+        <div class="controls">
+          <button id="mirror-button" class="ghost active">Mirror</button>
+          <button id="grid-button" class="ghost">Grid</button>
+          <button id="live-button" class="ghost active">Live</button>
+          <button id="stills-button" class="ghost">Stills</button>
+        </div>
+        <p class="meta" id="mode-copy">Live mode shows the active camera feed. Captured stills stay available below.</p>
+      </section>
+
+      <section class="section shots" id="shots"></section>
+    </aside>
+
+    <main class="stage">
+      <header class="stage-head">
+        <div class="eyebrow">Preview</div>
+        <p class="sub" id="stage-copy">Allow camera access to start the live viewer.</p>
+      </header>
+
+      <section class="stage-main">
+        <div class="viewer">
+          <div class="video-shell">
+            <video id="video" autoplay playsinline muted class="mirrored"></video>
+            <img id="photo-preview" class="photo-preview" alt="Captured camera still preview">
+            <div class="grid-overlay" id="grid-overlay"></div>
+            <div class="badge-row">
+              <div class="badge"><span class="live-dot"></span><span id="live-label">LIVE CAMERA</span></div>
+              <div class="badge" id="resolution-badge">No stream</div>
+            </div>
+          </div>
+          <div class="empty" id="empty-state">
+            <strong>Camera access is required</strong>
+            <span>Start the camera to preview live video, switch devices, and capture still frames for offline reference.</span>
+          </div>
+        </div>
+      </section>
+
+      <footer class="stage-foot">
+        <span id="footer-text">Requires camera permission in the browser or generated app.</span>
+        <div class="footer-actions">
+          <button id="download-button" class="ghost">Download Current Still</button>
+          <button id="clear-button" class="ghost">Clear Stills</button>
+        </div>
+      </footer>
+    </main>
+  </div>
+
+  <canvas id="capture-canvas" class="hidden-canvas"></canvas>
+
+  <script>
+    const video = document.getElementById("video");
+    const photoPreview = document.getElementById("photo-preview");
+    const emptyState = document.getElementById("empty-state");
+    const statusPill = document.getElementById("status-pill");
+    const statusText = document.getElementById("status-text");
+    const stageCopy = document.getElementById("stage-copy");
+    const footerText = document.getElementById("footer-text");
+    const resolutionBadge = document.getElementById("resolution-badge");
+    const liveLabel = document.getElementById("live-label");
+    const modeCopy = document.getElementById("mode-copy");
+    const cameraSelect = document.getElementById("camera-select");
+    const startButton = document.getElementById("start-button");
+    const captureButton = document.getElementById("capture-button");
+    const mirrorButton = document.getElementById("mirror-button");
+    const gridButton = document.getElementById("grid-button");
+    const liveButton = document.getElementById("live-button");
+    const stillsButton = document.getElementById("stills-button");
+    const downloadButton = document.getElementById("download-button");
+    const clearButton = document.getElementById("clear-button");
+    const shots = document.getElementById("shots");
+    const gridOverlay = document.getElementById("grid-overlay");
+    const canvas = document.getElementById("capture-canvas");
+
+    let currentStream = null;
+    let currentDeviceId = "";
+    let mirrored = true;
+    let gridVisible = false;
+    let liveMode = true;
+    let stills = [];
+    let selectedStillId = "";
+
+    function updateStatus(text, live) {
+      statusText.textContent = text;
+      statusPill.classList.toggle("live", !!live);
+    }
+
+    function updateButtons() {
+      mirrorButton.classList.toggle("active", mirrored);
+      gridButton.classList.toggle("active", gridVisible);
+      liveButton.classList.toggle("active", liveMode);
+      stillsButton.classList.toggle("active", !liveMode);
+      gridOverlay.classList.toggle("visible", gridVisible && liveMode);
+      video.classList.toggle("mirrored", mirrored);
+      photoPreview.classList.toggle("mirrored", mirrored);
+      const hasStill = !!currentStill();
+      downloadButton.disabled = !hasStill;
+      clearButton.disabled = stills.length === 0;
+      captureButton.disabled = !currentStream;
+    }
+
+    function setViewerMode(nextLiveMode) {
+      liveMode = nextLiveMode;
+      const still = currentStill();
+      if (liveMode) {
+        video.classList.remove("video-hidden");
+        photoPreview.classList.remove("visible");
+        emptyState.style.display = currentStream ? "none" : "block";
+        stageCopy.textContent = currentStream ? "Live camera feed is active. Capture stills when you want to freeze a frame." : "Allow camera access to start the live viewer.";
+        liveLabel.textContent = "LIVE CAMERA";
+        modeCopy.textContent = "Live mode shows the active camera feed. Captured stills stay available below.";
+      } else if (still) {
+        photoPreview.src = still.dataURL;
+        photoPreview.classList.add("visible");
+        video.classList.add("video-hidden");
+        emptyState.style.display = "none";
+        stageCopy.textContent = `Showing saved still: ${still.title}.`;
+        liveLabel.textContent = "SAVED STILL";
+        modeCopy.textContent = "Still mode freezes the current selection so you can review framing and download the shot.";
+      } else {
+        photoPreview.classList.remove("visible");
+        video.classList.add("video-hidden");
+        emptyState.style.display = "block";
+        stageCopy.textContent = "Capture a still first, then switch to still mode to review it.";
+        liveLabel.textContent = "NO STILL";
+        modeCopy.textContent = "Still mode freezes the current selection so you can review framing and download the shot.";
+      }
+      updateButtons();
+    }
+
+    function currentStill() {
+      return stills.find((still) => still.id === selectedStillId) || stills[0] || null;
+    }
+
+    function updateResolutionLabel() {
+      if (!currentStream) {
+        resolutionBadge.textContent = "No stream";
+        return;
+      }
+      const track = currentStream.getVideoTracks()[0];
+      const settings = track ? track.getSettings() : null;
+      const width = settings && settings.width ? settings.width : video.videoWidth;
+      const height = settings && settings.height ? settings.height : video.videoHeight;
+      resolutionBadge.textContent = width && height ? `${width} x ${height}` : "Camera active";
+    }
+
+    async function enumerateCameras() {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) {
+        cameraSelect.innerHTML = "<option>Camera devices unavailable</option>";
+        cameraSelect.disabled = true;
+        return [];
+      }
+
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const cameras = devices.filter((device) => device.kind === "videoinput");
+      cameraSelect.innerHTML = "";
+
+      cameras.forEach((camera, index) => {
+        const option = document.createElement("option");
+        option.value = camera.deviceId;
+        option.textContent = camera.label || `Camera ${index + 1}`;
+        cameraSelect.appendChild(option);
+      });
+
+      cameraSelect.disabled = cameras.length === 0;
+      if (currentDeviceId && cameras.some((camera) => camera.deviceId === currentDeviceId))
+        cameraSelect.value = currentDeviceId;
+      else if (cameras[0])
+        currentDeviceId = cameras[0].deviceId;
+
+      return cameras;
+    }
+
+    async function stopStream() {
+      if (!currentStream)
+        return;
+
+      currentStream.getTracks().forEach((track) => track.stop());
+      currentStream = null;
+      updateResolutionLabel();
+    }
+
+    async function startCamera() {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        updateStatus("Camera API unavailable", false);
+        stageCopy.textContent = "This environment does not expose the browser camera API.";
+        footerText.textContent = "Use a browser or generated app build that supports camera access.";
+        emptyState.style.display = "block";
+        return;
+      }
+
+      await stopStream();
+      updateStatus("Requesting camera access", false);
+      stageCopy.textContent = "Waiting for camera permission.";
+
+      try {
+        const constraints = {
+          video: currentDeviceId ? { deviceId: { exact: currentDeviceId } } : { facingMode: "user" },
+          audio: false,
+        };
+        currentStream = await navigator.mediaDevices.getUserMedia(constraints);
+        video.srcObject = currentStream;
+        const track = currentStream.getVideoTracks()[0];
+        currentDeviceId = (track && track.getSettings().deviceId) || currentDeviceId;
+        await video.play();
+        await enumerateCameras();
+        updateStatus("Camera live", true);
+        footerText.textContent = "Camera access granted. Capture stills to save reference frames locally.";
+        emptyState.style.display = "none";
+        setViewerMode(true);
+        updateResolutionLabel();
+      } catch (error) {
+        updateStatus("Camera access denied", false);
+        stageCopy.textContent = error && error.message ? error.message : "The camera could not be started.";
+        footerText.textContent = "Check macOS camera permissions for the browser or generated app.";
+        emptyState.style.display = "block";
+        updateResolutionLabel();
+      }
+    }
+
+    function formatShotDate(date) {
+      return new Intl.DateTimeFormat(undefined, {
+        month: "short",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+        second: "2-digit",
+      }).format(date);
+    }
+
+    function renderShots() {
+      shots.innerHTML = "";
+
+      if (stills.length === 0) {
+        const empty = document.createElement("p");
+        empty.className = "status-copy";
+        empty.textContent = "No stills captured yet. Use Capture Still to save a frame.";
+        shots.appendChild(empty);
+        updateButtons();
+        return;
+      }
+
+      stills.forEach((still, index) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "shot";
+        if (still.id === selectedStillId)
+          button.classList.add("active");
+
+        const image = document.createElement("img");
+        image.src = still.dataURL;
+        image.alt = still.title;
+
+        const copy = document.createElement("div");
+        const title = document.createElement("div");
+        title.className = "shot-title";
+        title.textContent = still.title;
+
+        const time = document.createElement("div");
+        time.className = "shot-time";
+        time.textContent = `${formatShotDate(still.createdAt)}${index === 0 ? " • newest" : ""}`;
+
+        copy.appendChild(title);
+        copy.appendChild(time);
+        button.appendChild(image);
+        button.appendChild(copy);
+        button.addEventListener("click", () => {
+          selectedStillId = still.id;
+          if (!liveMode)
+            setViewerMode(false);
+          renderShots();
+        });
+        shots.appendChild(button);
+      });
+
+      updateButtons();
+    }
+
+    function captureStill() {
+      if (!currentStream || !video.videoWidth || !video.videoHeight)
+        return;
+
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const context = canvas.getContext("2d");
+      if (!context)
+        return;
+
+      if (mirrored) {
+        context.save();
+        context.translate(canvas.width, 0);
+        context.scale(-1, 1);
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        context.restore();
+      } else {
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+      }
+
+      const createdAt = new Date();
+      const id = Math.random().toString(36).slice(2, 10);
+      const title = `Still ${stills.length + 1}`;
+      stills = [{
+        id,
+        title,
+        createdAt,
+        dataURL: canvas.toDataURL("image/png"),
+      }, ...stills].slice(0, 18);
+      selectedStillId = id;
+      renderShots();
+      setViewerMode(false);
+      footerText.textContent = "Still captured. Use Download Current Still to export it as a PNG.";
+    }
+
+    function downloadCurrentStill() {
+      const still = currentStill();
+      if (!still)
+        return;
+
+      const link = document.createElement("a");
+      const timestamp = still.createdAt.toISOString().replace(/[:]/g, "-");
+      link.href = still.dataURL;
+      link.download = `CameraViewer-${timestamp}.png`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    }
+
+    function clearStills() {
+      stills = [];
+      selectedStillId = "";
+      renderShots();
+      setViewerMode(true);
+      footerText.textContent = "Captured stills cleared.";
+    }
+
+    startButton.addEventListener("click", startCamera);
+    captureButton.addEventListener("click", captureStill);
+    mirrorButton.addEventListener("click", () => {
+      mirrored = !mirrored;
+      updateButtons();
+    });
+    gridButton.addEventListener("click", () => {
+      gridVisible = !gridVisible;
+      updateButtons();
+    });
+    liveButton.addEventListener("click", () => setViewerMode(true));
+    stillsButton.addEventListener("click", () => setViewerMode(false));
+    downloadButton.addEventListener("click", downloadCurrentStill);
+    clearButton.addEventListener("click", clearStills);
+    cameraSelect.addEventListener("change", async () => {
+      currentDeviceId = cameraSelect.value;
+      await startCamera();
+    });
+    video.addEventListener("loadedmetadata", updateResolutionLabel);
+
+    renderShots();
+    updateButtons();
+    enumerateCameras().catch(() => {
+      cameraSelect.innerHTML = "<option>Camera unavailable</option>";
+      cameraSelect.disabled = true;
+    });
+  </script>
+</body>
+</html>

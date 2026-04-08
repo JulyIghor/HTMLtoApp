@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="htmltoapp:open-with" content="role=editor; files=jpg,jpeg,png,webp; camera=false; microphone=false; location=false">
+  <title>GeometryPad</title>
+  <style>
+    :root {
+      --bg: #131719;
+      --panel: rgba(20, 26, 28, 0.84);
+      --line: rgba(255,255,255,0.08);
+      --text: #eef3f1;
+      --muted: #93a2a7;
+      --accent: #8de0d4;
+      --accent-2: #f2a55c;
+      --danger: #ed7f7f;
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; background: var(--bg); color: var(--text); font-family: "Avenir Next", "Segoe UI", sans-serif; }
+    body {
+      background:
+        radial-gradient(circle at top left, rgba(141,224,212,0.12), transparent 28%),
+        radial-gradient(circle at bottom right, rgba(242,165,92,0.12), transparent 30%),
+        linear-gradient(180deg, #171d1f, #0f1214 65%);
+    }
+    .app {
+      height: 100%;
+      display: grid;
+      grid-template-columns: 320px minmax(0, 1fr);
+    }
+    .sidebar, .workspace {
+      background: var(--panel);
+      backdrop-filter: blur(18px);
+    }
+    .sidebar {
+      border-right: 1px solid var(--line);
+      display: grid;
+      grid-template-rows: auto auto auto 1fr;
+      min-height: 0;
+    }
+    .section {
+      padding: 18px;
+      border-bottom: 1px solid var(--line);
+    }
+    .eyebrow {
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      font-weight: 800;
+      color: var(--accent);
+    }
+    h1 {
+      margin: 10px 0 6px;
+      font-size: 34px;
+      letter-spacing: -0.05em;
+    }
+    p { margin: 0; color: var(--muted); line-height: 1.5; }
+    .button-grid, .palette {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    button, input, label {
+      font: inherit;
+    }
+    button {
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.06);
+      color: var(--text);
+      border-radius: 999px;
+      padding: 9px 12px;
+      cursor: pointer;
+    }
+    button.active { background: linear-gradient(135deg, var(--accent), #59ccb9); color: #0b2622; border-color: transparent; font-weight: 800; }
+    button.warn { border-color: rgba(237,127,127,0.3); color: #ffd0d0; }
+    .row {
+      display: grid;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .row label { color: var(--muted); font-size: 13px; }
+    .assets {
+      overflow: auto;
+      padding: 12px;
+      display: grid;
+      gap: 10px;
+      align-content: start;
+    }
+    .asset {
+      width: 100%;
+      text-align: left;
+      border-radius: 18px;
+      padding: 10px;
+      display: grid;
+      grid-template-columns: 60px minmax(0, 1fr);
+      gap: 10px;
+      align-items: center;
+    }
+    .asset.active { border-color: rgba(242,165,92,0.36); background: rgba(242,165,92,0.13); }
+    .asset img {
+      width: 60px;
+      height: 60px;
+      object-fit: cover;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.05);
+    }
+    .asset strong { display: block; font-size: 13px; word-break: break-word; }
+    .asset span { display: block; font-size: 12px; color: var(--muted); margin-top: 4px; word-break: break-word; }
+    .workspace {
+      min-width: 0;
+      display: grid;
+      grid-template-rows: auto 1fr;
+    }
+    .workspace-head {
+      padding: 18px 22px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+    }
+    .canvas-wrap {
+      min-height: 0;
+      padding: 22px;
+    }
+    .canvas-shell {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      border-radius: 28px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      background:
+        linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px),
+        linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
+        linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+      background-size: 24px 24px, 24px 24px, auto;
+    }
+    .canvas-shell img, .canvas-shell canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
+    .canvas-shell img {
+      object-fit: contain;
+      background: rgba(0,0,0,0.12);
+      pointer-events: none;
+    }
+    canvas { cursor: crosshair; }
+    a.brand-link { color: var(--accent); text-decoration: none; font-weight: 700; }
+    .drop-overlay {
+      position: fixed;
+      inset: 18px;
+      border-radius: 30px;
+      border: 2px dashed rgba(141,224,212,0.55);
+      background: rgba(12, 15, 16, 0.78);
+      backdrop-filter: blur(12px);
+      display: grid;
+      place-items: center;
+      text-align: center;
+      padding: 28px;
+      z-index: 100;
+      pointer-events: none;
+    }
+    .drop-overlay strong {
+      display: block;
+      font-size: 28px;
+      letter-spacing: -0.04em;
+      margin-bottom: 8px;
+    }
+    .drop-overlay span {
+      color: var(--muted);
+      max-width: 32rem;
+      line-height: 1.5;
+    }
+    .drop-overlay[hidden] { display: none !important; }
+    @media (max-width: 1000px) {
+      .app { grid-template-columns: 1fr; grid-template-rows: 360px 1fr; }
+      .sidebar { border-right: 0; border-bottom: 1px solid var(--line); }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <section class="section">
+        <div class="eyebrow">HTML to App Demo</div>
+        <h1>GeometryPad</h1>
+        <p>Draw precise shapes on a blank board or on top of an image opened from Finder. Export the composition as a PNG.</p>
+        <p style="margin-top:8px;">Made for <a class="brand-link" href="https://htmltoapp.app">HTML to App</a>.</p>
+      </section>
+
+      <section class="section">
+        <div class="eyebrow">Tools</div>
+        <div class="button-grid" id="toolButtons">
+          <button data-tool="line" class="active">Line</button>
+          <button data-tool="rect">Rect</button>
+          <button data-tool="ellipse">Ellipse</button>
+          <button data-tool="arrow">Arrow</button>
+          <button data-tool="label">Label</button>
+        </div>
+        <div class="row">
+          <label for="strokeColor">Stroke Color</label>
+          <input id="strokeColor" type="color" value="#8de0d4">
+        </div>
+        <div class="row">
+          <label for="strokeWidth">Stroke Width</label>
+          <input id="strokeWidth" type="range" min="1" max="18" value="4">
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="eyebrow">Actions</div>
+        <div class="button-grid">
+          <button id="undoButton">Undo</button>
+          <button id="clearButton" class="warn">Clear</button>
+          <button id="exportButton">Export PNG</button>
+        </div>
+      </section>
+
+      <section class="assets" id="assets"></section>
+    </aside>
+
+    <section class="workspace">
+      <div class="workspace-head">
+        <div>
+          <div class="eyebrow">Canvas</div>
+          <div id="status">Blank board ready. Drag an image or image folder here to use it as a background.</div>
+        </div>
+        <div id="pathLabel" style="color: var(--muted); font-size: 13px;">No background image selected</div>
+      </div>
+      <div class="canvas-wrap">
+        <div class="canvas-shell" id="canvasShell">
+          <img id="backgroundImage" alt="" hidden>
+          <canvas id="canvas"></canvas>
+        </div>
+      </div>
+    </section>
+  </div>
+  <div class="drop-overlay" id="dropOverlay" hidden>
+    <div>
+      <strong>Drop images or folders</strong>
+      <span>GeometryPad will import supported image files so you can draw on top of them.</span>
+    </div>
+  </div>
+
+  <script>
+    const IMAGE_EXTENSIONS = new Set(["jpg", "jpeg", "png", "gif", "webp", "bmp", "tif", "tiff"]);
+    const state = {
+      tool: "line",
+      shapes: [],
+      drawing: null,
+      assets: [],
+      assetIndex: -1
+    };
+
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+    const backgroundImage = document.getElementById("backgroundImage");
+    const assetsEl = document.getElementById("assets");
+    const statusEl = document.getElementById("status");
+    const pathLabel = document.getElementById("pathLabel");
+    const toolButtons = document.getElementById("toolButtons");
+    const strokeColor = document.getElementById("strokeColor");
+    const strokeWidth = document.getElementById("strokeWidth");
+    const dropOverlay = document.getElementById("dropOverlay");
+    let dropDepth = 0;
+
+    function extensionOf(name) {
+      const dot = name.lastIndexOf(".");
+      return dot === -1 ? "" : name.slice(dot + 1).toLowerCase();
+    }
+
+    function isImageItem(item) {
+      return !item.isDirectory && IMAGE_EXTENSIONS.has(extensionOf(item.name || item.path || ""));
+    }
+
+    async function listDirectory(item) {
+      const response = await fetch(item.listingURL || item.baseURL);
+      const payload = await response.json();
+      return Array.isArray(payload.entries) ? payload.entries : [];
+    }
+
+    function makeDroppedItem(file, explicitPath = "") {
+      const rawPath = explicitPath || file.webkitRelativePath || file.name;
+      return {
+        name: file.name,
+        path: rawPath.replace(/^\/+/, "") || file.name,
+        url: URL.createObjectURL(file),
+        isDirectory: false
+      };
+    }
+
+    function readFileEntry(entry) {
+      return new Promise((resolve, reject) => entry.file(resolve, reject));
+    }
+
+    function readDirectoryBatch(reader) {
+      return new Promise((resolve, reject) => reader.readEntries(resolve, reject));
+    }
+
+    async function collectDroppedFilesFromEntry(entry) {
+      if (!entry) return [];
+      if (entry.isFile) {
+        const file = await readFileEntry(entry);
+        return [makeDroppedItem(file, entry.fullPath || file.webkitRelativePath || file.name)];
+      }
+      if (!entry.isDirectory) return [];
+
+      const files = [];
+      const reader = entry.createReader();
+      while (true) {
+        const batch = await readDirectoryBatch(reader);
+        if (!batch.length) break;
+        for (const child of batch) {
+          const childFiles = await collectDroppedFilesFromEntry(child);
+          files.push(...childFiles);
+        }
+      }
+      return files;
+    }
+
+    async function collectDroppedFiles(dataTransfer) {
+      const files = [];
+      const items = Array.from(dataTransfer.items || []);
+      if (items.length) {
+        for (const item of items) {
+          if (item.kind !== "file") continue;
+          const entry = typeof item.webkitGetAsEntry === "function" ? item.webkitGetAsEntry() : null;
+          if (entry) {
+            try {
+              const entryFiles = await collectDroppedFilesFromEntry(entry);
+              files.push(...entryFiles);
+            } catch (error) {
+              console.error("Failed to read dropped entry", error);
+            }
+            continue;
+          }
+          const file = item.getAsFile ? item.getAsFile() : null;
+          if (file) files.push(makeDroppedItem(file));
+        }
+      } else {
+        for (const file of Array.from(dataTransfer.files || []))
+          files.push(makeDroppedItem(file));
+      }
+      return files;
+    }
+
+    function dragHasFiles(event) {
+      return !!(event.dataTransfer && Array.from(event.dataTransfer.types || []).includes("Files"));
+    }
+
+    function showDropOverlay() {
+      dropOverlay.hidden = false;
+    }
+
+    function hideDropOverlay() {
+      dropDepth = 0;
+      dropOverlay.hidden = true;
+    }
+
+    function resizeCanvas() {
+      const dpr = window.devicePixelRatio || 1;
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = Math.max(1, Math.floor(rect.width * dpr));
+      canvas.height = Math.max(1, Math.floor(rect.height * dpr));
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      redraw();
+    }
+
+    function pointFromEvent(event) {
+      const rect = canvas.getBoundingClientRect();
+      return { x: event.clientX - rect.left, y: event.clientY - rect.top };
+    }
+
+    function renderShapeOnContext(targetCtx, shape) {
+      targetCtx.save();
+      targetCtx.lineWidth = shape.width;
+      targetCtx.strokeStyle = shape.color;
+      targetCtx.fillStyle = shape.color;
+      targetCtx.lineCap = "round";
+      targetCtx.lineJoin = "round";
+
+      if (shape.type === "line" || shape.type === "arrow") {
+        targetCtx.beginPath();
+        targetCtx.moveTo(shape.x1, shape.y1);
+        targetCtx.lineTo(shape.x2, shape.y2);
+        targetCtx.stroke();
+        if (shape.type === "arrow") {
+          const angle = Math.atan2(shape.y2 - shape.y1, shape.x2 - shape.x1);
+          const head = Math.max(12, shape.width * 3.5);
+          targetCtx.beginPath();
+          targetCtx.moveTo(shape.x2, shape.y2);
+          targetCtx.lineTo(shape.x2 - head * Math.cos(angle - Math.PI / 7), shape.y2 - head * Math.sin(angle - Math.PI / 7));
+          targetCtx.lineTo(shape.x2 - head * Math.cos(angle + Math.PI / 7), shape.y2 - head * Math.sin(angle + Math.PI / 7));
+          targetCtx.closePath();
+          targetCtx.fill();
+        }
+      } else if (shape.type === "rect") {
+        const x = Math.min(shape.x1, shape.x2);
+        const y = Math.min(shape.y1, shape.y2);
+        const w = Math.abs(shape.x2 - shape.x1);
+        const h = Math.abs(shape.y2 - shape.y1);
+        targetCtx.strokeRect(x, y, w, h);
+      } else if (shape.type === "ellipse") {
+        const cx = (shape.x1 + shape.x2) / 2;
+        const cy = (shape.y1 + shape.y2) / 2;
+        const rx = Math.abs(shape.x2 - shape.x1) / 2;
+        const ry = Math.abs(shape.y2 - shape.y1) / 2;
+        targetCtx.beginPath();
+        targetCtx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
+        targetCtx.stroke();
+      } else if (shape.type === "label") {
+        targetCtx.font = `${Math.max(16, shape.width * 6)}px "Avenir Next", sans-serif`;
+        targetCtx.fillText(shape.text, shape.x1, shape.y1);
+      }
+
+      targetCtx.restore();
+    }
+
+    function drawShape(shape) {
+      renderShapeOnContext(ctx, shape);
+    }
+
+    function redraw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      state.shapes.forEach(drawShape);
+      if (state.drawing) drawShape(state.drawing);
+    }
+
+    function renderAssets() {
+      assetsEl.innerHTML = "";
+      if (!state.assets.length) {
+        assetsEl.innerHTML = `<p>No opened images yet. Launch the generated app with an image file or an image folder.</p>`;
+        return;
+      }
+      state.assets.forEach((asset, index) => {
+        const button = document.createElement("button");
+        button.className = "asset" + (index === state.assetIndex ? " active" : "");
+        button.innerHTML = `<img src="${asset.url}" alt=""><div><strong>${asset.name}</strong><span>${asset.path}</span></div>`;
+        button.addEventListener("click", () => {
+          setBackground(index);
+        });
+        assetsEl.appendChild(button);
+      });
+    }
+
+    function setBackground(index) {
+      state.assetIndex = index;
+      const asset = state.assets[index];
+      if (!asset) {
+        backgroundImage.hidden = true;
+        backgroundImage.removeAttribute("src");
+        pathLabel.textContent = "No background image selected";
+      } else {
+        backgroundImage.hidden = false;
+        backgroundImage.src = asset.url;
+        pathLabel.textContent = asset.path;
+      }
+      renderAssets();
+    }
+
+    function applyTool(tool) {
+      state.tool = tool;
+      toolButtons.querySelectorAll("button").forEach((button) => button.classList.toggle("active", button.dataset.tool === tool));
+      statusEl.textContent = `Tool: ${tool}`;
+    }
+
+    function shapeFromPoints(start, end) {
+      const base = {
+        type: state.tool,
+        color: strokeColor.value,
+        width: Number(strokeWidth.value),
+        x1: start.x,
+        y1: start.y,
+        x2: end.x,
+        y2: end.y
+      };
+      if (state.tool === "label") {
+        const text = window.prompt("Label text", "GeometryPad");
+        if (!text) return null;
+        base.text = text;
+        base.x2 = start.x;
+        base.y2 = start.y;
+      }
+      return base;
+    }
+
+    canvas.addEventListener("pointerdown", (event) => {
+      const start = pointFromEvent(event);
+      const shape = shapeFromPoints(start, start);
+      if (!shape) return;
+      state.drawing = shape;
+      if (shape.type === "label") {
+        state.shapes.push(shape);
+        state.drawing = null;
+        redraw();
+      }
+    });
+
+    canvas.addEventListener("pointermove", (event) => {
+      if (!state.drawing) return;
+      const point = pointFromEvent(event);
+      state.drawing.x2 = point.x;
+      state.drawing.y2 = point.y;
+      redraw();
+    });
+
+    window.addEventListener("pointerup", () => {
+      if (!state.drawing) return;
+      state.shapes.push(state.drawing);
+      state.drawing = null;
+      redraw();
+    });
+
+    document.getElementById("undoButton").addEventListener("click", () => {
+      state.shapes.pop();
+      redraw();
+    });
+
+    document.getElementById("clearButton").addEventListener("click", () => {
+      state.shapes = [];
+      redraw();
+    });
+
+    document.getElementById("exportButton").addEventListener("click", () => {
+      const rect = canvas.getBoundingClientRect();
+      const exportCanvas = document.createElement("canvas");
+      exportCanvas.width = Math.max(1, Math.floor(rect.width));
+      exportCanvas.height = Math.max(1, Math.floor(rect.height));
+      const exportCtx = exportCanvas.getContext("2d");
+      exportCtx.fillStyle = "#101517";
+      exportCtx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
+      if (!backgroundImage.hidden && backgroundImage.complete) {
+        const imageAspect = backgroundImage.naturalWidth / backgroundImage.naturalHeight;
+        const canvasAspect = exportCanvas.width / exportCanvas.height;
+        let drawWidth = exportCanvas.width;
+        let drawHeight = exportCanvas.height;
+        let offsetX = 0;
+        let offsetY = 0;
+        if (imageAspect > canvasAspect) {
+          drawHeight = exportCanvas.width / imageAspect;
+          offsetY = (exportCanvas.height - drawHeight) / 2;
+        } else {
+          drawWidth = exportCanvas.height * imageAspect;
+          offsetX = (exportCanvas.width - drawWidth) / 2;
+        }
+        exportCtx.drawImage(backgroundImage, offsetX, offsetY, drawWidth, drawHeight);
+      }
+      const scaleX = exportCanvas.width / rect.width;
+      const scaleY = exportCanvas.height / rect.height;
+      exportCtx.scale(scaleX, scaleY);
+      const drawOn = exportCtx;
+      for (const shape of state.shapes) {
+        renderShapeOnContext(drawOn, shape);
+      }
+
+      exportCanvas.toBlob((blob) => {
+        if (!blob) {
+          statusEl.textContent = "Export failed";
+          return;
+        }
+
+        const objectURL = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = objectURL;
+        link.download = "geometry-pad-export.png";
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.setTimeout(() => URL.revokeObjectURL(objectURL), 1000);
+        statusEl.textContent = "Exported PNG";
+      }, "image/png");
+    });
+
+    async function handleLaunchItems(items, replaceExisting = false) {
+      const assets = [];
+      for (const item of items) {
+        if (!item) continue;
+        if (isImageItem(item)) {
+          assets.push({ name: item.name, path: item.path, url: item.url });
+          continue;
+        }
+        if (item.isDirectory && (item.listingURL || item.baseURL)) {
+          try {
+            const entries = await listDirectory(item);
+            for (const entry of entries) if (isImageItem(entry)) assets.push({ name: entry.name, path: entry.path, url: entry.url });
+          } catch (error) {
+            console.error(error);
+          }
+        }
+      }
+
+      state.assets = replaceExisting
+        ? assets
+        : state.assets.concat(assets.filter((asset) => !state.assets.some((existing) => existing.path === asset.path)));
+      renderAssets();
+      if (replaceExisting && state.assets.length) setBackground(0);
+      if (!replaceExisting && state.assetIndex === -1 && state.assets.length) setBackground(0);
+    }
+
+    toolButtons.addEventListener("click", (event) => {
+      const button = event.target.closest("button[data-tool]");
+      if (!button) return;
+      applyTool(button.dataset.tool);
+    });
+
+    window.addEventListener("resize", resizeCanvas);
+    window.addEventListener("htmltoapp-open", (event) => {
+      const detail = event.detail || {};
+      handleLaunchItems(detail.items || [], !!detail.replaceExisting);
+    });
+
+    window.addEventListener("dragenter", (event) => {
+      if (!dragHasFiles(event)) return;
+      event.preventDefault();
+      dropDepth += 1;
+      showDropOverlay();
+    });
+
+    window.addEventListener("dragover", (event) => {
+      if (!dragHasFiles(event)) return;
+      event.preventDefault();
+      event.dataTransfer.dropEffect = "copy";
+      showDropOverlay();
+    });
+
+    window.addEventListener("dragleave", (event) => {
+      if (!dragHasFiles(event)) return;
+      dropDepth = Math.max(0, dropDepth - 1);
+      if (dropDepth === 0) hideDropOverlay();
+    });
+
+    window.addEventListener("drop", async (event) => {
+      if (!dragHasFiles(event)) return;
+      event.preventDefault();
+      hideDropOverlay();
+      const files = await collectDroppedFiles(event.dataTransfer);
+      if (files.length) handleLaunchItems(files, true);
+    });
+
+    applyTool("line");
+    resizeCanvas();
+    handleLaunchItems((window.HTMLToApp && window.HTMLToApp.launchItems) || [], true);
+  </script>
+</body>
+</html>

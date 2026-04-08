@@ -1,0 +1,125 @@
+# HTML to App Community Demos
+
+This repository is a small set of standalone HTML demos built for [HTML to App](https://htmltoapp.app).
+
+HTML to App lets you turn an HTML file or folder into a native macOS app bundle. You can use it to package offline tools, media viewers, internal utilities, dashboards, launchers, and file-driven apps without rewriting them in AppKit or SwiftUI.
+
+## What HTML to App Can Do
+
+- Convert a local HTML file or an entire site folder into a macOS app.
+- Bundle assets inside the app so the result works offline.
+- Launch apps with a native window, standard menu bar, copy/paste shortcuts, and normal text editing behavior inside web content.
+- Customize the generated app name, icon, and visual label treatment.
+- Register the generated app as a Finder handler for selected file extensions or folders.
+- Open compatible files and folders directly from Finder into the web app.
+- Pass opened items into JavaScript through the built-in bridge.
+- Preselect app permissions such as camera, microphone, or location services from HTML metadata.
+- Use drag and drop inside the example apps for local files and folders.
+- Support media-style apps such as image viewers, video players, audio players, and folder browsers.
+- Support canvas-style tools such as annotation or geometry drawing apps.
+- Export standalone app bundles that are easy to test, share, and submit.
+
+## Opened Files and Permissions
+
+Generated apps can be configured with **Open With** settings so macOS sends matching files or folders into the app. In the page JavaScript, the launcher provides launch items through:
+
+- `window.HTMLToApp.launchItems`
+- `window` event `htmltoapp-open`
+
+For file-backed apps, this makes it possible to build viewers and players that react to real Finder-opened content instead of only loading bundled assets.
+
+HTML to App can also auto-detect recommended Open With settings and app permissions from your main HTML file. Add this in the document `<head>`:
+
+```html
+<meta name="htmltoapp:open-with" content="role=viewer; files=jpg,jpeg,png; folders=true; permissions=camera">
+```
+
+Supported keys:
+- `role=viewer` or `role=editor`
+- `files=ext1,ext2,ext3`
+- `folders=true` or `folders=false`
+- `permissions=camera,microphone,location`
+- `camera=true`, `microphone=true`, or `location=true` as explicit booleans
+- `mic`, `audio`, `geolocation`, and `gps` are accepted aliases
+
+When someone browses that HTML source in HTML to App, the app can automatically enable Open With, prefill the role, file extensions, and files/folders options, and preselect requested app permissions in Advanced Settings.
+
+## Examples
+
+Each example below is a single HTML file you can package with HTML to App.
+
+### [Image Viewer](./examples/ImageViewer.html)
+
+Local gallery viewer for images opened from Finder or from a folder.
+
+Recommended Open With setup:
+- Role: `Viewer`
+- Accept: files and folders
+- Extensions: `jpg, jpeg, png, gif, webp, bmp, tif, tiff`
+- Permissions: none
+
+### [Geometry Pad](./examples/GeometryPad.html)
+
+Canvas app for drawing rectangles, circles, arrows, lines, and labels. It can also use an opened image as the background.
+
+Recommended Open With setup:
+- Role: `Editor`
+- Accept: files
+- Extensions: `jpg, jpeg, png, webp`
+- Permissions: none
+
+### [Video Player](./examples/VideoPlayer.html)
+
+Local video player with playlist-style navigation for one file or a whole folder.
+
+Recommended Open With setup:
+- Role: `Viewer`
+- Accept: files and folders
+- Extensions: `mp4, mov, m4v`
+- Permissions: none
+
+### [Audio Player](./examples/AudioPlayer.html)
+
+Simple local audio player with queue support for tracks or album folders.
+
+Recommended Open With setup:
+- Role: `Viewer`
+- Accept: files and folders
+- Extensions: `mp3, m4a, aac, wav, aif, aiff`
+- Permissions: none
+
+### [Camera Viewer](./examples/CameraViewer.html)
+
+Live camera viewer with device switching, mirroring, framing guides, still capture, and offline snapshots.
+
+Recommended Open With setup:
+- None needed
+- Permissions: `Camera Access`
+
+### [Folder Board](./examples/FolderBoard.html)
+
+Mixed-media folder browser for quickly previewing assets such as images, video, audio, and text files.
+
+Recommended Open With setup:
+- Role: `Viewer`
+- Accept: folders
+- Extensions: none
+- Permissions: none
+
+## Typical Uses
+
+- Image viewer
+- Photo browser
+- Video player
+- Audio player
+- Camera preview tool
+- Asset browser
+- Internal dashboard
+- Presentation app
+- Documentation shell
+- Kiosk-style launcher
+- Drawing or annotation utility
+
+## Website
+
+Made for [HTML to App](https://htmltoapp.app).

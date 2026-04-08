@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="htmltoapp:open-with" content="role=viewer; folders=true; camera=false; microphone=false; location=false">
+  <title>FolderBoard</title>
+  <style>
+    :root {
+      --bg: #f1efe7;
+      --panel: rgba(255,255,255,0.75);
+      --line: rgba(24, 33, 38, 0.1);
+      --text: #1a2226;
+      --muted: #677178;
+      --accent: #0b7a78;
+      --accent-2: #db8b3d;
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; font-family: "Avenir Next", "Segoe UI", sans-serif; color: var(--text); background: var(--bg); }
+    body {
+      background:
+        radial-gradient(circle at top left, rgba(11,122,120,0.12), transparent 28%),
+        radial-gradient(circle at bottom right, rgba(219,139,61,0.13), transparent 32%),
+        linear-gradient(180deg, #faf8f2, #ece7d9 72%);
+    }
+    .app {
+      height: 100%;
+      display: grid;
+      grid-template-columns: 320px minmax(0, 1fr);
+    }
+    .sidebar, .preview {
+      background: var(--panel);
+      backdrop-filter: blur(18px);
+    }
+    .sidebar {
+      border-right: 1px solid var(--line);
+      display: grid;
+      grid-template-rows: auto 1fr;
+      min-height: 0;
+    }
+    .head, .preview-head {
+      padding: 22px;
+      border-bottom: 1px solid var(--line);
+    }
+    .eyebrow { font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent); font-weight: 800; }
+    h1 { margin: 10px 0 8px; font-size: 34px; letter-spacing: -0.05em; }
+    p { margin: 0; color: var(--muted); line-height: 1.5; }
+    .items {
+      overflow: auto;
+      padding: 12px;
+      display: grid;
+      gap: 10px;
+      align-content: start;
+    }
+    .entry {
+      width: 100%;
+      text-align: left;
+      background: rgba(255,255,255,0.62);
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      padding: 12px;
+      cursor: pointer;
+      font: inherit;
+      color: inherit;
+    }
+    .entry.active { border-color: rgba(11,122,120,0.35); background: rgba(11,122,120,0.08); }
+    .entry-name { font-weight: 700; }
+    .entry-meta { color: var(--muted); font-size: 12px; margin-top: 4px; word-break: break-word; }
+    .preview {
+      display: grid;
+      grid-template-rows: auto 1fr;
+      min-width: 0;
+      min-height: 0;
+    }
+    .preview-body {
+      padding: 24px;
+      min-height: 0;
+      display: grid;
+      place-items: center;
+    }
+    .stage {
+      width: 100%;
+      height: 100%;
+      border-radius: 28px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.72);
+      display: grid;
+      place-items: center;
+      overflow: auto;
+      padding: 20px;
+    }
+    .stage img, .stage video { max-width: 100%; max-height: 100%; border-radius: 18px; box-shadow: 0 22px 90px rgba(0,0,0,0.12); }
+    .stage audio { width: min(620px, 100%); }
+    pre {
+      width: 100%;
+      margin: 0;
+      white-space: pre-wrap;
+      word-break: break-word;
+      color: #273238;
+      font-family: "SF Mono", "Menlo", monospace;
+    }
+    .empty { max-width: 540px; text-align: center; }
+    a.brand-link { color: var(--accent); text-decoration: none; font-weight: 700; }
+    .drop-overlay {
+      position: fixed;
+      inset: 18px;
+      border-radius: 30px;
+      border: 2px dashed rgba(11,122,120,0.4);
+      background: rgba(250, 248, 242, 0.78);
+      backdrop-filter: blur(12px);
+      display: grid;
+      place-items: center;
+      text-align: center;
+      padding: 28px;
+      z-index: 100;
+      pointer-events: none;
+    }
+    .drop-overlay strong {
+      display: block;
+      font-size: 28px;
+      letter-spacing: -0.04em;
+      margin-bottom: 8px;
+    }
+    .drop-overlay span {
+      color: var(--muted);
+      max-width: 32rem;
+      line-height: 1.5;
+    }
+    .drop-overlay[hidden] { display: none !important; }
+    @media (max-width: 900px) {
+      .app { grid-template-columns: 1fr; grid-template-rows: 280px 1fr; }
+      .sidebar { border-right: 0; border-bottom: 1px solid var(--line); }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="head">
+        <div class="eyebrow">HTML to App Demo</div>
+        <h1>FolderBoard</h1>
+        <p>Open a folder to inspect images, video, audio, and text-like files from the local bridge.</p>
+        <p style="margin-top:8px;">Made for <a class="brand-link" href="https://htmltoapp.app">HTML to App</a>.</p>
+      </div>
+      <div class="items" id="items"></div>
+    </aside>
+    <section class="preview">
+      <div class="preview-head">
+        <div class="eyebrow">Preview</div>
+        <div id="title">No folder loaded</div>
+      </div>
+      <div class="preview-body">
+        <div class="stage" id="stage">
+          <div class="empty">
+            <h2>Waiting for content</h2>
+            <p>Use this with an app registered to open folders, launch it with compatible files, or drag files and folders into the window.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+  <div class="drop-overlay" id="dropOverlay" hidden>
+    <div>
+      <strong>Drop files or folders</strong>
+      <span>FolderBoard will index the dropped selection and preview supported media and text files.</span>
+    </div>
+  </div>
+
+  <script>
+    const IMAGE = new Set(["jpg", "jpeg", "png", "gif", "webp", "bmp", "tif", "tiff"]);
+    const VIDEO = new Set(["mp4", "mov", "m4v"]);
+    const AUDIO = new Set(["mp3", "wav", "aac", "m4a", "aiff", "aif"]);
+    const TEXT = new Set(["txt", "md", "json", "csv", "log", "js", "css", "html"]);
+    const state = { entries: [], index: 0 };
+
+    const itemsEl = document.getElementById("items");
+    const titleEl = document.getElementById("title");
+    const stage = document.getElementById("stage");
+    const dropOverlay = document.getElementById("dropOverlay");
+    let dropDepth = 0;
+
+    function extensionOf(name) {
+      const dot = name.lastIndexOf(".");
+      return dot === -1 ? "" : name.slice(dot + 1).toLowerCase();
+    }
+
+    async function listDirectory(item) {
+      const response = await fetch(item.listingURL || item.baseURL);
+      const payload = await response.json();
+      return Array.isArray(payload.entries) ? payload.entries : [];
+    }
+
+    function makeDroppedItem(file, explicitPath = "") {
+      const rawPath = explicitPath || file.webkitRelativePath || file.name;
+      return {
+        name: file.name,
+        path: rawPath.replace(/^\/+/, "") || file.name,
+        url: URL.createObjectURL(file),
+        isDirectory: false
+      };
+    }
+
+    function readFileEntry(entry) {
+      return new Promise((resolve, reject) => entry.file(resolve, reject));
+    }
+
+    function readDirectoryBatch(reader) {
+      return new Promise((resolve, reject) => reader.readEntries(resolve, reject));
+    }
+
+    async function collectDroppedFilesFromEntry(entry) {
+      if (!entry) return [];
+      if (entry.isFile) {
+        const file = await readFileEntry(entry);
+        return [makeDroppedItem(file, entry.fullPath || file.webkitRelativePath || file.name)];
+      }
+      if (!entry.isDirectory) return [];
+
+      const files = [];
+      const reader = entry.createReader();
+      while (true) {
+        const batch = await readDirectoryBatch(reader);
+        if (!batch.length) break;
+        for (const child of batch) {
+          const childFiles = await collectDroppedFilesFromEntry(child);
+          files.push(...childFiles);
+        }
+      }
+      return files;
+    }
+
+    async function collectDroppedFiles(dataTransfer) {
+      const files = [];
+      const items = Array.from(dataTransfer.items || []);
+      if (items.length) {
+        for (const item of items) {
+          if (item.kind !== "file") continue;
+          const entry = typeof item.webkitGetAsEntry === "function" ? item.webkitGetAsEntry() : null;
+          if (entry) {
+            try {
+              const entryFiles = await collectDroppedFilesFromEntry(entry);
+              files.push(...entryFiles);
+            } catch (error) {
+              console.error("Failed to read dropped entry", error);
+            }
+            continue;
+          }
+          const file = item.getAsFile ? item.getAsFile() : null;
+          if (file) files.push(makeDroppedItem(file));
+        }
+      } else {
+        for (const file of Array.from(dataTransfer.files || []))
+          files.push(makeDroppedItem(file));
+      }
+      return files;
+    }
+
+    function dragHasFiles(event) {
+      return !!(event.dataTransfer && Array.from(event.dataTransfer.types || []).includes("Files"));
+    }
+
+    function showDropOverlay() {
+      dropOverlay.hidden = false;
+    }
+
+    function hideDropOverlay() {
+      dropDepth = 0;
+      dropOverlay.hidden = true;
+    }
+
+    async function gatherEntries(items) {
+      const gathered = [];
+      for (const item of items) {
+        if (!item) continue;
+        if (item.isDirectory && (item.listingURL || item.baseURL)) {
+          try {
+            const entries = await listDirectory(item);
+            for (const entry of entries) if (!entry.isDirectory) gathered.push(entry);
+          } catch (error) {
+            console.error(error);
+          }
+        } else if (!item.isDirectory) {
+          gathered.push(item);
+        }
+      }
+      return gathered;
+    }
+
+    function renderList() {
+      itemsEl.innerHTML = "";
+      state.entries.forEach((entry, index) => {
+        const button = document.createElement("button");
+        button.className = "entry" + (index === state.index ? " active" : "");
+        button.innerHTML = `<div class="entry-name">${entry.name}</div><div class="entry-meta">${entry.path}</div>`;
+        button.addEventListener("click", () => {
+          state.index = index;
+          renderList();
+          renderPreview();
+        });
+        itemsEl.appendChild(button);
+      });
+    }
+
+    async function renderPreview() {
+      const entry = state.entries[state.index];
+      stage.innerHTML = "";
+      if (!entry) {
+        titleEl.textContent = "No folder loaded";
+        stage.innerHTML = `<div class="empty"><h2>Waiting for content</h2><p>Use this with an app registered to open folders, or launch it with a compatible file selection.</p></div>`;
+        return;
+      }
+
+      titleEl.textContent = entry.name;
+      const ext = extensionOf(entry.name || "");
+      if (IMAGE.has(ext)) {
+        const image = document.createElement("img");
+        image.src = entry.url;
+        image.alt = entry.name;
+        stage.appendChild(image);
+        return;
+      }
+      if (VIDEO.has(ext)) {
+        const video = document.createElement("video");
+        video.src = entry.url;
+        video.controls = true;
+        video.playsInline = true;
+        stage.appendChild(video);
+        return;
+      }
+      if (AUDIO.has(ext)) {
+        const audio = document.createElement("audio");
+        audio.src = entry.url;
+        audio.controls = true;
+        stage.appendChild(audio);
+        return;
+      }
+      if (TEXT.has(ext)) {
+        try {
+          const response = await fetch(entry.url);
+          const text = await response.text();
+          const pre = document.createElement("pre");
+          pre.textContent = text;
+          stage.appendChild(pre);
+          return;
+        } catch (error) {
+          console.error(error);
+        }
+      }
+
+      stage.innerHTML = `<div class="empty"><h2>No built-in preview</h2><p>${entry.path}</p></div>`;
+    }
+
+    async function handleLaunchItems(items, replaceExisting = false) {
+      const entries = await gatherEntries(items);
+      state.entries = replaceExisting ? entries : state.entries.concat(entries.filter((entry) => !state.entries.some((existing) => existing.path === entry.path)));
+      if (state.index >= state.entries.length) state.index = 0;
+      renderList();
+      renderPreview();
+    }
+
+    window.addEventListener("htmltoapp-open", (event) => {
+      const detail = event.detail || {};
+      handleLaunchItems(detail.items || [], !!detail.replaceExisting);
+    });
+
+    window.addEventListener("dragenter", (event) => {
+      if (!dragHasFiles(event)) return;
+      event.preventDefault();
+      dropDepth += 1;
+      showDropOverlay();
+    });
+
+    window.addEventListener("dragover", (event) => {
+      if (!dragHasFiles(event)) return;
+      event.preventDefault();
+      event.dataTransfer.dropEffect = "copy";
+      showDropOverlay();
+    });
+
+    window.addEventListener("dragleave", (event) => {
+      if (!dragHasFiles(event)) return;
+      dropDepth = Math.max(0, dropDepth - 1);
+      if (dropDepth === 0) hideDropOverlay();
+    });
+
+    window.addEventListener("drop", async (event) => {
+      if (!dragHasFiles(event)) return;
+      event.preventDefault();
+      hideDropOverlay();
+      const files = await collectDroppedFiles(event.dataTransfer);
+      if (files.length) handleLaunchItems(files, true);
+    });
+
+    handleLaunchItems((window.HTMLToApp && window.HTMLToApp.launchItems) || [], true);
+  </script>
+</body>
+</html>
