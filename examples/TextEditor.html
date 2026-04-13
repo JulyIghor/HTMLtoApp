@@ -1,0 +1,1375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="htmltoapp:open-with" content="role=editor; files=txt,md,html,htm,css,js,json,xml,csv,log; folders=true; camera=false; microphone=false; location=false">
+  <title>TextEditor</title>
+  <style>
+    :root {
+      --bg: #f6f0e4;
+      --panel: rgba(255, 251, 244, 0.78);
+      --panel-strong: rgba(255, 250, 241, 0.94);
+      --line: rgba(47, 39, 31, 0.1);
+      --text: #211a14;
+      --muted: #6c6258;
+      --accent: #c45b2d;
+      --accent-strong: #8f3f1b;
+      --accent-soft: rgba(196, 91, 45, 0.12);
+      --success: #24684f;
+      --danger: #a53a2f;
+      --shadow: 0 26px 70px rgba(49, 30, 16, 0.12);
+      --radius: 26px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+      background:
+        radial-gradient(circle at top left, rgba(196, 91, 45, 0.18), transparent 28%),
+        radial-gradient(circle at bottom right, rgba(83, 129, 105, 0.16), transparent 26%),
+        linear-gradient(180deg, #fbf5ea, #efe3d3 72%);
+      color: var(--text);
+      font-family: "Avenir Next", "Segoe UI", sans-serif;
+    }
+
+    body {
+      padding: 18px;
+    }
+
+    .app {
+      height: 100%;
+      display: grid;
+      grid-template-columns: 230px 320px minmax(0, 1fr);
+      gap: 16px;
+    }
+
+    .panel {
+      min-height: 0;
+      display: grid;
+      grid-template-rows: auto 1fr;
+      background: var(--panel);
+      border: 1px solid rgba(255, 255, 255, 0.45);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+      overflow: hidden;
+    }
+
+    .panel-head {
+      padding: 20px 20px 16px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .eyebrow {
+      display: block;
+      color: var(--accent);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin: 0;
+    }
+
+    h1 {
+      margin-top: 10px;
+      font-size: 30px;
+      letter-spacing: -0.05em;
+    }
+
+    .lead,
+    .muted {
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .lead {
+      margin-top: 8px;
+      font-size: 14px;
+    }
+
+    .root-list,
+    .entry-list {
+      min-height: 0;
+      overflow: auto;
+      padding: 14px;
+      display: grid;
+      gap: 10px;
+      align-content: start;
+    }
+
+    .list-button,
+    .entry-button,
+    .tool-button {
+      appearance: none;
+      border: 1px solid transparent;
+      color: inherit;
+      font: inherit;
+      cursor: pointer;
+      transition: transform 140ms ease, border-color 140ms ease, background 140ms ease, box-shadow 140ms ease;
+    }
+
+    .list-button:hover,
+    .entry-button:hover,
+    .tool-button:hover:enabled {
+      transform: translateY(-1px);
+    }
+
+    .list-button {
+      width: 100%;
+      text-align: left;
+      padding: 14px 14px 12px;
+      background: rgba(255, 255, 255, 0.6);
+      border-color: rgba(47, 39, 31, 0.06);
+      border-radius: 20px;
+    }
+
+    .list-button.active {
+      background: linear-gradient(180deg, rgba(196, 91, 45, 0.16), rgba(196, 91, 45, 0.09));
+      border-color: rgba(196, 91, 45, 0.35);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45);
+    }
+
+    .list-title,
+    .entry-title {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .list-meta,
+    .entry-meta {
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+      word-break: break-word;
+    }
+
+    .entry-button {
+      width: 100%;
+      text-align: left;
+      padding: 14px;
+      background: rgba(255, 255, 255, 0.56);
+      border-color: rgba(47, 39, 31, 0.07);
+      border-radius: 20px;
+    }
+
+    .entry-button.active {
+      background: linear-gradient(180deg, rgba(36, 104, 79, 0.14), rgba(36, 104, 79, 0.08));
+      border-color: rgba(36, 104, 79, 0.32);
+    }
+
+    .entry-type {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 9px;
+      border-radius: 999px;
+      background: rgba(33, 26, 20, 0.06);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .entry-type.folder {
+      background: rgba(196, 91, 45, 0.12);
+      color: var(--accent-strong);
+    }
+
+    .browser-tools,
+    .editor-tools {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .tool-button {
+      padding: 10px 13px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.68);
+      border-color: rgba(47, 39, 31, 0.1);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    }
+
+    .tool-button.primary {
+      background: linear-gradient(180deg, #da6a39, #b44e24);
+      border-color: rgba(143, 63, 27, 0.4);
+      color: #fff7f2;
+    }
+
+    .tool-button.danger {
+      color: var(--danger);
+    }
+
+    .tool-button:disabled {
+      cursor: not-allowed;
+      opacity: 0.45;
+      transform: none;
+    }
+
+    .path-chip {
+      margin-top: 10px;
+      display: inline-flex;
+      max-width: 100%;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(33, 26, 20, 0.06);
+      color: var(--muted);
+      font-size: 12px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .editor-shell {
+      min-height: 0;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      background: var(--panel-strong);
+      border: 1px solid rgba(255, 255, 255, 0.45);
+      border-radius: 32px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      backdrop-filter: blur(18px);
+    }
+
+    .editor-head {
+      padding: 22px 24px 16px;
+      border-bottom: 1px solid var(--line);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0)),
+        linear-gradient(90deg, rgba(196, 91, 45, 0.08), rgba(36, 104, 79, 0.08));
+    }
+
+    .editor-title-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+    }
+
+    .editor-title {
+      font-size: 30px;
+      letter-spacing: -0.05em;
+    }
+
+    .badge-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.7);
+      border: 1px solid rgba(47, 39, 31, 0.08);
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .badge.success {
+      color: var(--success);
+      background: rgba(36, 104, 79, 0.12);
+    }
+
+    .badge.warning {
+      color: var(--accent-strong);
+      background: rgba(196, 91, 45, 0.12);
+    }
+
+    .editor-copy {
+      margin-top: 10px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .editor-tools {
+      margin-top: 16px;
+    }
+
+    .editor-body {
+      min-height: 0;
+      padding: 18px;
+      display: grid;
+    }
+
+    .editor-surface {
+      min-height: 0;
+      border: 1px solid rgba(47, 39, 31, 0.08);
+      border-radius: 24px;
+      overflow: hidden;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(252, 247, 239, 0.98)),
+        linear-gradient(90deg, rgba(196, 91, 45, 0.02), rgba(36, 104, 79, 0.02));
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    }
+
+    textarea {
+      width: 100%;
+      height: 100%;
+      min-height: 380px;
+      resize: none;
+      border: 0;
+      outline: 0;
+      background: transparent;
+      padding: 22px 24px;
+      color: #201913;
+      font: 15px/1.65 "SF Mono", "Menlo", monospace;
+      tab-size: 2;
+    }
+
+    textarea:disabled {
+      color: #7e746a;
+    }
+
+    textarea[hidden] {
+      display: none;
+    }
+
+    .empty-editor {
+      height: 100%;
+      display: grid;
+      place-items: center;
+      padding: 36px;
+      text-align: center;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .editor-foot {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+      padding: 14px 22px 18px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 20px;
+    }
+
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      background: rgba(47, 39, 31, 0.18);
+    }
+
+    .status.success .status-dot {
+      background: var(--success);
+    }
+
+    .status.error .status-dot {
+      background: var(--danger);
+    }
+
+    .status.warning .status-dot {
+      background: var(--accent);
+    }
+
+    .empty-panel {
+      padding: 18px;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    code {
+      font-family: "SF Mono", "Menlo", monospace;
+      font-size: 0.95em;
+    }
+
+    .drop-overlay {
+      position: fixed;
+      inset: 18px;
+      border-radius: 30px;
+      border: 2px dashed rgba(196, 91, 45, 0.42);
+      background: rgba(255, 250, 241, 0.82);
+      backdrop-filter: blur(12px);
+      display: grid;
+      place-items: center;
+      text-align: center;
+      padding: 28px;
+      z-index: 100;
+      pointer-events: none;
+    }
+
+    .drop-overlay strong {
+      display: block;
+      font-size: 28px;
+      letter-spacing: -0.04em;
+      margin-bottom: 8px;
+    }
+
+    .drop-overlay span {
+      color: var(--muted);
+      max-width: 34rem;
+      line-height: 1.5;
+    }
+
+    .drop-overlay[hidden] { display: none !important; }
+
+    @media (max-width: 1080px) {
+      body {
+        padding: 14px;
+      }
+
+      .app {
+        height: auto;
+        min-height: 100%;
+        grid-template-columns: 1fr;
+      }
+
+      .panel,
+      .editor-shell {
+        min-height: 280px;
+      }
+
+      textarea {
+        min-height: 300px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="panel">
+      <div class="panel-head">
+        <span class="eyebrow">HTML to App Demo</span>
+        <h1>TextEditor</h1>
+        <p class="lead">Open text files directly from Finder, or open a folder and manage notes inside its scope.</p>
+      </div>
+      <div class="root-list" id="rootList"></div>
+    </aside>
+
+    <aside class="panel">
+      <div class="panel-head">
+        <span class="eyebrow">Workspace</span>
+        <h2 id="browserTitle">No item selected</h2>
+        <div class="path-chip" id="browserPath">Waiting for launch items</div>
+        <div class="browser-tools">
+          <button class="tool-button" id="upButton" type="button">Up</button>
+          <button class="tool-button" id="refreshButton" type="button">Refresh</button>
+          <button class="tool-button" id="newFileButton" type="button">New File</button>
+          <button class="tool-button" id="newFolderButton" type="button">New Folder</button>
+          <button class="tool-button danger" id="deleteButton" type="button">Delete</button>
+        </div>
+      </div>
+      <div class="entry-list" id="entryList"></div>
+    </aside>
+
+    <main class="editor-shell">
+      <div class="editor-head">
+        <div class="editor-title-row">
+          <div>
+            <span class="eyebrow">Editor</span>
+            <h2 class="editor-title" id="editorTitle">No file opened</h2>
+          </div>
+          <div class="badge-row">
+            <div class="badge" id="roleBadge">Viewer</div>
+            <div class="badge warning" id="writeBadge">Read Only</div>
+          </div>
+        </div>
+        <p class="editor-copy" id="editorMeta">
+          Package this file with HTML to App, enable Open With, and launch the app on a text file or folder.
+        </p>
+        <div class="editor-tools">
+          <button class="tool-button primary" id="saveButton" type="button">Save</button>
+          <button class="tool-button" id="reloadButton" type="button">Reload</button>
+        </div>
+      </div>
+
+      <div class="editor-body">
+        <div class="editor-surface">
+          <textarea id="editor" spellcheck="false" disabled></textarea>
+          <div class="empty-editor" id="emptyEditor">
+            <div>
+              <h3>Waiting for content</h3>
+              <p>
+                Open a text file to edit it directly, or open a folder to browse text documents and create new ones.
+                In editor mode, save replaces the opened file in place.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="editor-foot">
+        <div class="status" id="statusLine">
+          <span class="status-dot"></span>
+          <span id="statusText">Ready</span>
+        </div>
+        <div id="footMeta">Cmd/Ctrl+S saves the current document.</div>
+      </div>
+    </main>
+  </div>
+  <div class="drop-overlay" id="dropOverlay" hidden>
+    <div>
+      <strong>Drop text files or folders</strong>
+      <span>TextEditor will open supported text files from the dropped selection. Browser-dropped files are read-only; use Finder Open With for write-back editing.</span>
+    </div>
+  </div>
+
+  <script>
+    const TEXT_EXTENSIONS = new Set(["txt", "md", "markdown", "html", "htm", "css", "js", "json", "xml", "csv", "log", "yml", "yaml"]);
+    let droppedItemCounter = 0;
+
+    const state = {
+      runtime: defaultRuntime(),
+      roots: [],
+      rootKey: "",
+      entries: [],
+      currentFolderPath: "",
+      currentDocument: null,
+      savedText: "",
+      dirty: false,
+      busy: false,
+      status: "Ready",
+      statusTone: "muted",
+      selectedRelativePath: "",
+      selectedIsDirectory: false
+    };
+
+    const rootList = document.getElementById("rootList");
+    const entryList = document.getElementById("entryList");
+    const browserTitle = document.getElementById("browserTitle");
+    const browserPath = document.getElementById("browserPath");
+    const upButton = document.getElementById("upButton");
+    const refreshButton = document.getElementById("refreshButton");
+    const newFileButton = document.getElementById("newFileButton");
+    const newFolderButton = document.getElementById("newFolderButton");
+    const deleteButton = document.getElementById("deleteButton");
+    const editorTitle = document.getElementById("editorTitle");
+    const editorMeta = document.getElementById("editorMeta");
+    const roleBadge = document.getElementById("roleBadge");
+    const writeBadge = document.getElementById("writeBadge");
+    const saveButton = document.getElementById("saveButton");
+    const reloadButton = document.getElementById("reloadButton");
+    const editor = document.getElementById("editor");
+    const emptyEditor = document.getElementById("emptyEditor");
+    const statusLine = document.getElementById("statusLine");
+    const statusText = document.getElementById("statusText");
+    const footMeta = document.getElementById("footMeta");
+    const dropOverlay = document.getElementById("dropOverlay");
+    let dropDepth = 0;
+
+    function defaultRuntime() {
+      return {
+        enabled: false,
+        role: "viewer",
+        allowFiles: false,
+        allowFolders: false,
+        canWriteBack: false
+      };
+    }
+
+    function bridge() {
+      return window.HTMLToApp && window.HTMLToApp.fs ? window.HTMLToApp.fs : null;
+    }
+
+    function currentRoot() {
+      return state.roots.find((item) => makeRootKey(item) === state.rootKey) || null;
+    }
+
+    function itemIdOf(item) {
+      return (item && (item.id || item.itemId)) || "";
+    }
+
+    function makeRootKey(item) {
+      return `${itemIdOf(item)}::${item && item.path ? item.path : ""}`;
+    }
+
+    function basename(path) {
+      if (!path) return "";
+      const pieces = String(path).split("/").filter(Boolean);
+      return pieces.length ? pieces[pieces.length - 1] : "";
+    }
+
+    function dirname(path) {
+      if (!path) return "";
+      const pieces = String(path).split("/").filter(Boolean);
+      if (pieces.length <= 1) return "";
+      return pieces.slice(0, -1).join("/");
+    }
+
+    function joinRelativePath(base, leaf) {
+      const cleanBase = String(base || "").replace(/^\/+|\/+$/g, "");
+      const cleanLeaf = String(leaf || "").replace(/^\/+|\/+$/g, "");
+      if (!cleanBase) return cleanLeaf;
+      if (!cleanLeaf) return cleanBase;
+      return `${cleanBase}/${cleanLeaf}`;
+    }
+
+    function extensionOf(name) {
+      const dot = String(name || "").lastIndexOf(".");
+      return dot === -1 ? "" : String(name).slice(dot + 1).toLowerCase();
+    }
+
+    function isProbablyText(name) {
+      return TEXT_EXTENSIONS.has(extensionOf(name));
+    }
+
+    function compareEntries(a, b) {
+      if (!!a.isDirectory !== !!b.isDirectory)
+        return a.isDirectory ? -1 : 1;
+      return String(a.name || "").localeCompare(String(b.name || ""), undefined, { numeric: true, sensitivity: "base" });
+    }
+
+    function setStatus(message, tone = "muted") {
+      state.status = message || "Ready";
+      state.statusTone = tone;
+      statusLine.className = `status ${tone === "muted" ? "" : tone}`.trim();
+      statusText.textContent = state.status;
+    }
+
+    function setEditorContent(text) {
+      const value = text == null ? "" : String(text);
+      if (editor.value !== value)
+        editor.value = value;
+    }
+
+    function resetEditor(message) {
+      state.currentDocument = null;
+      state.savedText = "";
+      state.dirty = false;
+      setEditorContent("");
+      editor.disabled = true;
+      editor.hidden = true;
+      emptyEditor.hidden = false;
+      editorTitle.textContent = "No file opened";
+      editorMeta.textContent = message;
+      footMeta.textContent = "Cmd/Ctrl+S saves the current document.";
+      renderButtons();
+    }
+
+    function canMutate() {
+      const root = currentRoot();
+      if (root && root.droppedFile)
+        return false;
+      return !!state.runtime.canWriteBack;
+    }
+
+    function canCreateInsideCurrentFolder() {
+      const root = currentRoot();
+      return !!(root && root.isDirectory && canMutate());
+    }
+
+    function canDeleteSelection() {
+      const root = currentRoot();
+      return !!(root && root.isDirectory && canMutate() && state.selectedRelativePath);
+    }
+
+    function confirmDiscardIfNeeded(reason) {
+      if (!state.dirty)
+        return true;
+      return window.confirm(`Discard unsaved changes before ${reason}?`);
+    }
+
+    function normalizeRoots(items) {
+      return (Array.isArray(items) ? items : [])
+        .filter(Boolean)
+        .map((item) => ({
+          ...item,
+          id: item.id || item.itemId || "",
+          itemId: item.itemId || item.id || ""
+        }))
+        .filter((item) => item.id);
+    }
+
+    function dedupeRoots(items) {
+      const byKey = new Map();
+      for (const item of items)
+        byKey.set(makeRootKey(item), item);
+      return Array.from(byKey.values());
+    }
+
+    function makeDroppedRoot(file, explicitPath = "") {
+      const rawPath = explicitPath || file.webkitRelativePath || file.name;
+      const path = String(rawPath || file.name || "Dropped file").replace(/^\/+/, "");
+      const id = `drop-${Date.now()}-${++droppedItemCounter}`;
+      return {
+        id,
+        itemId: id,
+        name: file.name || basename(path) || "Dropped file",
+        path,
+        isDirectory: false,
+        droppedFile: file
+      };
+    }
+
+    function readFileEntry(entry) {
+      return new Promise((resolve, reject) => entry.file(resolve, reject));
+    }
+
+    function readDirectoryBatch(reader) {
+      return new Promise((resolve, reject) => reader.readEntries(resolve, reject));
+    }
+
+    async function collectDroppedFilesFromEntry(entry) {
+      if (!entry) return [];
+      if (entry.isFile) {
+        const file = await readFileEntry(entry);
+        return isProbablyText(file.name) ? [makeDroppedRoot(file, entry.fullPath || file.webkitRelativePath || file.name)] : [];
+      }
+      if (!entry.isDirectory) return [];
+
+      const files = [];
+      const reader = entry.createReader();
+      while (true) {
+        const batch = await readDirectoryBatch(reader);
+        if (!batch.length) break;
+        for (const child of batch) {
+          const childFiles = await collectDroppedFilesFromEntry(child);
+          files.push(...childFiles);
+        }
+      }
+      return files;
+    }
+
+    async function collectDroppedFiles(dataTransfer) {
+      const files = [];
+      const items = Array.from(dataTransfer.items || []);
+      if (items.length) {
+        for (const item of items) {
+          if (item.kind !== "file") continue;
+          const entry = typeof item.webkitGetAsEntry === "function" ? item.webkitGetAsEntry() : null;
+          if (entry) {
+            try {
+              const entryFiles = await collectDroppedFilesFromEntry(entry);
+              files.push(...entryFiles);
+            } catch (error) {
+              console.error("Failed to read dropped entry", error);
+            }
+            continue;
+          }
+          const file = item.getAsFile ? item.getAsFile() : null;
+          if (file && isProbablyText(file.name)) files.push(makeDroppedRoot(file));
+        }
+      } else {
+        for (const file of Array.from(dataTransfer.files || []))
+          if (isProbablyText(file.name)) files.push(makeDroppedRoot(file));
+      }
+      return files;
+    }
+
+    function dragHasFiles(event) {
+      return !!(event.dataTransfer && Array.from(event.dataTransfer.types || []).includes("Files"));
+    }
+
+    function showDropOverlay() {
+      dropOverlay.hidden = false;
+    }
+
+    function hideDropOverlay() {
+      dropDepth = 0;
+      dropOverlay.hidden = true;
+    }
+
+    function updateRuntime(runtime) {
+      state.runtime = Object.assign(defaultRuntime(), runtime || {});
+      roleBadge.textContent = state.runtime.role === "editor" ? "Editor" : "Viewer";
+      writeBadge.textContent = state.runtime.canWriteBack ? "Write Back" : "Read Only";
+      writeBadge.className = `badge ${state.runtime.canWriteBack ? "success" : "warning"}`;
+      renderButtons();
+    }
+
+    function renderRoots() {
+      rootList.innerHTML = "";
+
+      if (!state.roots.length) {
+        const empty = document.createElement("div");
+        empty.className = "empty-panel";
+        empty.innerHTML = "Launch this app on a text file or folder. Later Finder opens arrive through <code>window.HTMLToApp.launchItems</code> and <code>htmltoapp-open</code>.";
+        rootList.appendChild(empty);
+        return;
+      }
+
+      for (const item of state.roots) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = `list-button${makeRootKey(item) === state.rootKey ? " active" : ""}`;
+        button.addEventListener("click", async () => {
+          await selectRoot(item);
+        });
+
+        const title = document.createElement("div");
+        title.className = "list-title";
+        title.textContent = `${item.isDirectory ? "Folder" : "File"}  ${item.name || "Untitled"}`;
+
+        const meta = document.createElement("div");
+        meta.className = "list-meta";
+        meta.textContent = item.path || "";
+
+        button.appendChild(title);
+        button.appendChild(meta);
+        rootList.appendChild(button);
+      }
+    }
+
+    function renderBrowser() {
+      const root = currentRoot();
+
+      if (!root) {
+        browserTitle.textContent = "No item selected";
+        browserPath.textContent = "Waiting for launch items";
+        entryList.innerHTML = "";
+        const empty = document.createElement("div");
+        empty.className = "empty-panel";
+        empty.textContent = "Open the exported app from Finder with a matching file or folder.";
+        entryList.appendChild(empty);
+        renderButtons();
+        return;
+      }
+
+      browserTitle.textContent = root.name || "Untitled";
+
+      if (!root.isDirectory) {
+        browserPath.textContent = "Direct file mode";
+        entryList.innerHTML = "";
+        const empty = document.createElement("div");
+        empty.className = "empty-panel";
+        empty.innerHTML = root.droppedFile
+          ? "This dropped file is loaded read-only. Use Finder Open With if you want write-back editing through the HTML to App bridge."
+          : "This launch item is a file. Save writes directly back to that same path when the app role is <code>Editor</code>.";
+        entryList.appendChild(empty);
+        renderButtons();
+        return;
+      }
+
+      browserPath.textContent = state.currentFolderPath ? `/${state.currentFolderPath}` : "/";
+      entryList.innerHTML = "";
+
+      if (!state.entries.length) {
+        const empty = document.createElement("div");
+        empty.className = "empty-panel";
+        empty.textContent = "This folder is empty. Create a file or folder with the controls above.";
+        entryList.appendChild(empty);
+        renderButtons();
+        return;
+      }
+
+      for (const entry of state.entries) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = `entry-button${entry.relativePath === state.selectedRelativePath ? " active" : ""}`;
+        button.addEventListener("click", async () => {
+          if (entry.isDirectory) {
+            state.selectedRelativePath = entry.relativePath || "";
+            state.selectedIsDirectory = true;
+            renderButtons();
+            await loadFolder(entry.relativePath || "");
+            return;
+          }
+          await openDocument(root, entry.relativePath || "", entry.name || basename(entry.relativePath || ""));
+        });
+
+        const title = document.createElement("div");
+        title.className = "entry-title";
+        title.textContent = entry.name || "Untitled";
+
+        const type = document.createElement("span");
+        type.className = `entry-type${entry.isDirectory ? " folder" : ""}`;
+        type.textContent = entry.isDirectory ? "Folder" : "File";
+        title.appendChild(type);
+
+        const meta = document.createElement("div");
+        meta.className = "entry-meta";
+        meta.textContent = entry.relativePath || entry.path || "";
+
+        button.appendChild(title);
+        button.appendChild(meta);
+        entryList.appendChild(button);
+      }
+
+      renderButtons();
+    }
+
+    function renderButtons() {
+      const root = currentRoot();
+      const hasDocument = !!state.currentDocument;
+      const canRefresh = !!root && !state.busy;
+
+      saveButton.disabled = !hasDocument || !canMutate() || state.busy;
+      reloadButton.disabled = !hasDocument || !canRefresh;
+      upButton.disabled = !(root && root.isDirectory && state.currentFolderPath) || state.busy;
+      refreshButton.disabled = !(root && root.isDirectory) || state.busy;
+      newFileButton.disabled = !canCreateInsideCurrentFolder() || state.busy;
+      newFolderButton.disabled = !canCreateInsideCurrentFolder() || state.busy;
+      deleteButton.disabled = !canDeleteSelection() || state.busy;
+
+      if (hasDocument) {
+        editor.hidden = false;
+        editor.disabled = false;
+        emptyEditor.hidden = true;
+        editorTitle.textContent = state.currentDocument.name || basename(state.currentDocument.relativePath || "") || "Untitled";
+        editorMeta.textContent = state.currentDocument.path || "Opened from Finder";
+        footMeta.textContent = `Encoding: ${state.currentDocument.encoding || "utf-8"}${state.dirty ? "  •  Unsaved changes" : "  •  Saved"}`;
+      } else {
+        editor.hidden = true;
+        editor.disabled = true;
+        emptyEditor.hidden = false;
+      }
+    }
+
+    async function handleLaunchItems(items, replaceExisting) {
+      const normalized = normalizeRoots(items);
+      if (!normalized.length && !replaceExisting)
+        return;
+
+      const previousKey = state.rootKey;
+      state.roots = replaceExisting ? normalized : dedupeRoots(state.roots.concat(normalized));
+      renderRoots();
+
+      if (!state.roots.length) {
+        state.rootKey = "";
+        state.entries = [];
+        state.currentFolderPath = "";
+        state.selectedRelativePath = "";
+        state.selectedIsDirectory = false;
+        resetEditor("Open a file or folder to begin.");
+        renderBrowser();
+        return;
+      }
+
+      const selected = state.roots.find((item) => makeRootKey(item) === previousKey);
+      if (selected) {
+        renderBrowser();
+        return;
+      }
+
+      const nextRoot = state.roots[0];
+      state.rootKey = makeRootKey(nextRoot);
+      await hydrateSelectedRoot(false);
+    }
+
+    async function selectRoot(root) {
+      const key = makeRootKey(root);
+      if (key === state.rootKey)
+        return;
+      if (!confirmDiscardIfNeeded(`opening ${root.name || "another item"}`))
+        return;
+      state.rootKey = key;
+      await hydrateSelectedRoot(false);
+    }
+
+    async function hydrateSelectedRoot(autoOpenFirstTextFile) {
+      const root = currentRoot();
+      state.entries = [];
+      state.currentFolderPath = "";
+      state.selectedRelativePath = "";
+      state.selectedIsDirectory = false;
+      state.currentDocument = null;
+      state.savedText = "";
+      state.dirty = false;
+      setEditorContent("");
+      renderRoots();
+
+      if (!root) {
+        resetEditor("Open a file or folder to begin.");
+        renderBrowser();
+        return;
+      }
+
+      if (root.isDirectory) {
+        resetEditor("Select a text file from the folder, or create a new one.");
+        await loadFolder("", autoOpenFirstTextFile);
+        return;
+      }
+
+      await openDocument(root, "", root.name || "Untitled", false);
+    }
+
+    async function loadFolder(relativePath, autoOpenFirstTextFile = false) {
+      const fs = bridge();
+      const root = currentRoot();
+      if (!fs || !root || !root.isDirectory)
+        return;
+
+      state.busy = true;
+      renderButtons();
+      setStatus(`Loading ${relativePath || "/"}...`);
+
+      try {
+        const listing = await fs.list(root.id, relativePath || "");
+        state.currentFolderPath = listing.relativePath || relativePath || "";
+        state.entries = Array.isArray(listing.entries) ? listing.entries.slice().sort(compareEntries) : [];
+        renderBrowser();
+        setStatus(`Loaded ${state.currentFolderPath || "/"}`, "success");
+
+        if (autoOpenFirstTextFile && !state.currentDocument) {
+          const firstTextFile = state.entries.find((entry) => !entry.isDirectory && isProbablyText(entry.name));
+          if (firstTextFile)
+            await openDocument(root, firstTextFile.relativePath || "", firstTextFile.name || "Untitled", false);
+        }
+      } catch (error) {
+        setStatus(error && error.message ? error.message : "Failed to list folder.", "error");
+      } finally {
+        state.busy = false;
+        renderButtons();
+      }
+    }
+
+    async function openDocument(root, relativePath, fallbackName, confirmDiscard = true) {
+      if (!root)
+        return;
+
+      const targetPath = relativePath || "";
+      const label = fallbackName || basename(targetPath) || root.name || "file";
+      if (confirmDiscard && !confirmDiscardIfNeeded(`opening ${label}`))
+        return;
+
+      if (root.droppedFile) {
+        state.busy = true;
+        renderButtons();
+        setStatus(`Opening ${label}...`);
+
+        try {
+          const text = await root.droppedFile.text();
+          state.currentDocument = {
+            itemId: root.id,
+            relativePath: "",
+            name: root.name || label,
+            path: root.path || root.name || "",
+            encoding: "utf-8",
+            droppedFile: true
+          };
+          state.savedText = text || "";
+          state.dirty = false;
+          state.selectedRelativePath = "";
+          state.selectedIsDirectory = false;
+          setEditorContent(state.savedText);
+          emptyEditor.hidden = true;
+          editor.disabled = false;
+          setStatus(`Opened ${state.currentDocument.name}`, "success");
+        } catch (error) {
+          setStatus(error && error.message ? error.message : "Failed to open dropped file.", "error");
+        } finally {
+          state.busy = false;
+          renderBrowser();
+          renderButtons();
+        }
+        return;
+      }
+
+      const fs = bridge();
+      if (!fs)
+        return;
+
+      state.busy = true;
+      renderButtons();
+      setStatus(`Opening ${label}...`);
+
+      try {
+        const opened = await fs.readText(root.id, targetPath);
+        state.currentDocument = {
+          itemId: opened.itemId || root.id,
+          relativePath: opened.relativePath || targetPath,
+          name: opened.name || fallbackName || basename(targetPath) || root.name || "Untitled",
+          path: opened.path || root.path || "",
+          encoding: opened.encoding || "utf-8"
+        };
+        state.savedText = opened.text || "";
+        state.dirty = false;
+        state.selectedRelativePath = state.currentDocument.relativePath || "";
+        state.selectedIsDirectory = false;
+        setEditorContent(state.savedText);
+        emptyEditor.hidden = true;
+        editor.disabled = false;
+        setStatus(`Opened ${state.currentDocument.name}`, "success");
+      } catch (error) {
+        setStatus(error && error.message ? error.message : "Failed to open file.", "error");
+      } finally {
+        state.busy = false;
+        renderBrowser();
+        renderButtons();
+      }
+    }
+
+    async function saveDocument() {
+      const fs = bridge();
+      if (!fs || !state.currentDocument || !canMutate())
+        return;
+
+      state.busy = true;
+      renderButtons();
+      setStatus(`Saving ${state.currentDocument.name}...`);
+
+      try {
+        const result = await fs.writeText(
+          state.currentDocument.itemId,
+          editor.value,
+          state.currentDocument.relativePath || "",
+          { encoding: state.currentDocument.encoding || "utf-8", atomic: true, createIntermediates: true }
+        );
+        state.currentDocument.encoding = result.encoding || state.currentDocument.encoding || "utf-8";
+        state.currentDocument.path = result.path || state.currentDocument.path;
+        state.savedText = editor.value;
+        state.dirty = false;
+        setStatus(`Saved ${state.currentDocument.name}`, "success");
+        footMeta.textContent = `Encoding: ${state.currentDocument.encoding || "utf-8"}  •  Saved`;
+        if (currentRoot() && currentRoot().isDirectory)
+          await loadFolder(state.currentFolderPath || "");
+      } catch (error) {
+        setStatus(error && error.message ? error.message : "Failed to save file.", "error");
+      } finally {
+        state.busy = false;
+        renderButtons();
+      }
+    }
+
+    async function reloadDocument() {
+      const root = currentRoot();
+      if (!root || !state.currentDocument)
+        return;
+      if (!confirmDiscardIfNeeded("reloading the current file"))
+        return;
+      await openDocument(root, state.currentDocument.relativePath || "", state.currentDocument.name || "Untitled", false);
+    }
+
+    async function createFile() {
+      const fs = bridge();
+      const root = currentRoot();
+      if (!fs || !root || !root.isDirectory || !canMutate())
+        return;
+
+      const input = window.prompt("Create file relative to the current folder:", "untitled.txt");
+      if (!input)
+        return;
+
+      const targetPath = joinRelativePath(state.currentFolderPath, input.trim());
+      if (!targetPath)
+        return;
+
+      state.busy = true;
+      renderButtons();
+      setStatus(`Creating ${basename(targetPath)}...`);
+
+      try {
+        await fs.writeText(root.id, "", targetPath, { atomic: true, createIntermediates: true });
+        await loadFolder(state.currentFolderPath || "");
+        await openDocument(root, targetPath, basename(targetPath), false);
+        setStatus(`Created ${basename(targetPath)}`, "success");
+      } catch (error) {
+        setStatus(error && error.message ? error.message : "Failed to create file.", "error");
+      } finally {
+        state.busy = false;
+        renderButtons();
+      }
+    }
+
+    async function createFolder() {
+      const fs = bridge();
+      const root = currentRoot();
+      if (!fs || !root || !root.isDirectory || !canMutate())
+        return;
+
+      const input = window.prompt("Create folder relative to the current folder:", "drafts");
+      if (!input)
+        return;
+
+      const targetPath = joinRelativePath(state.currentFolderPath, input.trim());
+      if (!targetPath)
+        return;
+
+      state.busy = true;
+      renderButtons();
+      setStatus(`Creating ${basename(targetPath)}...`);
+
+      try {
+        await fs.createDirectory(root.id, targetPath, { createIntermediates: true });
+        await loadFolder(state.currentFolderPath || "");
+        state.selectedRelativePath = targetPath;
+        state.selectedIsDirectory = true;
+        renderBrowser();
+        setStatus(`Created ${basename(targetPath)}`, "success");
+      } catch (error) {
+        setStatus(error && error.message ? error.message : "Failed to create folder.", "error");
+      } finally {
+        state.busy = false;
+        renderButtons();
+      }
+    }
+
+    async function deleteSelection() {
+      const fs = bridge();
+      const root = currentRoot();
+      if (!fs || !root || !root.isDirectory || !state.selectedRelativePath || !canMutate())
+        return;
+
+      const label = basename(state.selectedRelativePath) || state.selectedRelativePath;
+      const removingFolder = state.selectedIsDirectory;
+      const reloadPath = removingFolder &&
+        (state.currentFolderPath === state.selectedRelativePath || state.currentFolderPath.startsWith(`${state.selectedRelativePath}/`))
+        ? dirname(state.selectedRelativePath)
+        : state.currentFolderPath;
+      const confirmed = window.confirm(`Delete ${label}? This cannot be undone.`);
+      if (!confirmed)
+        return;
+
+      state.busy = true;
+      renderButtons();
+      setStatus(`Deleting ${label}...`);
+
+      try {
+        await fs.remove(root.id, state.selectedRelativePath, { recursive: true });
+
+        if (state.currentDocument &&
+            (state.currentDocument.relativePath === state.selectedRelativePath ||
+             state.currentDocument.relativePath.startsWith(`${state.selectedRelativePath}/`))) {
+          resetEditor("The selected file was removed. Choose another file or create a new one.");
+        }
+
+        state.selectedRelativePath = "";
+        state.selectedIsDirectory = false;
+        await loadFolder(reloadPath || "");
+        setStatus(`Deleted ${label}`, "success");
+      } catch (error) {
+        setStatus(error && error.message ? error.message : "Failed to delete selection.", "error");
+      } finally {
+        state.busy = false;
+        renderButtons();
+      }
+    }
+
+    async function refreshWorkspace() {
+      const root = currentRoot();
+      if (!root)
+        return;
+
+      if (root.isDirectory) {
+        await loadFolder(state.currentFolderPath || "");
+        return;
+      }
+
+      await reloadDocument();
+    }
+
+    editor.addEventListener("input", () => {
+      if (!state.currentDocument)
+        return;
+      state.dirty = editor.value !== state.savedText;
+      footMeta.textContent = `Encoding: ${state.currentDocument.encoding || "utf-8"}${state.dirty ? "  •  Unsaved changes" : "  •  Saved"}`;
+      renderButtons();
+    });
+
+    saveButton.addEventListener("click", async () => {
+      await saveDocument();
+    });
+
+    reloadButton.addEventListener("click", async () => {
+      await reloadDocument();
+    });
+
+    refreshButton.addEventListener("click", async () => {
+      await refreshWorkspace();
+    });
+
+    upButton.addEventListener("click", async () => {
+      await loadFolder(dirname(state.currentFolderPath));
+    });
+
+    newFileButton.addEventListener("click", async () => {
+      await createFile();
+    });
+
+    newFolderButton.addEventListener("click", async () => {
+      await createFolder();
+    });
+
+    deleteButton.addEventListener("click", async () => {
+      await deleteSelection();
+    });
+
+    window.addEventListener("keydown", async (event) => {
+      const pressedSave = (event.metaKey || event.ctrlKey) && !event.shiftKey && event.key.toLowerCase() === "s";
+      if (!pressedSave)
+        return;
+      event.preventDefault();
+      await saveDocument();
+    });
+
+    window.addEventListener("dragenter", (event) => {
+      if (!dragHasFiles(event)) return;
+      event.preventDefault();
+      dropDepth += 1;
+      showDropOverlay();
+    });
+
+    window.addEventListener("dragover", (event) => {
+      if (!dragHasFiles(event)) return;
+      event.preventDefault();
+      event.dataTransfer.dropEffect = "copy";
+      showDropOverlay();
+    });
+
+    window.addEventListener("dragleave", (event) => {
+      if (!dragHasFiles(event)) return;
+      dropDepth = Math.max(0, dropDepth - 1);
+      if (dropDepth === 0) hideDropOverlay();
+    });
+
+    window.addEventListener("drop", async (event) => {
+      if (!dragHasFiles(event)) return;
+      event.preventDefault();
+      hideDropOverlay();
+      const files = await collectDroppedFiles(event.dataTransfer);
+      if (files.length) {
+        await handleLaunchItems(files, true);
+      } else {
+        setStatus("Drop text files or folders containing supported text files.", "warning");
+      }
+    });
+
+    window.addEventListener("htmltoapp-open", async (event) => {
+      const detail = event.detail || {};
+      await handleLaunchItems(detail.items || [], !!detail.replaceExisting);
+    });
+
+    window.addEventListener("htmltoapp-runtime", (event) => {
+      updateRuntime(event.detail || defaultRuntime());
+      const message = state.runtime.canWriteBack
+        ? "Editor role is active. Save replaces the opened file, and folder actions stay scoped to the opened folder."
+        : "Viewer mode is active. The bridge is read-only until the generated app role is set to Editor.";
+      if (!state.currentDocument)
+        editorMeta.textContent = message;
+    });
+
+    updateRuntime((window.HTMLToApp && window.HTMLToApp.runtime) || defaultRuntime());
+    renderRoots();
+    renderBrowser();
+    resetEditor("Package this file with HTML to App and launch it on a Finder-selected text file or folder.");
+    handleLaunchItems((window.HTMLToApp && window.HTMLToApp.launchItems) || [], true);
+  </script>
+</body>
+</html>
