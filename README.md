@@ -15,6 +15,8 @@ HTML to App lets you turn an HTML file or folder into a native macOS app bundle.
 - Pass opened items into JavaScript through the built-in bridge.
 - Expose scoped read and write APIs so editor-role apps can save back to opened files or folders.
 - Preselect app permissions such as camera, microphone, or location services from HTML metadata.
+- Send native macOS notifications from local HTML with the standard `Notification` API.
+- Control the Dock badge from JavaScript through `window.HTMLToApp.setBadge()` and `window.HTMLToApp.clearBadge()`.
 - Use drag and drop inside the example apps for local files and folders.
 - Support media-style apps such as image viewers, video players, audio players, and folder browsers.
 - Support canvas-style tools such as annotation or geometry drawing apps, plus document-style editors.
@@ -113,6 +115,34 @@ Notes:
 - `move` supports `createIntermediates` and `overwrite`.
 - The bridge does not grant arbitrary filesystem access outside the exact opened file or folder scope.
 
+## Notifications and Dock Badge
+
+Generated apps can pass notification requests from local HTML to native macOS notifications. Use the standard browser-style `Notification` API:
+
+```html
+<script>
+  async function sendNotification() {
+    const permission = await Notification.requestPermission();
+    if (permission !== "granted") return;
+
+    new Notification("HTML to App", {
+      body: "This notification was sent from local HTML."
+    });
+  }
+</script>
+```
+
+Generated apps can also control their Dock badge from JavaScript:
+
+```html
+<script>
+  window.HTMLToApp.setBadge("3");
+  window.HTMLToApp.clearBadge();
+</script>
+```
+
+Badge values are strings, so you can use numbers, short labels, or clear the badge when there is no active state to show.
+
 ## Examples
 
 Each example below is a single HTML file you can package with HTML to App.
@@ -174,6 +204,14 @@ Live camera viewer with device switching, mirroring, framing guides, still captu
 Recommended Open With setup:
 - None needed
 - Permissions: `Camera Access`
+
+### [Notifications and Badge Demo](./examples/NotificationsBadgeDemo.html)
+
+Demonstrates native notification passthrough from local HTML and Dock badge control from JavaScript.
+
+Recommended Open With setup:
+- None needed
+- Permissions: none
 
 ### [Folder Board](./examples/FolderBoard.html)
 
