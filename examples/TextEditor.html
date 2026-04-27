@@ -595,7 +595,7 @@
     }
 
     function bridge() {
-      return window.HTMLToApp && window.HTMLToApp.fs ? window.HTMLToApp.fs : null;
+      return window.HTMLtoApp && window.HTMLtoApp.fs ? window.HTMLtoApp.fs : null;
     }
 
     function currentRoot() {
@@ -810,7 +810,7 @@
       if (!state.roots.length) {
         const empty = document.createElement("div");
         empty.className = "empty-panel";
-        empty.innerHTML = "Launch this app on a text file or folder. Later Finder opens arrive through <code>window.HTMLToApp.launchItems</code> and <code>htmltoapp-open</code>.";
+        empty.innerHTML = "Launch this app on a text file or folder. Later Finder opens arrive through <code>window.HTMLtoApp.launchItems</code> and <code>htmltoapp-open</code>.";
         rootList.appendChild(empty);
         return;
       }
@@ -1365,11 +1365,11 @@
         editorMeta.textContent = message;
     });
 
-    updateRuntime((window.HTMLToApp && window.HTMLToApp.runtime) || defaultRuntime());
+    updateRuntime((window.HTMLtoApp && window.HTMLtoApp.runtime) || defaultRuntime());
     renderRoots();
     renderBrowser();
     resetEditor("Package this file with HTML to App and launch it on a Finder-selected text file or folder.");
-    handleLaunchItems((window.HTMLToApp && window.HTMLToApp.launchItems) || [], true);
+    handleLaunchItems((window.HTMLtoApp && window.HTMLtoApp.launchItems) || [], true);
   </script>
 </body>
 </html>

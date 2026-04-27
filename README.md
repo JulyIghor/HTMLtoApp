@@ -16,7 +16,7 @@ HTML to App lets you turn an HTML file or folder into a native macOS app bundle.
 - Expose scoped read and write APIs so editor-role apps can save back to opened files or folders.
 - Preselect app permissions such as camera, microphone, or location services from HTML metadata.
 - Send native macOS notifications from local HTML with the standard `Notification` API.
-- Control the Dock badge from JavaScript through `window.HTMLToApp.setBadge()` and `window.HTMLToApp.clearBadge()`.
+- Control the Dock badge from JavaScript through `window.HTMLtoApp.setBadge()` and `window.HTMLtoApp.clearBadge()`.
 - Use drag and drop inside the example apps for local files and folders.
 - Support media-style apps such as image viewers, video players, audio players, and folder browsers.
 - Support canvas-style tools such as annotation or geometry drawing apps, plus document-style editors.
@@ -26,11 +26,11 @@ HTML to App lets you turn an HTML file or folder into a native macOS app bundle.
 
 Generated apps can be configured with **Open With** settings so macOS sends matching files or folders into the app. In the page JavaScript, the launcher provides launch items through:
 
-- `window.HTMLToApp.launchItems`
+- `window.HTMLtoApp.launchItems`
 - `window` event `htmltoapp-open`
-- `window.HTMLToApp.runtime`
+- `window.HTMLtoApp.runtime`
 - `window` event `htmltoapp-runtime`
-- `window.HTMLToApp.fs`
+- `window.HTMLtoApp.fs`
 
 For file-backed apps, this makes it possible to build viewers, players, and editors that react to real Finder-opened content instead of only loading bundled assets.
 
@@ -52,7 +52,7 @@ When someone browses that HTML source in HTML to App, the app can automatically 
 
 ## Scoped File Bridge
 
-`window.HTMLToApp.runtime` reports whether the exported app is configured as a viewer or editor, and whether write-back is available:
+`window.HTMLtoApp.runtime` reports whether the exported app is configured as a viewer or editor, and whether write-back is available:
 
 - `enabled`
 - `role`
@@ -60,18 +60,18 @@ When someone browses that HTML source in HTML to App, the app can automatically 
 - `allowFolders`
 - `canWriteBack`
 
-`window.HTMLToApp.fs` accepts either a launch item object, a folder entry object, or an opened-item id string. Read methods work in both viewer and editor mode. Mutating methods only work when Open With is enabled and the role is `editor`.
+`window.HTMLtoApp.fs` accepts either a launch item object, a folder entry object, or an opened-item id string. Read methods work in both viewer and editor mode. Mutating methods only work when Open With is enabled and the role is `editor`.
 
 ```html
 <script>
-  const launchItems = (window.HTMLToApp && window.HTMLToApp.launchItems) || [];
-  const runtime = (window.HTMLToApp && window.HTMLToApp.runtime) || {};
+  const launchItems = (window.HTMLtoApp && window.HTMLtoApp.launchItems) || [];
+  const runtime = (window.HTMLtoApp && window.HTMLtoApp.runtime) || {};
 
   async function openFirstTextFile() {
     const fileItem = launchItems.find((item) => !item.isDirectory);
     if (!fileItem) return;
 
-    const opened = await window.HTMLToApp.fs.readText(fileItem.id);
+    const opened = await window.HTMLtoApp.fs.readText(fileItem.id);
     editor.value = opened.text;
   }
 
@@ -79,15 +79,15 @@ When someone browses that HTML source in HTML to App, the app can automatically 
     const fileItem = launchItems.find((item) => !item.isDirectory);
     if (!fileItem || !runtime.canWriteBack) return;
 
-    await window.HTMLToApp.fs.writeText(fileItem.id, editor.value);
+    await window.HTMLtoApp.fs.writeText(fileItem.id, editor.value);
   }
 
   async function createNoteInOpenedFolder() {
     const folderItem = launchItems.find((item) => item.isDirectory);
     if (!folderItem || !runtime.canWriteBack) return;
 
-    await window.HTMLToApp.fs.createDirectory(folderItem.id, "Drafts");
-    await window.HTMLToApp.fs.writeText(folderItem.id, "# New note\n", "Drafts/today.md");
+    await window.HTMLtoApp.fs.createDirectory(folderItem.id, "Drafts");
+    await window.HTMLtoApp.fs.writeText(folderItem.id, "# New note\n", "Drafts/today.md");
   }
 </script>
 ```
@@ -117,16 +117,19 @@ Notes:
 
 ## Notifications and Dock Badge
 
-Generated apps can pass notification requests from local HTML to native macOS notifications. Use the standard browser-style `Notification` API:
+Generated apps can pass notification requests from local HTML to native macOS notifications. This is local notification passthrough from the exported app, not APNs or server-delivered remote push. Use the standard browser-style `Notification` API:
 
 ```html
 <script>
   async function sendNotification() {
+    if (!("Notification" in window)) return;
+
     const permission = await Notification.requestPermission();
     if (permission !== "granted") return;
 
     new Notification("HTML to App", {
-      body: "This notification was sent from local HTML."
+      body: "This notification was sent from local HTML.",
+      tag: "html-to-app-demo"
     });
   }
 </script>
@@ -136,12 +139,19 @@ Generated apps can also control their Dock badge from JavaScript:
 
 ```html
 <script>
-  window.HTMLToApp.setBadge("3");
-  window.HTMLToApp.clearBadge();
+  const appBridge = window.HTMLtoApp;
+
+  if (appBridge && typeof appBridge.setBadge === "function") {
+    appBridge.setBadge("3");
+  }
+
+  if (appBridge && typeof appBridge.clearBadge === "function") {
+    appBridge.clearBadge();
+  }
 </script>
 ```
 
-Badge values are strings, so you can use numbers, short labels, or clear the badge when there is no active state to show.
+Badge values are strings, so you can use numbers, short labels, or clear the badge when there is no active state to show. The bridge namespace is exactly `window.HTMLtoApp`.
 
 ## Examples
 
