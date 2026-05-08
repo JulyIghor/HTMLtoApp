@@ -527,5 +527,20 @@
     setMode("contain");
     handleLaunchItems((window.HTMLtoApp && window.HTMLtoApp.launchItems) || [], true);
   </script>
+  <script>
+    (function () {
+      function showHTMLtoAppBrowserNotice() {
+        if (window.HTMLtoApp || document.getElementById("htmltoapp-browser-notice")) return;
+        const notice = document.createElement("aside");
+        notice.id = "htmltoapp-browser-notice";
+        notice.setAttribute("role", "note");
+        notice.style.cssText = "position:fixed;left:16px;right:16px;bottom:16px;z-index:2147483647;padding:14px 16px;border-radius:10px;background:#111827;color:#fff;box-shadow:0 12px 32px rgba(0,0,0,.28);font:14px/1.45 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
+        notice.innerHTML = '<strong style="display:block;margin-bottom:2px;">HTML to App example</strong><span>These examples are made to work in HTML to App only. Visit <a href="https://htmltoapp.app" style="color:#93c5fd;font-weight:700;">https://htmltoapp.app</a> for more information.</span>';
+        document.body.appendChild(notice);
+      }
+      if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", showHTMLtoAppBrowserNotice);
+      else showHTMLtoAppBrowserNotice();
+    }());
+  </script>
 </body>
 </html>

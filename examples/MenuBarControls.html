@@ -1,0 +1,920 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Menu Bar Controls Demo</title>
+<style>
+:root {
+    color-scheme: light dark;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --accent: #0f8b8d;
+    --accent-strong: #0b6264;
+    --warn: #a15300;
+    --line: color-mix(in srgb, CanvasText 16%, transparent);
+    --muted: color-mix(in srgb, CanvasText 68%, transparent);
+    --panel: color-mix(in srgb, Canvas 92%, CanvasText 8%);
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    background:
+        linear-gradient(135deg, color-mix(in srgb, Canvas 84%, #dde7e8 16%), Canvas 54%),
+        Canvas;
+    color: CanvasText;
+}
+
+button,
+input,
+select {
+    font: inherit;
+}
+
+button {
+    appearance: none;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    padding: 10px 14px;
+    background: var(--accent);
+    color: white;
+    font-weight: 650;
+    cursor: pointer;
+}
+
+button:hover {
+    background: var(--accent-strong);
+}
+
+button:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+}
+
+button:disabled:hover {
+    background: var(--accent);
+}
+
+button.secondary {
+    border-color: var(--line);
+    background: color-mix(in srgb, Canvas 88%, CanvasText 12%);
+    color: CanvasText;
+}
+
+button.secondary:hover:not(:disabled) {
+    background: color-mix(in srgb, Canvas 78%, CanvasText 22%);
+}
+
+input[type="text"],
+input[type="number"],
+select {
+    width: 100%;
+    min-width: 0;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 10px 12px;
+    background: Canvas;
+    color: CanvasText;
+}
+
+label {
+    display: grid;
+    gap: 6px;
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.shell {
+    width: min(1180px, calc(100vw - 32px));
+    margin: 0 auto;
+    padding: 28px 0;
+}
+
+header {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 16px;
+    align-items: end;
+    padding-bottom: 18px;
+    border-bottom: 1px solid var(--line);
+}
+
+.header-copy {
+    padding-inline: 8px;
+}
+
+h1,
+h2,
+p {
+    margin: 0;
+}
+
+h1 {
+    font-size: clamp(28px, 4vw, 42px);
+    line-height: 1.04;
+    letter-spacing: 0;
+}
+
+h2 {
+    font-size: 17px;
+    letter-spacing: 0;
+}
+
+.intro {
+    max-width: 680px;
+    margin-top: 8px;
+    color: var(--muted);
+    line-height: 1.45;
+}
+
+.bridge-pill {
+    justify-self: end;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 8px 12px;
+    background: var(--panel);
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.bridge-pill.ready {
+    border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+    color: var(--accent-strong);
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
+    gap: 18px;
+    margin-top: 18px;
+}
+
+.stack {
+    display: grid;
+    gap: 18px;
+}
+
+.panel {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 18px;
+    background: var(--panel);
+}
+
+.panel-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    align-items: baseline;
+    margin-bottom: 14px;
+}
+
+.panel-head p,
+.note {
+    color: var(--muted);
+    line-height: 1.45;
+    font-size: 14px;
+}
+
+.controls {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.controls.single {
+    grid-template-columns: 1fr;
+}
+
+.check-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    min-height: 38px;
+    color: CanvasText;
+}
+
+.check-row input {
+    width: 16px;
+    height: 16px;
+}
+
+.actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 14px;
+}
+
+.metrics {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.metric {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 12px;
+    background: Canvas;
+}
+
+.metric strong {
+    display: block;
+    font-size: 24px;
+    line-height: 1;
+}
+
+.metric span {
+    display: block;
+    margin-top: 6px;
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 650;
+}
+
+.state-list {
+    display: grid;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.state-line {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    border-bottom: 1px solid color-mix(in srgb, CanvasText 10%, transparent);
+    padding-bottom: 8px;
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.state-line strong {
+    color: CanvasText;
+}
+
+.log {
+    height: 380px;
+    overflow: auto;
+    display: grid;
+    align-content: start;
+    gap: 8px;
+    padding-right: 2px;
+}
+
+.log-entry {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 10px 12px;
+    background: Canvas;
+}
+
+.log-entry time {
+    display: block;
+    margin-bottom: 4px;
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.log-entry code {
+    display: block;
+    margin-top: 6px;
+    color: var(--muted);
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-size: 12px;
+}
+
+.warning {
+    border-color: color-mix(in srgb, var(--warn) 40%, transparent);
+    color: var(--warn);
+}
+
+@media (max-width: 860px) {
+    header,
+    .grid,
+    .controls,
+    .metrics {
+        grid-template-columns: 1fr;
+    }
+
+    .bridge-pill {
+        justify-self: start;
+    }
+}
+</style>
+</head>
+<body>
+<main class="shell">
+    <header>
+        <div class="header-copy">
+            <h1>Menu Bar Controls Demo</h1>
+            <p class="intro">
+                Standalone HTML example for the HTML to App menu bar bridge: generated icons, optional template rendering, image-plus-title placement, dynamic menu rebuilds, status item clicks, menu callbacks, toggles, nested submenus, badges, background mode, and window title control.
+            </p>
+        </div>
+        <div id="bridgeStatus" class="bridge-pill">Checking bridge</div>
+    </header>
+
+    <section class="grid">
+        <div class="stack">
+            <section class="panel">
+                <div class="panel-head">
+                    <h2>Status Item</h2>
+                    <p>Create, update, badge, or hide the native menu bar icon.</p>
+                </div>
+                <div class="controls">
+                    <label>
+                        Menu bar title
+                        <input id="iconTitle" type="text" value="HTML to App">
+                    </label>
+                    <label>
+                        Tooltip
+                        <input id="iconTooltip" type="text" value="Menu Bar Controls Demo">
+                    </label>
+                    <label>
+                        Generated icon position
+                        <select id="imagePosition">
+                            <option value="left" selected>Left of title</option>
+                            <option value="right">Right of title</option>
+                        </select>
+                    </label>
+                    <label class="check-row">
+                        <input id="useImageIcon" type="checkbox" checked>
+                        Use generated image icon
+                    </label>
+                    <label class="check-row">
+                        <input id="showIconTitle" type="checkbox" checked>
+                        Show title with icon
+                    </label>
+                    <label class="check-row">
+                        <input id="templateImage" type="checkbox">
+                        Use template-safe image
+                    </label>
+                    <label class="check-row">
+                        <input id="backgroundMode" type="checkbox" checked>
+                        Close window to menu bar
+                    </label>
+                    <label class="check-row">
+                        <input id="quietMode" type="checkbox">
+                        Quiet mode checked item
+                    </label>
+                </div>
+                <div class="actions">
+                    <button id="applyIcon">Create or update icon</button>
+                    <button id="hideIcon" class="secondary">Hide icon</button>
+                    <button id="installMenu" class="secondary">Reinstall menu provider</button>
+                </div>
+                <p class="note" style="margin-top: 12px;">
+                    With background mode enabled, closing the exported app window hides the window and Dock icon while the app keeps running from the menu bar. The native app shows the one-time explanation message.
+                </p>
+            </section>
+
+            <section class="panel">
+                <div class="panel-head">
+                    <h2>Badge And Window</h2>
+                    <p>Menu bar badges draw on image icons. Text-only menu bar items keep their title unchanged.</p>
+                </div>
+                <div class="controls">
+                    <label>
+                        Menu bar badge
+                        <input id="badgeValue" type="text" value="3" maxlength="8">
+                    </label>
+                    <label>
+                        Native window title
+                        <input id="windowTitle" type="text" value="Menu Bar Controls Demo">
+                    </label>
+                </div>
+                <div class="actions">
+                    <button id="setBadge">Set badge</button>
+                    <button id="incrementBadge" class="secondary">Increment image badge</button>
+                    <button id="clearBadge" class="secondary">Clear badge</button>
+                    <button id="setTitle" class="secondary">Set title</button>
+                    <button id="showWindow" class="secondary">Show window</button>
+                    <button id="hideWindow" class="secondary">Hide window</button>
+                </div>
+            </section>
+
+            <section class="panel">
+                <div class="panel-head">
+                    <h2>Callback Counters</h2>
+                    <p>The menu provider runs every time the native menu popup is requested.</p>
+                </div>
+                <div class="metrics">
+                    <div class="metric">
+                        <strong id="menuBuildCount">0</strong>
+                        <span>Menu rebuilds</span>
+                    </div>
+                    <div class="metric">
+                        <strong id="statusClickCount">0</strong>
+                        <span>Status clicks</span>
+                    </div>
+                    <div class="metric">
+                        <strong id="itemClickCount">0</strong>
+                        <span>Menu item clicks</span>
+                    </div>
+                    <div class="metric">
+                        <strong id="badgePreview">3</strong>
+                        <span>Badge value</span>
+                    </div>
+                </div>
+                <div class="state-list">
+                    <div class="state-line"><span>Selected mode</span><strong id="modePreview">Work</strong></div>
+                    <div class="state-line"><span>Icon layout</span><strong id="iconLayoutPreview">Image left + title</strong></div>
+                    <div class="state-line"><span>Quiet mode</span><strong id="quietPreview">Off</strong></div>
+                    <div class="state-line"><span>Auto sync</span><strong id="syncPreview">On</strong></div>
+                    <div class="state-line"><span>Last menu generated</span><strong id="lastMenuPreview">Never</strong></div>
+                    <div class="state-line"><span>Last native DOM event</span><strong id="domEventPreview">None</strong></div>
+                </div>
+            </section>
+        </div>
+
+        <aside class="panel">
+            <div class="panel-head">
+                <h2>Native Event Log</h2>
+                <p>Open the menu bar icon and choose items to see callback payloads.</p>
+            </div>
+            <div id="log" class="log" aria-live="polite"></div>
+        </aside>
+    </section>
+</main>
+
+<script>
+const bridge = window.HTMLtoApp || null;
+const menuBar = bridge && bridge.menuBar ? bridge.menuBar : null;
+
+const state = {
+    iconVisible: false,
+    useImageIcon: true,
+    showIconTitle: true,
+    imagePosition: "left",
+    templateImage: false,
+    backgroundMode: true,
+    quietMode: false,
+    autoSync: true,
+    selectedMode: "Work",
+    badge: "3",
+    menuBuildCount: 0,
+    statusClickCount: 0,
+    itemClickCount: 0,
+    lastMenuGenerated: "Never",
+    lastDomEvent: "None",
+    logEntries: []
+};
+
+const els = {
+    bridgeStatus: document.getElementById("bridgeStatus"),
+    iconTitle: document.getElementById("iconTitle"),
+    iconTooltip: document.getElementById("iconTooltip"),
+    imagePosition: document.getElementById("imagePosition"),
+    useImageIcon: document.getElementById("useImageIcon"),
+    showIconTitle: document.getElementById("showIconTitle"),
+    templateImage: document.getElementById("templateImage"),
+    backgroundMode: document.getElementById("backgroundMode"),
+    quietMode: document.getElementById("quietMode"),
+    badgeValue: document.getElementById("badgeValue"),
+    incrementBadge: document.getElementById("incrementBadge"),
+    windowTitle: document.getElementById("windowTitle"),
+    menuBuildCount: document.getElementById("menuBuildCount"),
+    statusClickCount: document.getElementById("statusClickCount"),
+    itemClickCount: document.getElementById("itemClickCount"),
+    badgePreview: document.getElementById("badgePreview"),
+    modePreview: document.getElementById("modePreview"),
+    iconLayoutPreview: document.getElementById("iconLayoutPreview"),
+    quietPreview: document.getElementById("quietPreview"),
+    syncPreview: document.getElementById("syncPreview"),
+    lastMenuPreview: document.getElementById("lastMenuPreview"),
+    domEventPreview: document.getElementById("domEventPreview"),
+    log: document.getElementById("log")
+};
+
+function bridgeReady() {
+    return Boolean(menuBar);
+}
+
+function nowLabel() {
+    return new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+}
+
+function log(message, payload, warning) {
+    state.logEntries.unshift({
+        time: nowLabel(),
+        message,
+        payload: payload || null,
+        warning: Boolean(warning)
+    });
+    state.logEntries = state.logEntries.slice(0, 36);
+    render();
+}
+
+function runNative(label, fn) {
+    if (!bridgeReady()) {
+        log(label + " skipped because window.HTMLtoApp.menuBar is not available.", null, true);
+        return false;
+    }
+
+    try {
+        fn();
+        return true;
+    } catch (error) {
+        log(label + " failed.", { message: error.message || String(error) }, true);
+        return false;
+    }
+}
+
+function createGeneratedIcon(templateSafe) {
+    const canvas = document.createElement("canvas");
+    canvas.width = 64;
+    canvas.height = 64;
+    const ctx = canvas.getContext("2d");
+
+    ctx.clearRect(0, 0, 64, 64);
+
+    if (templateSafe) {
+        ctx.fillStyle = "#000000";
+        ctx.font = "800 38px -apple-system, BlinkMacSystemFont, sans-serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText("H", 32, 34);
+        ctx.strokeStyle = "#000000";
+        ctx.lineWidth = 5;
+        ctx.lineCap = "round";
+        ctx.beginPath();
+        ctx.moveTo(18, 18);
+        ctx.lineTo(32, 8);
+        ctx.lineTo(46, 18);
+        ctx.stroke();
+        return canvas.toDataURL("image/png");
+    }
+
+    ctx.fillStyle = "#0f8b8d";
+    ctx.beginPath();
+    roundedRect(ctx, 10, 8, 44, 48, 12);
+    ctx.fill();
+
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "700 24px -apple-system, BlinkMacSystemFont, sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("HTA", 32, 33);
+
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.75)";
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.arc(48, 16, 7, 0, Math.PI * 2);
+    ctx.stroke();
+
+    return canvas.toDataURL("image/png");
+}
+
+function roundedRect(ctx, x, y, width, height, radius) {
+    ctx.moveTo(x + radius, y);
+    ctx.lineTo(x + width - radius, y);
+    ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+    ctx.lineTo(x + width, y + height - radius);
+    ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+    ctx.lineTo(x + radius, y + height);
+    ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+    ctx.lineTo(x, y + radius);
+    ctx.quadraticCurveTo(x, y, x + radius, y);
+    ctx.closePath();
+}
+
+function readControls() {
+    state.useImageIcon = els.useImageIcon.checked;
+    state.showIconTitle = els.showIconTitle.checked;
+    state.imagePosition = els.imagePosition.value === "right" ? "right" : "left";
+    state.templateImage = els.templateImage.checked;
+    state.backgroundMode = els.backgroundMode.checked;
+    state.quietMode = els.quietMode.checked;
+    state.badge = els.badgeValue.value.trim();
+}
+
+function setMenuBarBadge(value) {
+    state.badge = value;
+    els.badgeValue.value = value;
+    const changed = runNative("Set menu bar badge", () => {
+        if (value) {
+            menuBar.setBadge(value);
+        } else {
+            menuBar.clearBadge();
+        }
+    });
+    render();
+    return changed;
+}
+
+function incrementBadge() {
+    readControls();
+    if (!state.useImageIcon) {
+        log("Image badge increment skipped. Enable the generated image icon to display menu bar badges.", null, true);
+        return;
+    }
+
+    const next = String((parseInt(state.badge, 10) || 0) + 1);
+    const changed = setMenuBarBadge(next);
+    log(changed ? "Menu bar badge incremented." : "Badge value changed in the page only.", { badge: next });
+}
+
+function clearMenuBarBadge() {
+    const changed = setMenuBarBadge("");
+    log(changed ? "Menu bar badge cleared." : "Badge value cleared in the page only.");
+}
+
+function setNativeWindowTitle() {
+    const title = els.windowTitle.value.trim() || "Menu Bar Controls Demo";
+    const changed = runNative("Set native window title", () => {
+        if (typeof bridge.setWindowTitle !== "function") {
+            throw new Error("window.HTMLtoApp.setWindowTitle is not available");
+        }
+        bridge.setWindowTitle(title);
+    });
+    if (changed) {
+        log("Native window title requested.", { title });
+    }
+}
+
+function applyIcon() {
+    readControls();
+    const title = els.iconTitle.value.trim() || "HTML to App";
+    const options = {
+        visible: true,
+        title: state.useImageIcon && !state.showIconTitle ? "" : title,
+        tooltip: els.iconTooltip.value.trim() || "Menu Bar Controls Demo",
+        imageVisible: state.useImageIcon,
+        imagePosition: state.imagePosition,
+        template: state.templateImage,
+        closeToMenuBarOnWindowClose: state.backgroundMode
+    };
+
+    if (state.useImageIcon) {
+        options.image = createGeneratedIcon(state.templateImage);
+    }
+
+    const changed = runNative("Create or update menu bar icon", () => {
+        menuBar.setIcon(options);
+        if (typeof menuBar.setCloseToMenuBarOnWindowClose === "function") {
+            menuBar.setCloseToMenuBarOnWindowClose(state.backgroundMode);
+        }
+    });
+
+    state.iconVisible = changed;
+    if (changed) {
+        log("Menu bar icon configured.", {
+            title: options.title || "(image only)",
+            imageVisible: options.imageVisible,
+            imagePosition: options.imagePosition,
+            tooltip: options.tooltip,
+            rendering: state.templateImage ? "template requested" : "regular",
+            closeToMenuBarOnWindowClose: options.closeToMenuBarOnWindowClose
+        });
+    }
+}
+
+function hideIcon() {
+    const changed = runNative("Hide menu bar icon", () => menuBar.hideIcon());
+    if (changed) {
+        state.iconVisible = false;
+        log("Menu bar icon hidden.");
+    }
+}
+
+function buildMenuItems() {
+    state.menuBuildCount += 1;
+    state.lastMenuGenerated = nowLabel();
+    render();
+
+    return [
+        { id: "generated-at", title: "Generated " + state.lastMenuGenerated, enabled: false },
+        { id: "show-window", title: "Show Window" },
+        { id: "hide-window", title: "Hide Window" },
+        { id: "set-title", title: "Apply Window Title" },
+        { type: "separator" },
+        { id: "quiet-mode", title: "Quiet Mode", checked: state.quietMode, toggle: true },
+        { id: "auto-sync", title: "Auto Sync", checked: state.autoSync, toggle: true },
+        {
+            title: "Modes",
+            submenu: [
+                { id: "mode-work", title: "Work", checked: state.selectedMode === "Work", toggle: true },
+                { id: "mode-break", title: "Break", checked: state.selectedMode === "Break", toggle: true },
+                {
+                    title: "More Modes",
+                    submenu: [
+                        { id: "mode-deep-focus", title: "Deep Focus", checked: state.selectedMode === "Deep Focus", toggle: true },
+                        { id: "mode-review", title: "Review", checked: state.selectedMode === "Review", toggle: true },
+                        {
+                            title: "Nested Actions",
+                            items: [
+                                { id: "increment-badge", title: "Increment Image Badge", enabled: state.useImageIcon },
+                                { id: "clear-badge", title: "Clear Badge" },
+                                { id: "disable-example", title: "Disabled Item", enabled: false }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            title: "Live Counters",
+            items: [
+                { id: "menu-count", title: "Menu rebuilds: " + state.menuBuildCount, enabled: false },
+                { id: "status-count", title: "Status clicks: " + state.statusClickCount, enabled: false },
+                { id: "item-count", title: "Item clicks: " + state.itemClickCount, enabled: false }
+            ]
+        },
+        { type: "separator" },
+        { id: "quit", title: "Quit" }
+    ];
+}
+
+function installMenuProvider() {
+    const changed = runNative("Install dynamic menu provider", () => {
+        menuBar.setMenu(buildMenuItems);
+    });
+    if (changed) {
+        log("Dynamic menu provider installed. The native app will ask JavaScript for fresh menu items on each popup.");
+    }
+}
+
+function handleStatusClick(event) {
+    state.statusClickCount += 1;
+    log("Status item click callback delivered.", event);
+}
+
+function handleMenuItemClick(event) {
+    state.itemClickCount += 1;
+
+    if (event.id === "show-window" && typeof bridge.showWindow === "function") {
+        bridge.showWindow();
+    } else if (event.id === "hide-window" && typeof bridge.hideWindow === "function") {
+        bridge.hideWindow();
+    } else if (event.id === "set-title") {
+        setNativeWindowTitle();
+    } else if (event.id === "quiet-mode") {
+        state.quietMode = Boolean(event.checked);
+        els.quietMode.checked = state.quietMode;
+    } else if (event.id === "auto-sync") {
+        state.autoSync = Boolean(event.checked);
+    } else if (event.id && event.id.indexOf("mode-") === 0 && event.checked) {
+        state.selectedMode = event.title;
+    } else if (event.id === "increment-badge") {
+        incrementBadge();
+    } else if (event.id === "clear-badge") {
+        clearMenuBarBadge();
+    } else if (event.id === "quit" && typeof bridge.quit === "function") {
+        bridge.quit();
+    }
+
+    log("Menu item click callback delivered.", event);
+}
+
+function registerCallbacks() {
+    if (!bridgeReady()) {
+        log("Open this file in HTML to App preview or in an exported app to use the native menu bar bridge.", null, true);
+        return;
+    }
+
+    menuBar.onClick(handleStatusClick);
+    menuBar.onItemClick(handleMenuItemClick);
+
+    window.addEventListener("htmltoapp-menubar-click", (event) => {
+        state.lastDomEvent = "status item";
+        render();
+    });
+
+    window.addEventListener("htmltoapp-menubar-item-click", (event) => {
+        const detail = event.detail || {};
+        state.lastDomEvent = detail.id ? "item: " + detail.id : "menu item";
+        render();
+    });
+
+    log("Menu bar click callbacks registered.");
+}
+
+function render() {
+    els.bridgeStatus.textContent = bridgeReady() ? "Native bridge available" : "Native bridge unavailable";
+    els.bridgeStatus.classList.toggle("ready", bridgeReady());
+    els.bridgeStatus.classList.toggle("warning", !bridgeReady());
+
+    els.menuBuildCount.textContent = String(state.menuBuildCount);
+    els.statusClickCount.textContent = String(state.statusClickCount);
+    els.itemClickCount.textContent = String(state.itemClickCount);
+    els.badgePreview.textContent = state.badge || "Clear";
+    els.modePreview.textContent = state.selectedMode;
+    els.iconLayoutPreview.textContent = state.useImageIcon
+        ? "Image " + state.imagePosition + (state.showIconTitle ? " + title" : " only")
+        : "Text only";
+    els.quietPreview.textContent = state.quietMode ? "On" : "Off";
+    els.syncPreview.textContent = state.autoSync ? "On" : "Off";
+    els.lastMenuPreview.textContent = state.lastMenuGenerated;
+    els.domEventPreview.textContent = state.lastDomEvent;
+    els.incrementBadge.disabled = !state.useImageIcon;
+
+    els.log.innerHTML = state.logEntries.map((entry) => {
+        const payload = entry.payload ? "<code>" + escapeHTML(JSON.stringify(entry.payload, null, 2)) + "<\/code>" : "";
+        return "<div class=\"log-entry" + (entry.warning ? " warning" : "") + "\"><time>" +
+            escapeHTML(entry.time) + "<\/time>" + escapeHTML(entry.message) + payload + "<\/div>";
+    }).join("");
+}
+
+function escapeHTML(value) {
+    return String(value).replace(/[&<>"']/g, (char) => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        "\"": "&quot;",
+        "'": "&#39;"
+    }[char]));
+}
+
+document.getElementById("applyIcon").addEventListener("click", applyIcon);
+document.getElementById("hideIcon").addEventListener("click", hideIcon);
+document.getElementById("installMenu").addEventListener("click", installMenuProvider);
+document.getElementById("setBadge").addEventListener("click", () => {
+    readControls();
+    const changed = setMenuBarBadge(state.badge);
+    const visibleNote = state.useImageIcon ? "Menu bar badge set." : "Badge stored, but text-only menu bar items do not display it.";
+    log(changed ? visibleNote : "Badge value changed in the page only.", { badge: state.badge, imageVisible: state.useImageIcon });
+});
+document.getElementById("incrementBadge").addEventListener("click", incrementBadge);
+document.getElementById("clearBadge").addEventListener("click", clearMenuBarBadge);
+document.getElementById("setTitle").addEventListener("click", setNativeWindowTitle);
+document.getElementById("showWindow").addEventListener("click", () => {
+    const changed = runNative("Show native window", () => {
+        if (typeof bridge.showWindow !== "function") {
+            throw new Error("window.HTMLtoApp.showWindow is not available");
+        }
+        bridge.showWindow();
+    });
+    if (changed) {
+        log("Show window requested.");
+    }
+});
+document.getElementById("hideWindow").addEventListener("click", () => {
+    const changed = runNative("Hide native window", () => {
+        if (typeof bridge.hideWindow !== "function") {
+            throw new Error("window.HTMLtoApp.hideWindow is not available");
+        }
+        bridge.hideWindow();
+    });
+    if (changed) {
+        log("Hide window requested.");
+    }
+});
+els.backgroundMode.addEventListener("change", () => {
+    readControls();
+    const changed = runNative("Update close-to-menu-bar behavior", () => {
+        if (typeof menuBar.setCloseToMenuBarOnWindowClose !== "function") {
+            throw new Error("window.HTMLtoApp.menuBar.setCloseToMenuBarOnWindowClose is not available");
+        }
+        menuBar.setCloseToMenuBarOnWindowClose(state.backgroundMode);
+    });
+    if (changed) {
+        log("Close-to-menu-bar behavior updated.", { enabled: state.backgroundMode });
+    }
+});
+els.quietMode.addEventListener("change", () => {
+    state.quietMode = els.quietMode.checked;
+    log("Quiet mode state changed in the page. Open the menu again to see the refreshed checkmark.", { checked: state.quietMode });
+    render();
+});
+[els.useImageIcon, els.showIconTitle, els.imagePosition, els.templateImage].forEach((control) => {
+    control.addEventListener("change", () => {
+        readControls();
+        render();
+    });
+});
+
+render();
+registerCallbacks();
+if (bridgeReady()) {
+    installMenuProvider();
+    applyIcon();
+    setMenuBarBadge(state.badge);
+    setNativeWindowTitle();
+}
+</script>
+<script>
+(function () {
+    function showHTMLtoAppBrowserNotice() {
+        if (window.HTMLtoApp || document.getElementById("htmltoapp-browser-notice")) return;
+        const notice = document.createElement("aside");
+        notice.id = "htmltoapp-browser-notice";
+        notice.setAttribute("role", "note");
+        notice.style.cssText = "position:fixed;left:16px;right:16px;bottom:16px;z-index:2147483647;padding:14px 16px;border-radius:10px;background:#111827;color:#fff;box-shadow:0 12px 32px rgba(0,0,0,.28);font:14px/1.45 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
+        notice.innerHTML = '<strong style="display:block;margin-bottom:2px;">HTML to App example</strong><span>These examples are made to work in HTML to App only. Visit <a href="https://htmltoapp.app" style="color:#93c5fd;font-weight:700;">https://htmltoapp.app</a> for more information.</span>';
+        document.body.appendChild(notice);
+    }
+    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", showHTMLtoAppBrowserNotice);
+    else showHTMLtoAppBrowserNotice();
+}());
+</script>
+</body>
+</html>
