@@ -1,0 +1,1000 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+                <title>HTML to App Review Demo</title>
+
+                <meta name="htmltoapp:open-with" content="role=viewer; files=html,htm,txt,md,json,css,js; folders=true">
+
+                    <style>
+                        :root {
+                            color-scheme: light dark;
+                            --bg: #f5f5f7;
+                            --card: #ffffff;
+                            --soft: #f0f0f4;
+                            --text: #1d1d1f;
+                            --muted: #6e6e73;
+                            --line: #d2d2d7;
+                            --blue: #007aff;
+                            --green: #248a3d;
+                            --red: #c92828;
+                            --orange: #9a6700;
+                        }
+                        @media (prefers-color-scheme: dark) {
+                            :root {
+                                --bg: #111113;
+                                --card: #1c1c1e;
+                                --soft: #2c2c2e;
+                                --text: #f5f5f7;
+                                --muted: #a1a1a6;
+                                --line: #3a3a3c;
+                                --blue: #0a84ff;
+                                --green: #32d74b;
+                                --red: #ff453a;
+                                --orange: #ffd60a;
+                            }
+                        }
+                        * {
+                            box-sizing: border-box;
+                        }
+                        body {
+                            margin: 0;
+                            background: var(--bg);
+                            color: var(--text);
+                            font: 14px/1.45 -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
+                        }
+                        header {
+                            padding: 26px 32px;
+                            border-bottom: 1px solid var(--line);
+                            background: linear-gradient(180deg, var(--card), var(--bg));
+                        }
+                        main {
+                            max-width: 1240px;
+                            margin: 0 auto;
+                            padding: 22px 32px 42px;
+                        }
+                        h1 {
+                            margin: 0 0 8px;
+                            font-size: 28px;
+                            line-height: 1.15;
+                            letter-spacing: -0.02em;
+                        }
+                        h2 {
+                            margin: 0 0 10px;
+                            font-size: 18px;
+                        }
+                        h3 {
+                            margin: 18px 0 8px;
+                            font-size: 14px;
+                        }
+                        p {
+                            margin: 0 0 10px;
+                        }
+                        code, pre {
+                            font-family: "SF Mono", Menlo, Consolas, monospace;
+                        }
+                        pre {
+                            margin: 10px 0 0;
+                            padding: 12px;
+                            overflow: auto;
+                            max-height: 280px;
+                            background: var(--soft);
+                            border: 1px solid var(--line);
+                            border-radius: 12px;
+                            white-space: pre-wrap;
+                        }
+                        .grid {
+                            display: grid;
+                            grid-template-columns: repeat(12, 1fr);
+                            gap: 14px;
+                        }
+                        .card {
+                            grid-column: span 6;
+                            background: var(--card);
+                            border: 1px solid var(--line);
+                            border-radius: 16px;
+                            padding: 16px;
+                        }
+                        .card.wide {
+                            grid-column: span 12;
+                        }
+                        .card.third {
+                            grid-column: span 4;
+                        }
+                        .hidden {
+                            display: none !important;
+                        }
+                        .muted {
+                            color: var(--muted);
+                        }
+                        .warning {
+                            border-color: color-mix(in srgb, var(--red) 50%, var(--line));
+                        }
+                        .ok {
+                            border-color: color-mix(in srgb, var(--green) 50%, var(--line));
+                        }
+                        .badge {
+                            display: inline-flex;
+                            align-items: center;
+                            border-radius: 999px;
+                            border: 1px solid var(--line);
+                            padding: 4px 9px;
+                            font-size: 12px;
+                            background: var(--soft);
+                        }
+                        .badge.good {
+                            color: var(--green);
+                        }
+                        .badge.bad {
+                            color: var(--red);
+                        }
+                        .badge.warn {
+                            color: var(--orange);
+                        }
+                        .row {
+                            display: grid;
+                            grid-template-columns: 230px 1fr;
+                            gap: 8px;
+                            padding: 7px 0;
+                            border-bottom: 1px solid var(--line);
+                        }
+                        .row:last-child {
+                            border-bottom: 0;
+                        }
+                        .controls {
+                            display: flex;
+                            flex-wrap: wrap;
+                            gap: 8px;
+                            margin-top: 12px;
+                        }
+                        button, input, textarea {
+                            font: inherit;
+                        }
+                        button {
+                            appearance: none;
+                            border: 1px solid var(--line);
+                            border-radius: 10px;
+                            background: var(--soft);
+                            color: var(--text);
+                            padding: 8px 11px;
+                            cursor: pointer;
+                        }
+                        button.primary {
+                            background: var(--blue);
+                            border-color: var(--blue);
+                            color: white;
+                        }
+                        button:disabled {
+                            opacity: .45;
+                            cursor: not-allowed;
+                        }
+                        input, textarea {
+                            width: 100%;
+                            border: 1px solid var(--line);
+                            border-radius: 10px;
+                            background: var(--soft);
+                            color: var(--text);
+                            padding: 9px 10px;
+                        }
+                        textarea {
+                            min-height: 120px;
+                            resize: vertical;
+                        }
+                        ol {
+                            margin: 0;
+                            padding-left: 20px;
+                        }
+                        li {
+                            margin: 6px 0;
+                        }
+                        table {
+                            width: 100%;
+                            border-collapse: collapse;
+                        }
+                        th, td {
+                            text-align: left;
+                            vertical-align: top;
+                            padding: 9px 10px;
+                            border-bottom: 1px solid var(--line);
+                        }
+                        th {
+                            color: var(--muted);
+                            background: var(--soft);
+                        }
+                        tr:last-child td {
+                            border-bottom: 0;
+                        }
+                        .callout {
+                            border: 1px solid var(--line);
+                            border-radius: 14px;
+                            background: var(--soft);
+                            padding: 12px;
+                        }
+                        @media (max-width: 900px) {
+                            main, header {
+                                padding-left: 18px;
+                                padding-right: 18px;
+                            }
+                            .card, .card.third {
+                                grid-column: span 12;
+                            }
+                            .row {
+                                grid-template-columns: 1fr;
+                            }
+                        }
+                    </style>
+                </head>
+    <body>
+        <header>
+            <h1>HTML to App Native Integration Review Demo</h1>
+            <p class="muted">This file is made for HTML to App. It is designed to be exported into a macOS app bundle, then used to test native bridge features that a browser and web clip cannot provide.</p>
+        </header>
+
+        <main>
+            <section id="browserOnly" class="card wide warning hidden">
+                <h2>This file is not meant to run in a browser</h2>
+                <p>If this page is opened in Safari, Chrome, or another browser, it can only render static HTML. The native macOS bridge is not available.</p>
+                <p>To test this file, create an app bundle with HTML to App, enable Open With support, export the app, approve it through the standard macOS flow, and launch the exported app.</p>
+                <div class="callout">
+                    <strong>Expected result in a browser:</strong> bridge features are disabled. This is intentional. A browser cannot create a native menu bar icon, control a Dock badge, register Finder Open With file types, or receive Finder-opened files in JavaScript.
+                </div>
+            </section>
+
+            <section id="appOnly" class="grid hidden">
+                <div class="card wide ok">
+                    <h2>Reviewer workflow</h2>
+                    <p>This page is now running inside the exported HTML to App app bundle. Use the steps below to test features that are not possible in a regular browser or web clip.</p>
+                    <ol>
+                        <li>Press <strong>Request notification permission</strong>, then use the Dock badge and native notification buttons once they unlock.</li>
+                        <li>Press <strong>Create native menu bar item</strong>. A macOS menu bar icon and native menu should appear, and the menu bar badge/window buttons should unlock.</li>
+                        <li>Press <strong>Destroy menu bar item</strong> when you want to remove the status item and start the menu bar test again.</li>
+                        <li>In Finder, right-click this same HTML file, choose <strong>Open With</strong>, then select the exported app bundle.</li>
+                        <li>Return to the app. The file opened from Finder should appear in the <strong>Finder Open With passthrough</strong> section.</li>
+                        <li>Select the received file and press <strong>Read selected file through bridge</strong>. The app reads the Finder-opened file through a scoped native bridge.</li>
+                    </ol>
+                </div>
+
+                <div class="card third">
+                    <h2>Runtime</h2>
+                    <div id="runtimePanel"></div>
+                    <div class="controls">
+                        <button id="refresh">Refresh</button>
+                    </div>
+                </div>
+
+                <div class="card third">
+                    <h2>Why this is not browser behavior</h2>
+                    <table>
+                        <thead><tr><th>Feature</th><th>Browser</th><th>This app</th></tr></thead>
+                        <tbody>
+                            <tr><td>Render HTML</td><td>Yes</td><td>Yes</td></tr>
+                            <tr><td>Standalone .app bundle</td><td>No</td><td>Yes</td></tr>
+                            <tr><td>Native menu bar icon from JS</td><td>No</td><td>Yes</td></tr>
+                            <tr><td>Native menu from JS</td><td>No</td><td>Yes</td></tr>
+                            <tr><td>Dock badge from JS</td><td>No</td><td>Yes</td></tr>
+                            <tr><td>Finder Open With passthrough</td><td>No</td><td>Yes</td></tr>
+                            <tr><td>Scoped native file bridge</td><td>No</td><td>Yes</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="card third">
+                    <h2>Test result</h2>
+                    <div class="row"><span>Bridge</span><span id="bridgeStatus"></span></div>
+                    <div class="row"><span>Launch items</span><span id="launchItemCount">0</span></div>
+                    <div class="row"><span>Notification permission</span><span id="notificationStatus"></span></div>
+                </div>
+
+                <div class="card wide">
+                    <h2>Native notifications and Dock badge</h2>
+                    <p class="muted">macOS only shows the Dock badge of an exported app once it has notification permission, so notifications and the Dock badge are controlled together. Grant native notification permission first; the notification and Dock badge buttons unlock once permission is granted. A browser cannot directly control the Dock badge of an exported standalone app.</p>
+                    <div class="controls">
+                        <button id="requestNotification" class="primary">Request notification permission</button>
+                        <button id="showNotification" disabled>Show notification</button>
+                        <button id="badge1" disabled>Set Dock badge</button>
+                        <button id="badgeText" disabled>Set Dock badge to JS</button>
+                        <button id="clearBadge" disabled>Clear Dock badge</button>
+                    </div>
+                    <p id="permissionHint" class="muted" style="margin-top: 10px;">Notification permission is required before notification and Dock badge actions are enabled.</p>
+                </div>
+
+                <div class="card wide">
+                    <h2>Native menu bar icon and menu</h2>
+                    <p class="muted">This is a native macOS status item created from JavaScript. A browser tab or web clip cannot add a native menu bar item.</p>
+                    <div class="controls">
+                        <button id="createMenuBar" class="primary">Create native menu bar item</button>
+                        <button id="destroyMenuBar" disabled>Destroy menu bar item</button>
+                        <button id="setMenuBarBadge" disabled>Set menu bar badge</button>
+                        <button id="clearMenuBarBadge" disabled>Clear menu bar badge</button>
+                        <button id="hideWindow" disabled>Hide window</button>
+                        <button id="showWindow" disabled>Show window</button>
+                    </div>
+                </div>
+
+                <div class="card wide">
+                    <h2>Finder Open With passthrough</h2>
+                    <p class="muted">Test this by opening this same HTML file from Finder with the exported app bundle. The file should be delivered to JavaScript as an opened item.</p>
+                    <div class="callout">
+                        <strong>Exact test:</strong> Find <code>HTMLtoAppReviewNativeBridgeDemo.html</code> in Finder, right-click it, choose <strong>Open With</strong>, select the exported app bundle, then return here.
+                    </div>
+                    <table>
+                        <thead><tr><th>Name</th><th>Kind</th><th>Identifier</th><th>Writable</th></tr></thead>
+                        <tbody id="itemsBody"></tbody>
+                    </table>
+                    <div class="controls">
+                        <button id="readSelected" class="primary">Read selected file through bridge</button>
+                        <button id="statSelected">Stat selected item</button>
+                        <button id="listSelected">List selected folder</button>
+                    </div>
+                    <p class="muted">When the file appears here, the generated app has received a Finder-opened file and passed it to JavaScript. That is not possible with a normal web page or web clip.</p>
+                </div>
+
+                <div class="card">
+                    <h2>Window and app runtime</h2>
+                    <p class="muted">The app window is controlled through the generated app runtime, not through browser chrome.</p>
+                    <input id="newTitle" value="HTML to App Native Bridge Demo">
+                        <div class="controls">
+                            <button id="setTitle">Set native window title</button>
+                            <button id="hideWindow2">Hide window</button>
+                            <button id="showWindow2">Show window</button>
+                        </div>
+                </div>
+
+                <div class="card">
+                    <h2>Developer bridge object</h2>
+                    <p class="muted">This is the app-specific JavaScript API exposed by the generated macOS runtime.</p>
+                    <pre id="bridgeObject"></pre>
+                </div>
+
+                <div class="card wide">
+                    <h2>Log</h2>
+                    <pre id="log"></pre>
+                </div>
+            </section>
+        </main>
+
+        <script>
+            (function () {
+                "use strict";
+
+                const $ = function (id) { return document.getElementById(id); };
+                const hasBridge = function () { return !!window.HTMLtoApp; };
+                let selectedItem = null;
+                let menuChecked = false;
+                let finderOpenAlertShown = false;
+                let nativeMenuBarVisible = false;
+
+                function escapeHtml(value) {
+                    return String(value).replace(/[&<>"']/g, function (char) {
+                        return {
+                            "&": "&amp;",
+                            "<": "&lt;",
+                            ">": "&gt;",
+                            '"': "&quot;",
+                            "'": "&#39;"
+                        }[char];
+                    });
+                }
+
+                function log(message, data) {
+                    const text = "[" + new Date().toLocaleTimeString() + "] " + message + (data === undefined ? "" : "\n" + stringify(data));
+                    $("log").textContent = text + "\n\n" + $("log").textContent;
+                }
+
+                function stringify(value) {
+                    try {
+                        return JSON.stringify(value, null, 2);
+                    } catch (error) {
+                        return String(value);
+                    }
+                }
+
+                function badge(text, mode) {
+                    return '<span class="badge ' + (mode || "") + '">' + escapeHtml(text) + "</span>";
+                }
+
+                function runtime() {
+                    return hasBridge() && window.HTMLtoApp.runtime ? normalizeRuntime(window.HTMLtoApp.runtime) : {};
+                }
+
+                function normalizeRuntime(rt) {
+                    return {
+                        raw: rt || {},
+                        enabled: rt && rt.enabled,
+                        role: rt && rt.role,
+                        allowFiles: rt && rt.allowFiles,
+                        allowFolders: rt && rt.allowFolders,
+                        canWriteBack: rt && rt.canWriteBack
+                    };
+                }
+
+                function itemList() {
+                    return hasBridge() && Array.isArray(window.HTMLtoApp.launchItems) ? window.HTMLtoApp.launchItems : [];
+                }
+
+                function itemReference(item) {
+                    if (!item) {
+                        return null;
+                    }
+                    return item.id || item.identifier || item.path || item;
+                }
+
+                function requireBridge(feature) {
+                    if (hasBridge()) {
+                        return true;
+                    }
+                    log(feature + " requires the exported HTML to App app bundle. A browser cannot run this feature.");
+                    return false;
+                }
+
+                function render() {
+                    if (hasBridge()) {
+                        $("browserOnly").classList.add("hidden");
+                        $("appOnly").classList.remove("hidden");
+                    } else {
+                        $("browserOnly").classList.remove("hidden");
+                        $("appOnly").classList.add("hidden");
+                        return;
+                    }
+
+                    const rt = runtime();
+                    const rows = [
+                                  ["Bridge available", "Yes"],
+                                  ["Open With enabled", valueOrUnknown(rt.enabled)],
+                                  ["Open With role", valueOrUnknown(rt.role)],
+                                  ["Files allowed", valueOrUnknown(rt.allowFiles)],
+                                  ["Folders allowed", valueOrUnknown(rt.allowFolders)],
+                                  ["Write-back available", valueOrUnknown(rt.canWriteBack)]
+                                  ];
+
+                                  $("runtimePanel").innerHTML = rows.map(function (row) {
+                                      return '<div class="row"><span>' + escapeHtml(row[0]) + '</span><span>' + escapeHtml(row[1]) + '</span></div>';
+                                  }).join("");
+
+                                  $("bridgeStatus").innerHTML = badge("Available", "good");
+                                  $("notificationStatus").innerHTML = "Notification" in window ? badge(Notification.permission, Notification.permission === "granted" ? "good" : "warn") : badge("Unavailable", "bad");
+                                  updateNotificationGatedControls();
+                                  updateMenuBarGatedControls();
+                                  $("bridgeObject").textContent = stringify({
+                                      runtime: rt.raw || rt,
+                                      launchItems: itemList(),
+                                      availableTopLevelMethods: Object.keys(window.HTMLtoApp || {}).sort(),
+                                      availableFileMethods: window.HTMLtoApp && window.HTMLtoApp.fs ? Object.keys(window.HTMLtoApp.fs).sort() : [],
+                                      availableMenuBarMethods: window.HTMLtoApp && window.HTMLtoApp.menuBar ? Object.keys(window.HTMLtoApp.menuBar).sort() : []
+                                  });
+
+                                  renderItems();
+                }
+
+                function valueOrUnknown(value) {
+                    return value === undefined || value === null || value === "" ? "Unknown" : value;
+                }
+
+                function notificationPermissionGranted() {
+                    return "Notification" in window && Notification.permission === "granted";
+                }
+
+                function updateNotificationGatedControls() {
+                    const granted = notificationPermissionGranted();
+                    const gatedButtonIds = ["showNotification", "badge1", "badgeText", "clearBadge"];
+                    gatedButtonIds.forEach(function (id) {
+                        const button = $(id);
+                        if (!button) {
+                            return;
+                        }
+                        button.disabled = !granted;
+                    });
+
+                    const requestButton = $("requestNotification");
+                    if (requestButton) {
+                        if (granted) {
+                            requestButton.disabled = true;
+                            requestButton.textContent = "Notification permission granted";
+                            requestButton.classList.remove("primary");
+                        } else {
+                            requestButton.disabled = !("Notification" in window);
+                            requestButton.textContent = "Request notification permission";
+                            requestButton.classList.add("primary");
+                        }
+                    }
+
+                    const hint = $("permissionHint");
+                    if (hint) {
+                        hint.style.display = granted ? "none" : "";
+                        if (!("Notification" in window)) {
+                            hint.textContent = "Notification API is unavailable in this runtime, so Dock badge actions cannot be unlocked.";
+                        } else if (Notification.permission === "denied") {
+                            hint.textContent = "Notification permission was denied. Re-enable it in macOS System Settings > Notifications for this app to unlock notification and Dock badge actions.";
+                        } else {
+                            hint.textContent = "Notification permission is required before notification and Dock badge actions are enabled.";
+                        }
+                    }
+                }
+
+                function updateMenuBarGatedControls() {
+                    const gatedButtonIds = ["setMenuBarBadge", "clearMenuBarBadge", "hideWindow", "showWindow", "hideWindow2", "showWindow2", "destroyMenuBar"];
+                    gatedButtonIds.forEach(function (id) {
+                        const button = $(id);
+                        if (button) {
+                            button.disabled = !nativeMenuBarVisible;
+                        }
+                    });
+
+                    const createButton = $("createMenuBar");
+                    if (createButton) {
+                        createButton.disabled = nativeMenuBarVisible;
+                        createButton.classList.toggle("primary", !nativeMenuBarVisible);
+                    }
+                }
+
+                function showFinderOpenAlertIfNeeded(items) {
+                    if (finderOpenAlertShown || !items.length) {
+                        return;
+                    }
+
+                    finderOpenAlertShown = true;
+                    window.alert(
+                                 "Finder Open With passthrough received.\n\n" +
+                                 "This HTML file was opened through the exported macOS app bundle and delivered into JavaScript through the HTML to App native bridge.\n\n" +
+                                 "A regular browser or web clip cannot receive Finder Open With files this way."
+                                 );
+                }
+
+                function renderItems() {
+                    const items = itemList();
+                    $("launchItemCount").textContent = String(items.length);
+                    showFinderOpenAlertIfNeeded(items);
+
+                    if (!items.length) {
+                        $("itemsBody").innerHTML = '<tr><td colspan="4" class="muted">No Finder-opened items received yet. Use Finder Open With and choose the exported app bundle.</td></tr>';
+                        selectedItem = null;
+                        return;
+                    }
+
+                    if (!selectedItem) {
+                        selectedItem = items[0];
+                    }
+
+                    $("itemsBody").innerHTML = items.map(function (item, index) {
+                        const name = item.name || item.displayName || item.path || "Item " + (index + 1);
+                        const kind = item.kind || item.type || "Unknown";
+                        const ref = item.id || item.identifier || item.path || "";
+                        const writable = item.writable === undefined ? "Unknown" : String(item.writable);
+                        const selected = item === selectedItem ? ' style="outline: 2px solid var(--blue)"' : "";
+                        return '<tr data-index="' + index + '"' + selected + "><td>" + escapeHtml(name) + "</td><td>" + escapeHtml(kind) + "</td><td><code>" + escapeHtml(ref) + "</code></td><td>" + escapeHtml(writable) + "</td></tr>";
+                    }).join("");
+
+                    Array.from($("itemsBody").querySelectorAll("tr[data-index]")).forEach(function (row) {
+                        row.addEventListener("click", function () {
+                            selectedItem = items[Number(row.dataset.index)];
+                            renderItems();
+                            log("Selected Finder-opened item", selectedItem);
+                        });
+                    });
+                }
+
+                function requireNotificationPermission(feature) {
+                    if (!("Notification" in window)) {
+                        log(feature + " requires the Notification API, which is unavailable in this runtime.");
+                        return false;
+                    }
+                    if (Notification.permission !== "granted") {
+                        log(feature + " requires native notification permission. Press \"Request notification permission\" first.");
+                        return false;
+                    }
+                    return true;
+                }
+
+                function setDockBadge(value) {
+                    if (!requireBridge("Dock badge")) {
+                        return;
+                    }
+                    if (!requireNotificationPermission("Dock badge")) {
+                        return;
+                    }
+                    if (typeof window.HTMLtoApp.setBadge === "function") {
+                        window.HTMLtoApp.setBadge(String(value));
+                        log("Dock badge set from JavaScript", value);
+                    } else {
+                        log("Dock badge API is unavailable in this runtime.");
+                    }
+                }
+
+                function clearDockBadge() {
+                    if (!requireBridge("Dock badge")) {
+                        return;
+                    }
+                    if (!requireNotificationPermission("Dock badge")) {
+                        return;
+                    }
+                    if (typeof window.HTMLtoApp.clearBadge === "function") {
+                        window.HTMLtoApp.clearBadge();
+                        log("Dock badge cleared from JavaScript");
+                    } else if (typeof window.HTMLtoApp.setBadge === "function") {
+                        window.HTMLtoApp.setBadge("");
+                        log("Dock badge cleared with empty value");
+                    } else {
+                        log("Dock badge clear API is unavailable.");
+                    }
+                }
+
+                function makeIcon() {
+                    const canvas = document.createElement("canvas");
+                    canvas.width = 64;
+                    canvas.height = 64;
+                    const ctx = canvas.getContext("2d");
+                    ctx.clearRect(0, 0, 64, 64);
+                    ctx.fillStyle = "#ffffff";
+                    ctx.beginPath();
+                    ctx.arc(32, 32, 23, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.globalCompositeOperation = "destination-out";
+                    ctx.font = "bold 24px -apple-system, BlinkMacSystemFont, sans-serif";
+                    ctx.textAlign = "center";
+                    ctx.textBaseline = "middle";
+                    ctx.fillText("JS", 32, 34);
+                    return canvas.toDataURL("image/png");
+                }
+
+                async function maybePromise(value) {
+                    if (value && typeof value.then === "function") {
+                        return await value;
+                    }
+                    return value;
+                }
+
+                async function createMenuBar() {
+                    if (!requireBridge("Menu bar")) {
+                        return;
+                    }
+                    const menuBar = window.HTMLtoApp.menuBar;
+                    if (!menuBar) {
+                        log("Menu bar bridge is unavailable.");
+                        return;
+                    }
+
+                    const items = [
+                                   { id: "show", title: "Show Window (from JS)" },
+                                   { id: "dockBadge", title: "Set Dock Badge from Menu" },
+                                   { id: "clearDockBadge", title: "Clear Dock Badge" },
+                                   { id: "toggle", title: "Toggle Checked Native Item", checked: menuChecked },
+                                   {
+                                       id: "submenu",
+                                       title: "Native Submenu",
+                                       submenu: [
+                                                 { id: "notify", title: "Show Native Notification" },
+                                                 { id: "runtime", title: "Log Runtime" }
+                                                 ]
+                                   }
+                                   ];
+
+                                   try {
+                                       if (typeof menuBar.setIcon === "function") {
+                                           await maybePromise(menuBar.setIcon({ image: makeIcon(), template: false, title: "HTML to App Demo" }));
+                                       } else if (typeof menuBar.setStatusItem === "function") {
+                                           await maybePromise(menuBar.setStatusItem({ image: makeIcon(), template: false, title: "HTML to App Demo" }));
+                                       }
+
+                                       const menuBarOptions = {
+                                           visible: true,
+                                           closeToMenuBarOnWindowClose: true,
+                                           defaultMenuItems: true,
+                                           showWindowOnClick: true
+                                       };
+                                       if (typeof menuBar.configure === "function") {
+                                           await maybePromise(menuBar.configure(menuBarOptions));
+                                       } else if (typeof menuBar.setOptions === "function") {
+                                           await maybePromise(menuBar.setOptions(menuBarOptions));
+                                       }
+
+                                       if (typeof menuBar.setMenu === "function") {
+                                           await maybePromise(menuBar.setMenu(items));
+                                       } else if (typeof menuBar.setItems === "function") {
+                                           await maybePromise(menuBar.setItems(items));
+                                       }
+
+                                       nativeMenuBarVisible = true;
+                                       updateMenuBarGatedControls();
+                                       log("Native menu bar item and menu created. Hide Window will now hide the app to the menu bar instead of asking to quit.", items);
+                                   } catch (error) {
+                                       log("Menu bar setup failed", error.message || String(error));
+                                   }
+                }
+
+                async function destroyMenuBar() {
+                    if (!requireBridge("Menu bar")) {
+                        return;
+                    }
+                    if (!nativeMenuBarVisible) {
+                        log("Create the native menu bar item before destroying it.");
+                        return;
+                    }
+
+                    const menuBar = window.HTMLtoApp.menuBar;
+                    if (!menuBar) {
+                        log("Menu bar bridge is unavailable.");
+                        return;
+                    }
+
+                    try {
+                        if (typeof menuBar.hideIcon === "function") {
+                            await maybePromise(menuBar.hideIcon());
+                        } else if (typeof menuBar.configure === "function") {
+                            await maybePromise(menuBar.configure({ visible: false }));
+                        } else if (typeof menuBar.setOptions === "function") {
+                            await maybePromise(menuBar.setOptions({ visible: false }));
+                        } else {
+                            log("Menu bar destroy API is unavailable.");
+                            return;
+                        }
+
+                        nativeMenuBarVisible = false;
+                        updateMenuBarGatedControls();
+                        log("Native menu bar item destroyed. Create it again to restart the menu bar test.");
+                    } catch (error) {
+                        log("Menu bar destroy failed", error.message || String(error));
+                    }
+                }
+
+                function requireMenuBarCreated(feature) {
+                    if (nativeMenuBarVisible) {
+                        return true;
+                    }
+                    log(feature + " requires creating the native menu bar item first.");
+                    return false;
+                }
+
+                function setMenuBarBadge() {
+                    if (!requireBridge("Menu bar badge")) {
+                        return;
+                    }
+                    if (!requireMenuBarCreated("Menu bar badge")) {
+                        return;
+                    }
+                    if (window.HTMLtoApp.menuBar && typeof window.HTMLtoApp.menuBar.setBadge === "function") {
+                        window.HTMLtoApp.menuBar.setBadge("2");
+                        log("Menu bar badge set from JavaScript");
+                    } else {
+                        log("Menu bar badge API is unavailable.");
+                    }
+                }
+
+                function clearMenuBarBadge() {
+                    if (!requireBridge("Menu bar badge")) {
+                        return;
+                    }
+                    if (!requireMenuBarCreated("Menu bar badge")) {
+                        return;
+                    }
+                    const menuBar = window.HTMLtoApp.menuBar;
+                    if (menuBar && typeof menuBar.clearBadge === "function") {
+                        menuBar.clearBadge();
+                        log("Menu bar badge cleared");
+                    } else if (menuBar && typeof menuBar.setBadge === "function") {
+                        menuBar.setBadge("");
+                        log("Menu bar badge cleared with empty value");
+                    } else {
+                        log("Menu bar badge clear API is unavailable.");
+                    }
+                }
+
+                async function requestNotification() {
+                    if (!("Notification" in window)) {
+                        log("Notification API is unavailable.");
+                        return;
+                    }
+                    const permission = await Notification.requestPermission();
+                    log("Notification permission result", permission);
+                    updateNotificationGatedControls();
+                    render();
+                }
+
+                function showNotification() {
+                    if (!requireNotificationPermission("Native notification")) {
+                        return;
+                    }
+                    new Notification("HTML to App native notification", {
+                        body: "Triggered by JavaScript inside the generated macOS app.",
+                        tag: "htmltoapp-review-demo"
+                    });
+                    log("Native notification requested");
+                }
+
+                function showWindow() {
+                    if (!requireBridge("Window")) {
+                        return;
+                    }
+                    if (!requireMenuBarCreated("Show window")) {
+                        return;
+                    }
+                    if (typeof window.HTMLtoApp.showWindow === "function") {
+                        window.HTMLtoApp.showWindow();
+                        log("Show window requested");
+                    } else if (window.HTMLtoApp.menuBar && typeof window.HTMLtoApp.menuBar.showWindow === "function") {
+                        window.HTMLtoApp.menuBar.showWindow();
+                        log("Show window requested through menu bar bridge");
+                    } else {
+                        log("Show window API is unavailable.");
+                    }
+                }
+
+                function hideWindow() {
+                    if (!requireBridge("Window")) {
+                        return;
+                    }
+                    if (!requireMenuBarCreated("Hide window")) {
+                        return;
+                    }
+
+                    if (!nativeMenuBarVisible) {
+                        const shouldQuit = window.confirm(
+                                                          "No native menu bar icon is visible.\n\n" +
+                                                          "If the window is hidden now, there is no menu bar icon to restore it. Quit the app instead?"
+                                                          );
+
+                                                          if (shouldQuit) {
+                                                              if (typeof window.HTMLtoApp.quit === "function") {
+                                                                  window.HTMLtoApp.quit();
+                                                                  return;
+                                                              }
+                                                              log("Quit API is unavailable.");
+                                                          } else {
+                                                              log("Hide window cancelled because no menu bar icon is visible.");
+                                                          }
+                                                          return;
+                    }
+
+                    if (typeof window.HTMLtoApp.hideWindow === "function") {
+                        window.HTMLtoApp.hideWindow();
+                        log("Hide window requested. The app should continue running in the native menu bar.");
+                    } else if (window.HTMLtoApp.menuBar && typeof window.HTMLtoApp.menuBar.hideWindow === "function") {
+                        window.HTMLtoApp.menuBar.hideWindow();
+                        log("Hide window requested through menu bar bridge. The app should continue running in the native menu bar.");
+                    } else {
+                        log("Hide window API is unavailable.");
+                    }
+                }
+
+                function setTitle() {
+                    if (!requireBridge("Window title")) {
+                        return;
+                    }
+                    const title = $("newTitle").value;
+                    if (typeof window.HTMLtoApp.setWindowTitle === "function") {
+                        window.HTMLtoApp.setWindowTitle(title);
+                        log("Native window title changed", title);
+                    } else if (typeof window.HTMLtoApp.setTitle === "function") {
+                        window.HTMLtoApp.setTitle(title);
+                        log("Native window title changed through setTitle", title);
+                    } else {
+                        document.title = title;
+                        log("Native title API unavailable. Document title changed only.", title);
+                    }
+                }
+
+                async function fsCall(method) {
+                    if (!requireBridge("File bridge")) {
+                        return;
+                    }
+                    if (!window.HTMLtoApp.fs || typeof window.HTMLtoApp.fs[method] !== "function") {
+                        log("File bridge method is unavailable: " + method);
+                        window.alert("fs." + method + " is unavailable in this runtime.");
+                        return;
+                    }
+
+                    const ref = itemReference(selectedItem);
+                    if (!ref) {
+                        log("No Finder-opened item selected.");
+                        window.alert("No item selected.\n\nClick a row in the table above to select an item first.");
+                        return;
+                    }
+
+                    try {
+                        const result = await maybePromise(window.HTMLtoApp.fs[method](ref));
+                        log("fs." + method + " result", result);
+
+                        let preview = stringify(result);
+                        if (method === "readText") {
+                            const text = typeof result === "string" ? result : String(result && result.text !== undefined ? result.text : "");
+                            const lines = text.split(/\r\n|\r|\n/);
+                            preview = lines.slice(0, 8).join("\n");
+                            if (lines.length > 8) {
+                                preview += "\n\n... (" + (lines.length - 8) + " more lines)";
+                            }
+                            preview += "\n\nFull data is visible in the log view at the bottom side.";
+                        }
+                        window.alert("✅ fs." + method + " succeeded — native file bridge is working\n\n" + preview);
+                    } catch (error) {
+                        log("fs." + method + " failed", error.message || String(error));
+                        window.alert("❌ fs." + method + " failed\n\n" + (error.message || String(error)));
+                    }
+                }
+
+                function handleMenuAction(id) {
+                    log("Native menu action received", id);
+                    if (id === "show") {
+                        showWindow();
+                    } else if (id === "dockBadge") {
+                        setDockBadge("7");
+                    } else if (id === "clearDockBadge") {
+                        clearDockBadge();
+                    } else if (id === "toggle") {
+                        menuChecked = !menuChecked;
+                        createMenuBar();
+                    } else if (id === "notify") {
+                        showNotification();
+                    } else if (id === "runtime") {
+                        log("Runtime", runtime());
+                    } else if (id === "quit") {
+                        if (typeof window.HTMLtoApp.quit === "function") {
+                            window.HTMLtoApp.quit();
+                        } else {
+                            log("Quit API is unavailable.");
+                        }
+                    }
+                }
+
+                function bind() {
+                    $("refresh").addEventListener("click", render);
+                    $("badge1").addEventListener("click", function () { setDockBadge("1"); });
+                    $("badgeText").addEventListener("click", function () { setDockBadge("JS"); });
+                    $("clearBadge").addEventListener("click", clearDockBadge);
+                    $("requestNotification").addEventListener("click", requestNotification);
+                    $("showNotification").addEventListener("click", showNotification);
+                    $("createMenuBar").addEventListener("click", createMenuBar);
+                    $("destroyMenuBar").addEventListener("click", destroyMenuBar);
+                    $("setMenuBarBadge").addEventListener("click", setMenuBarBadge);
+                    $("clearMenuBarBadge").addEventListener("click", clearMenuBarBadge);
+                    $("hideWindow").addEventListener("click", hideWindow);
+                    $("showWindow").addEventListener("click", showWindow);
+                    $("hideWindow2").addEventListener("click", hideWindow);
+                    $("showWindow2").addEventListener("click", showWindow);
+                    $("setTitle").addEventListener("click", setTitle);
+                    $("readSelected").addEventListener("click", function () { fsCall("readText"); });
+                    $("statSelected").addEventListener("click", function () { fsCall("stat"); });
+                    $("listSelected").addEventListener("click", function () { fsCall("list"); });
+
+                    window.addEventListener("htmltoapp-open", function (event) {
+                        log("Finder Open With event received", event.detail || event);
+                        finderOpenAlertShown = false;
+                        render();
+                    });
+
+                    window.addEventListener("htmltoapp-runtime", function (event) {
+                        if (window.HTMLtoApp) {
+                            window.HTMLtoApp.runtime = event.detail || window.HTMLtoApp.runtime;
+                        }
+                        log("Runtime update received", event.detail || event);
+                        render();
+                    });
+
+                    window.addEventListener("htmltoapp-menubar-item-click", function (event) {
+                        handleMenuAction(event.detail && event.detail.id ? event.detail.id : event.detail);
+                    });
+
+                    window.addEventListener("HTMLtoAppMenuBarItemClicked", function (event) {
+                        handleMenuAction(event.detail && event.detail.id ? event.detail.id : event.detail);
+                    });
+
+                    window.addEventListener("htmltoapp-menu", function (event) {
+                        handleMenuAction(event.detail && event.detail.id ? event.detail.id : event.detail);
+                    });
+
+                    if (window.HTMLtoApp && window.HTMLtoApp.menuBar && typeof window.HTMLtoApp.menuBar.onItemClick === "function") {
+                        window.HTMLtoApp.menuBar.onItemClick(function (detail) {
+                            handleMenuAction(detail && detail.id ? detail.id : detail);
+                        });
+                    }
+                }
+
+                bind();
+                render();
+
+                if (hasBridge()) {
+                    log("HTML to App bridge detected", runtime());
+                }
+            }());
+        </script>
+    </body>
+</html>

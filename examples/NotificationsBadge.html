@@ -96,20 +96,21 @@ input {
 <main>
     <h1>Notifications and Badge Demo</h1>
     <p>
-        This local HTML file demonstrates native notification passthrough and Dock badge control in an exported HTML to App bundle.
+        This local HTML file demonstrates native notification passthrough and Dock badge control in an exported HTML to App bundle. Dock badge buttons unlock after native notification permission is granted.
     </p>
 
     <section class="panel">
         <div class="row">
-            <button id="notify">Show notification</button>
-            <button id="notifyCount" class="secondary">Notify with current badge</button>
+            <button id="requestPermission">Request notification permission</button>
+            <button id="notify" disabled>Show notification</button>
+            <button id="notifyCount" class="secondary" disabled>Notify with current badge</button>
         </div>
 
         <div class="row">
             <input id="badgeValue" value="1" aria-label="Dock badge value">
-            <button id="setBadge">Set Dock badge</button>
-            <button id="incrementBadge" class="secondary">Increment</button>
-            <button id="clearBadge" class="secondary">Clear badge</button>
+            <button id="setBadge" disabled>Set Dock badge</button>
+            <button id="incrementBadge" class="secondary" disabled>Increment</button>
+            <button id="clearBadge" class="secondary" disabled>Clear badge</button>
         </div>
     </section>
 
@@ -119,22 +120,37 @@ input {
 <script>
 const statusElement = document.getElementById("status");
 const badgeInput = document.getElementById("badgeValue");
+const gatedButtonIds = ["notify", "notifyCount", "setBadge", "incrementBadge", "clearBadge"];
 
 function setStatus(text) {
     statusElement.textContent = text;
 }
 
+function updateGatedControls() {
+    const granted = "Notification" in window && Notification.permission === "granted";
+    gatedButtonIds.forEach((id) => {
+        document.getElementById(id).disabled = !granted;
+    });
+
+    const requestButton = document.getElementById("requestPermission");
+    requestButton.disabled = !("Notification" in window) || granted;
+    requestButton.textContent = granted ? "Notification permission granted" : "Request notification permission";
+}
+
 async function ensureNotificationPermission() {
     if (!("Notification" in window)) {
         setStatus("Notification API is not available.");
+        updateGatedControls();
         return false;
     }
 
     if (Notification.permission === "granted") {
+        updateGatedControls();
         return true;
     }
 
     const permission = await Notification.requestPermission();
+    updateGatedControls();
     return permission === "granted";
 }
 
@@ -154,6 +170,12 @@ async function showNotification(title, body) {
 }
 
 function setBadge(value) {
+    if (!("Notification" in window) || Notification.permission !== "granted") {
+        setStatus("Grant notification permission before using Dock badge controls.");
+        updateGatedControls();
+        return;
+    }
+
     if (window.HTMLtoApp && typeof window.HTMLtoApp.setBadge === "function") {
         window.HTMLtoApp.setBadge(value);
         setStatus(`Dock badge set to "${value}".`);
@@ -164,6 +186,12 @@ function setBadge(value) {
 }
 
 function clearBadge() {
+    if (!("Notification" in window) || Notification.permission !== "granted") {
+        setStatus("Grant notification permission before using Dock badge controls.");
+        updateGatedControls();
+        return;
+    }
+
     if (window.HTMLtoApp && typeof window.HTMLtoApp.clearBadge === "function") {
         window.HTMLtoApp.clearBadge();
         setStatus("Dock badge cleared.");
@@ -172,6 +200,11 @@ function clearBadge() {
 
     setStatus("HTMLtoApp badge bridge is not available.");
 }
+
+document.getElementById("requestPermission").addEventListener("click", async () => {
+    const allowed = await ensureNotificationPermission();
+    setStatus(allowed ? "Notification permission granted. Badge controls are unlocked." : "Notification permission was not granted.");
+});
 
 document.getElementById("notify").addEventListener("click", () => {
     showNotification("HTML to App", "This notification was triggered by local HTML.");
@@ -195,6 +228,8 @@ document.getElementById("clearBadge").addEventListener("click", () => {
     badgeInput.value = "";
     clearBadge();
 });
+
+updateGatedControls();
 </script>
 <script>
 (function () {

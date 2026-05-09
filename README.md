@@ -16,7 +16,7 @@ HTML to App lets you turn an HTML file or folder into a native macOS app bundle.
 - Expose scoped read and write APIs so editor-role apps can save back to opened files or folders.
 - Preselect app permissions such as camera, microphone, or location services from HTML metadata.
 - Send native macOS notifications from local HTML with the standard `Notification` API.
-- Control the Dock badge from JavaScript through `window.HTMLtoApp.setBadge()` and `window.HTMLtoApp.clearBadge()`.
+- Control the Dock badge from JavaScript through `window.HTMLtoApp.setBadge()` and `window.HTMLtoApp.clearBadge()` after notification permission is granted.
 - Create a JavaScript-controlled menu bar icon, regenerate its menu on every popup, handle menu item clicks, show menu bar badges, and keep the app running in the background after the window closes.
 - Use drag and drop inside the example apps for local files and folders.
 - Support media-style apps such as image viewers, video players, audio players, and folder browsers.
@@ -136,23 +136,34 @@ Generated apps can pass notification requests from local HTML to native macOS no
 </script>
 ```
 
-Generated apps can also control their Dock badge from JavaScript:
+Generated apps can also control their Dock badge from JavaScript. On macOS, Dock badge visibility is tied to notification authorization for the generated app, so request notification permission before enabling badge controls in your UI:
 
 ```html
 <script>
   const appBridge = window.HTMLtoApp;
 
-  if (appBridge && typeof appBridge.setBadge === "function") {
-    appBridge.setBadge("3");
+  async function updateDockBadge(value) {
+    const permission = "Notification" in window
+      ? await Notification.requestPermission()
+      : "denied";
+    if (permission !== "granted") return;
+
+    if (appBridge && typeof appBridge.setBadge === "function") {
+      appBridge.setBadge(value);
+    }
   }
 
-  if (appBridge && typeof appBridge.clearBadge === "function") {
-    appBridge.clearBadge();
+  function clearDockBadge() {
+    if (appBridge && typeof appBridge.clearBadge === "function") {
+      appBridge.clearBadge();
+    }
   }
+
+  updateDockBadge("3");
 </script>
 ```
 
-Badge values are strings, so you can use numbers, short labels, or clear the badge when there is no active state to show. The bridge namespace is exactly `window.HTMLtoApp`.
+Badge values are strings, so you can use numbers, short labels, or clear the badge when there is no active state to show. If permission is denied, keep both notification and Dock badge controls disabled or show the user where to re-enable notifications in System Settings. The bridge namespace is exactly `window.HTMLtoApp`.
 
 ## Menu Bar and Window Controls
 
@@ -197,7 +208,7 @@ Generated apps can create a menu bar icon from JavaScript. The native launcher a
 
 The generated app icon is shown by default. If `title` is also set, the status item shows icon and title together; use `imagePosition: "left"` or `imagePosition: "right"` to choose the side. Set `imageVisible: false` for a text-only menu bar item. Menu bar badges draw on the image icon and are not appended to text-only titles.
 
-Use `window.HTMLtoApp.setWindowTitle(title)` to control the native window title. `window.HTMLtoApp.showWindow()`, `window.HTMLtoApp.hideWindow()`, and `window.HTMLtoApp.quit()` are useful from menu item callbacks. When `closeToMenuBarOnWindowClose` is enabled and the menu bar icon is visible, closing the generated app window hides the window and Dock icon while the WebView keeps running; the app shows a one-time native message explaining that it is still running in the menu bar.
+Use `window.HTMLtoApp.setWindowTitle(title)` to control the native window title. `window.HTMLtoApp.showWindow()`, `window.HTMLtoApp.hideWindow()`, and `window.HTMLtoApp.quit()` are useful from menu item callbacks. Only expose window hide/show controls when a menu bar item exists, so the user has a visible way to restore the app. Use `window.HTMLtoApp.menuBar.hideIcon()` or `menuBar.configure({ visible: false })` to remove the menu bar item and let the user start the menu bar flow again. When `closeToMenuBarOnWindowClose` is enabled and the menu bar icon is visible, closing the generated app window hides the window and Dock icon while the WebView keeps running; the app shows a one-time native message explaining that it is still running in the menu bar.
 
 ## Examples
 
@@ -261,17 +272,17 @@ Recommended Open With setup:
 - None needed
 - Permissions: `Camera Access`
 
-### [Notifications and Badge Demo](./examples/NotificationsBadgeDemo.html)
+### [Notifications and Badge Demo](./examples/NotificationsBadge.html)
 
-Demonstrates native notification passthrough from local HTML and Dock badge control from JavaScript.
+Demonstrates native notification passthrough from local HTML and Dock badge control from JavaScript after notification permission is granted.
 
 Recommended Open With setup:
 - None needed
 - Permissions: none
 
-### [Menu Bar Controls Demo](./examples/MenuBarControlsDemo.html)
+### [Menu Bar Controls Demo](./examples/MenuBarControls.html)
 
-Demonstrates JavaScript-controlled menu bar icons, image-plus-title placement, per-popup dynamic menu regeneration, status item and menu item callbacks, toggled items, recursive submenus, menu bar badges, background menu bar behavior, and native window title control.
+Demonstrates JavaScript-controlled menu bar icons, image-plus-title placement, per-popup dynamic menu regeneration, status item and menu item callbacks, toggled items, recursive submenus, menu bar badges, hiding/removing the menu bar item, background menu bar behavior, and native window title control.
 
 Recommended Open With setup:
 - None needed
