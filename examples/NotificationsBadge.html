@@ -73,6 +73,11 @@ button.secondary {
     color: CanvasText;
 }
 
+button:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+
 input {
     min-width: 120px;
     border: 1px solid color-mix(in srgb, CanvasText 18%, transparent);
@@ -98,6 +103,7 @@ input {
     <p>
         This local HTML file demonstrates native notification passthrough and Dock badge control in an exported HTML to App bundle. Dock badge buttons unlock after native notification permission is granted.
     </p>
+    <p id="capabilityHint" role="note">Choose Export App and open the exported app bundle to test notifications and its Dock badge. Notification permission belongs to that app.</p>
 
     <section class="panel">
         <div class="row">
@@ -114,32 +120,52 @@ input {
         </div>
     </section>
 
-    <div id="status" class="status">Ready.</div>
+    <div id="status" class="status" role="status">Ready.</div>
 </main>
 
 <script>
 const statusElement = document.getElementById("status");
 const badgeInput = document.getElementById("badgeValue");
 const gatedButtonIds = ["notify", "notifyCount", "setBadge", "incrementBadge", "clearBadge"];
+let permissionPending = false;
+
+function notificationAvailabilityMessage() {
+    if (window.HTMLtoApp && window.HTMLtoApp.isPreview) {
+        return "Notifications and Dock badges are available after export. This workspace preview does not request notification permission or change HTML to App's Dock badge. Choose Export App, open the exported app bundle, then request notification permission there.";
+    }
+    if (typeof window.Notification !== "function" || typeof Notification.requestPermission !== "function" ||
+        !window.HTMLtoApp || typeof HTMLtoApp.setBadge !== "function" || typeof HTMLtoApp.clearBadge !== "function") {
+        return "The native notification and Dock badge APIs are not available here. Choose Export App in HTML to App, open the exported app bundle, then request notification permission there.";
+    }
+    return "";
+}
+
+function permissionGuidance() {
+    return "Notification permission was not granted. Allow notifications for the exported app in macOS System Settings > Notifications, then return here.";
+}
 
 function setStatus(text) {
     statusElement.textContent = text;
 }
 
 function updateGatedControls() {
-    const granted = "Notification" in window && Notification.permission === "granted";
+    const unavailable = notificationAvailabilityMessage();
+    const granted = !unavailable && Notification.permission === "granted";
     gatedButtonIds.forEach((id) => {
         document.getElementById(id).disabled = !granted;
     });
 
     const requestButton = document.getElementById("requestPermission");
-    requestButton.disabled = !("Notification" in window) || granted;
-    requestButton.textContent = granted ? "Notification permission granted" : "Request notification permission";
+    requestButton.disabled = !!unavailable || granted || permissionPending || Notification.permission === "denied";
+    requestButton.textContent = unavailable ? "Available after export" : permissionPending ? "Waiting for permission" : granted ? "Notification permission granted" : "Request notification permission";
+    document.getElementById("capabilityHint").textContent = unavailable ||
+        (Notification.permission === "denied" ? permissionGuidance() : "Notification permission belongs to this exported app. macOS notification settings determine how notifications and badges appear.");
 }
 
 async function ensureNotificationPermission() {
-    if (!("Notification" in window)) {
-        setStatus("Notification API is not available.");
+    const unavailable = notificationAvailabilityMessage();
+    if (unavailable) {
+        setStatus(unavailable);
         updateGatedControls();
         return false;
     }
@@ -149,27 +175,43 @@ async function ensureNotificationPermission() {
         return true;
     }
 
-    const permission = await Notification.requestPermission();
+    if (Notification.permission === "denied") {
+        setStatus(permissionGuidance());
+        updateGatedControls();
+        return false;
+    }
+    if (permissionPending) return false;
+    permissionPending = true;
     updateGatedControls();
-    return permission === "granted";
+    setStatus("Respond to the exported app's notification permission request.");
+    try {
+        const permission = await Notification.requestPermission();
+        setStatus(permission === "granted" ? "Notification permission granted. Notification and badge controls are ready." : permissionGuidance());
+        return permission === "granted";
+    } catch (error) {
+        setStatus("Notification permission could not be requested. Open the exported app bundle and check its notification settings in macOS System Settings.");
+        return false;
+    } finally {
+        permissionPending = false;
+        updateGatedControls();
+    }
 }
 
 async function showNotification(title, body) {
     const allowed = await ensureNotificationPermission();
-    if (!allowed) {
-        setStatus("Notification permission was not granted.");
-        return;
+    if (!allowed) return;
+    try {
+        const notification = new Notification(title, { body, tag: "html-to-app-demo" });
+        notification.onerror = () => setStatus("macOS could not display the notification. Check notification settings for the exported app.");
+        setStatus("Notification requested. Check macOS notification settings if no banner appears.");
+    } catch (error) {
+        setStatus("Notifications are unavailable in this runtime. Open the exported app bundle and allow notifications for that app.");
     }
-
-    new Notification(title, {
-        body,
-        tag: "html-to-app-demo"
-    });
-
-    setStatus("Notification sent.");
 }
 
 function setBadge(value) {
+    const unavailable = notificationAvailabilityMessage();
+    if (unavailable) { setStatus(unavailable); return; }
     if (!("Notification" in window) || Notification.permission !== "granted") {
         setStatus("Grant notification permission before using Dock badge controls.");
         updateGatedControls();
@@ -186,6 +228,8 @@ function setBadge(value) {
 }
 
 function clearBadge() {
+    const unavailable = notificationAvailabilityMessage();
+    if (unavailable) { setStatus(unavailable); return; }
     if (!("Notification" in window) || Notification.permission !== "granted") {
         setStatus("Grant notification permission before using Dock badge controls.");
         updateGatedControls();
@@ -201,10 +245,7 @@ function clearBadge() {
     setStatus("HTMLtoApp badge bridge is not available.");
 }
 
-document.getElementById("requestPermission").addEventListener("click", async () => {
-    const allowed = await ensureNotificationPermission();
-    setStatus(allowed ? "Notification permission granted. Badge controls are unlocked." : "Notification permission was not granted.");
-});
+document.getElementById("requestPermission").addEventListener("click", ensureNotificationPermission);
 
 document.getElementById("notify").addEventListener("click", () => {
     showNotification("HTML to App", "This notification was triggered by local HTML.");
@@ -230,6 +271,8 @@ document.getElementById("clearBadge").addEventListener("click", () => {
 });
 
 updateGatedControls();
+setStatus(notificationAvailabilityMessage() || "Request notification permission to try this exported app's notifications and Dock badge.");
+window.addEventListener("focus", updateGatedControls);
 </script>
 <script>
 (function () {
@@ -239,7 +282,7 @@ updateGatedControls();
         notice.id = "htmltoapp-browser-notice";
         notice.setAttribute("role", "note");
         notice.style.cssText = "position:fixed;left:16px;right:16px;bottom:16px;z-index:2147483647;padding:14px 16px;border-radius:10px;background:#111827;color:#fff;box-shadow:0 12px 32px rgba(0,0,0,.28);font:14px/1.45 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
-        notice.innerHTML = '<strong style="display:block;margin-bottom:2px;">HTML to App example</strong><span>These examples are made to work in HTML to App only. Visit <a href="https://htmltoapp.app" style="color:#93c5fd;font-weight:700;">https://htmltoapp.app</a> for more information.</span>';
+        notice.innerHTML = '<strong style="display:block;margin-bottom:2px;">HTML to App example</strong><span>These examples are made to work in HTML to App only. Visit <a href="https://htmltoapp.app/?utm_source=htmltoapp" style="color:#93c5fd;font-weight:700;">https://htmltoapp.app</a> for more information.</span>';
         document.body.appendChild(notice);
     }
     if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", showHTMLtoAppBrowserNotice);

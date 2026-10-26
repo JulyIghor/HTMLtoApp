@@ -40,6 +40,7 @@
       min-height: 0;
     }
     .sidebar {
+      overflow: auto;
       background: var(--panel);
       backdrop-filter: blur(18px);
       border-right: 1px solid var(--line);
@@ -85,6 +86,11 @@
     button, select {
       font: inherit;
     }
+    #start-button, #capture-button {
+      font: 400 14px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      letter-spacing: normal;
+      text-shadow: none;
+    }
     button {
       border: 1px solid var(--line);
       background: rgba(255,255,255,0.06);
@@ -98,16 +104,26 @@
       background: linear-gradient(135deg, var(--accent), #52d1bf);
       color: #062320;
       border-color: transparent;
-      font-weight: 800;
+      font-weight: 400;
     }
     button.capture {
       background: linear-gradient(135deg, var(--accent-2), #ff7a4f);
       color: #231107;
       border-color: transparent;
-      font-weight: 800;
+      font-weight: 400;
     }
     button.ghost {
       background: rgba(255,255,255,0.03);
+      color: var(--text);
+    }
+    button.ghost.active {
+      background: rgba(119,234,214,0.14);
+      color: var(--text);
+      border-color: rgba(119,234,214,0.6);
+    }
+    button:disabled, select:disabled {
+      opacity: 0.5;
+      cursor: default;
     }
     select {
       width: 100%;
@@ -215,6 +231,7 @@
       place-items: center;
     }
     .video-shell {
+      grid-area: 1 / 1;
       width: 100%;
       height: 100%;
       position: relative;
@@ -289,10 +306,17 @@
       50% { transform: scale(0.85); opacity: 0.7; }
     }
     .empty {
+      grid-area: 1 / 1;
+      z-index: 1;
       max-width: 540px;
       padding: 24px;
       text-align: center;
       color: var(--muted);
+    }
+    .camera-idle .live-dot, .camera-idle .dot {
+      animation: none;
+      background: var(--muted);
+      box-shadow: none;
     }
     .empty strong {
       display: block;
@@ -326,19 +350,19 @@
     }
   </style>
 </head>
-<body>
+<body class="camera-idle">
   <div class="app">
     <aside class="sidebar">
       <section class="section">
         <div class="eyebrow">HTML to App Demo</div>
         <h1>CameraViewer</h1>
-        <p class="sub">Live camera preview with capture, mirroring, frame guides, and saved stills. Made for <a class="brand-link" href="https://htmltoapp.app" target="_blank" rel="noopener noreferrer">HTML to App</a>.</p>
+        <p class="sub">Live camera preview with capture, mirroring, frame guides, and saved stills. Made for <a class="brand-link" href="https://htmltoapp.app/?utm_source=htmltoapp" target="_blank" rel="noopener noreferrer">HTML to App</a>.</p>
       </section>
 
       <section class="section">
         <div class="status-pill" id="status-pill">
           <span class="dot"></span>
-          <span id="status-text">Waiting for camera access</span>
+          <span id="status-text" role="status">Ready to start camera</span>
         </div>
         <div class="row">
           <label for="camera-select">Camera</label>
@@ -382,8 +406,8 @@
             </div>
           </div>
           <div class="empty" id="empty-state">
-            <strong>Camera access is required</strong>
-            <span>Start the camera to preview live video, switch devices, and capture still frames for offline reference.</span>
+            <strong id="camera-state-title">Camera access is required</strong>
+            <span id="camera-state-copy">Start the camera to preview live video, switch devices, and capture still frames for offline reference.</span>
           </div>
         </div>
       </section>
@@ -431,10 +455,44 @@
     let liveMode = true;
     let stills = [];
     let selectedStillId = "";
+    let cameraStarting = false;
+
+    function cameraAvailabilityMessage() {
+      if (window.HTMLtoApp && window.HTMLtoApp.isPreview) {
+        return "Camera capture is available after export, not in the workspace preview. Choose Export App, enable Camera Access, then export and open the app bundle. Allow camera access when the exported app asks.";
+      }
+      if (!navigator.mediaDevices || typeof navigator.mediaDevices.getUserMedia !== "function") {
+        return "Camera access is not available in this environment. In HTML to App, choose Export App and enable Camera Access. Open the exported app bundle on a Mac with a camera and allow camera access.";
+      }
+      return "";
+    }
+
+    function showCameraAvailability() {
+      const message = cameraAvailabilityMessage();
+      if (!message) return false;
+      updateStatus("Export to use the camera", false);
+      stageCopy.textContent = "The interface is ready to explore. Camera capture requires an exported app.";
+      document.getElementById("camera-state-title").textContent = "Camera capture works after export";
+      document.getElementById("camera-state-copy").textContent = message;
+      footerText.textContent = "Export App > Camera Access > Open the exported app";
+      liveLabel.textContent = "CAMERA PREVIEW";
+      resolutionBadge.textContent = "Available after export";
+      emptyState.style.display = "block";
+      cameraSelect.innerHTML = "<option>Available in the exported app</option>";
+      cameraSelect.disabled = true;
+      startButton.disabled = true;
+      captureButton.disabled = true;
+      liveButton.disabled = true;
+      stillsButton.disabled = true;
+      mirrorButton.disabled = true;
+      modeCopy.textContent = "You can try the framing grid here. Live video, mirroring, and still capture become available in the exported app.";
+      return true;
+    }
 
     function updateStatus(text, live) {
       statusText.textContent = text;
       statusPill.classList.toggle("live", !!live);
+      document.body.classList.toggle("camera-idle", !live);
     }
 
     function updateButtons() {
@@ -449,9 +507,11 @@
       downloadButton.disabled = !hasStill;
       clearButton.disabled = stills.length === 0;
       captureButton.disabled = !currentStream;
+      startButton.disabled = cameraStarting || !!cameraAvailabilityMessage();
     }
 
     function setViewerMode(nextLiveMode) {
+      if (showCameraAvailability()) return;
       liveMode = nextLiveMode;
       const still = currentStill();
       if (liveMode) {
@@ -497,6 +557,7 @@
     }
 
     async function enumerateCameras() {
+      if (showCameraAvailability()) return [];
       if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) {
         cameraSelect.innerHTML = "<option>Camera devices unavailable</option>";
         cameraSelect.disabled = true;
@@ -533,14 +594,9 @@
     }
 
     async function startCamera() {
-      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        updateStatus("Camera API unavailable", false);
-        stageCopy.textContent = "This environment does not expose the browser camera API.";
-        footerText.textContent = "Use a browser or generated app build that supports camera access.";
-        emptyState.style.display = "block";
-        return;
-      }
-
+      if (showCameraAvailability() || cameraStarting) return;
+      cameraStarting = true;
+      updateButtons();
       await stopStream();
       updateStatus("Requesting camera access", false);
       stageCopy.textContent = "Waiting for camera permission.";
@@ -555,18 +611,35 @@
         const track = currentStream.getVideoTracks()[0];
         currentDeviceId = (track && track.getSettings().deviceId) || currentDeviceId;
         await video.play();
-        await enumerateCameras();
+        await enumerateCameras().catch(() => {
+          cameraSelect.innerHTML = "<option>Using the selected camera</option>";
+          cameraSelect.disabled = true;
+        });
         updateStatus("Camera live", true);
         footerText.textContent = "Camera access granted. Capture stills to save reference frames locally.";
         emptyState.style.display = "none";
         setViewerMode(true);
         updateResolutionLabel();
       } catch (error) {
-        updateStatus("Camera access denied", false);
-        stageCopy.textContent = error && error.message ? error.message : "The camera could not be started.";
-        footerText.textContent = "Check macOS camera permissions for the browser or generated app.";
+        await stopStream();
+        video.srcObject = null;
+        const missing = error && error.name === "NotFoundError";
+        const busy = error && error.name === "NotReadableError";
+        const denied = error && (error.name === "NotAllowedError" || error.name === "SecurityError");
+        const heading = missing ? "No camera connected" : busy ? "Camera is unavailable or busy" : denied ? "Camera permission is needed" : "Camera could not start";
+        const message = missing ? "Connect a camera, then choose Start Camera again." : busy
+          ? "Close other apps using the camera, then choose Start Camera again."
+          : "Export this project with Camera Access enabled and open the exported app bundle. Allow camera access when prompted. If access was denied, enable it for the exported app in macOS System Settings under Privacy & Security > Camera.";
+        updateStatus(heading, false);
+        document.getElementById("camera-state-title").textContent = heading;
+        document.getElementById("camera-state-copy").textContent = message;
+        stageCopy.textContent = message;
+        footerText.textContent = "Camera access is requested by the exported app, not by the workspace preview.";
         emptyState.style.display = "block";
         updateResolutionLabel();
+      } finally {
+        cameraStarting = false;
+        updateButtons();
       }
     }
 
@@ -586,7 +659,7 @@
       if (stills.length === 0) {
         const empty = document.createElement("p");
         empty.className = "status-copy";
-        empty.textContent = "No stills captured yet. Use Capture Still to save a frame.";
+        empty.textContent = cameraAvailabilityMessage() ? "Your captured stills will appear here when you run the exported app." : "No stills captured yet. Use Capture Still to save a frame.";
         shots.appendChild(empty);
         updateButtons();
         return;
@@ -707,7 +780,7 @@
 
     renderShots();
     updateButtons();
-    enumerateCameras().catch(() => {
+    if (!showCameraAvailability()) enumerateCameras().catch(() => {
       cameraSelect.innerHTML = "<option>Camera unavailable</option>";
       cameraSelect.disabled = true;
     });
@@ -720,7 +793,7 @@
         notice.id = "htmltoapp-browser-notice";
         notice.setAttribute("role", "note");
         notice.style.cssText = "position:fixed;left:16px;right:16px;bottom:16px;z-index:2147483647;padding:14px 16px;border-radius:10px;background:#111827;color:#fff;box-shadow:0 12px 32px rgba(0,0,0,.28);font:14px/1.45 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
-        notice.innerHTML = '<strong style="display:block;margin-bottom:2px;">HTML to App example</strong><span>These examples are made to work in HTML to App only. Visit <a href="https://htmltoapp.app" style="color:#93c5fd;font-weight:700;">https://htmltoapp.app</a> for more information.</span>';
+        notice.innerHTML = '<strong style="display:block;margin-bottom:2px;">HTML to App example</strong><span>These examples are made to work in HTML to App only. Visit <a href="https://htmltoapp.app/?utm_source=htmltoapp" style="color:#93c5fd;font-weight:700;">https://htmltoapp.app</a> for more information.</span>';
         document.body.appendChild(notice);
       }
       if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", showHTMLtoAppBrowserNotice);

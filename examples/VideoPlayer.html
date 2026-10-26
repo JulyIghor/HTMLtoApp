@@ -133,7 +133,7 @@
         <div class="eyebrow">HTML to App Demo</div>
         <h1>VideoPlayer</h1>
         <div class="sub" id="summary">Open local videos or a folder of videos through Finder.</div>
-        <div class="sub" style="margin-top:8px;">Made for <a class="brand-link" href="https://htmltoapp.app">HTML to App</a>.</div>
+        <div class="sub" style="margin-top:8px;">Made for <a class="brand-link" href="https://htmltoapp.app/?utm_source=htmltoapp">HTML to App</a>.</div>
         <div class="speedbar" id="speedbar">
           <button data-rate="0.75">0.75×</button>
           <button data-rate="1" class="active">1×</button>
@@ -147,7 +147,7 @@
           <video id="video" controls playsinline hidden></video>
           <div class="empty" id="empty">
             <h2>No videos queued</h2>
-            <p>Open local videos or folders through Finder, or drag them into the window.</p>
+            <p>Drop local videos or folders into this preview. No movies are bundled and camera access is not needed. Choose Export App to use Finder Open With in a standalone app.</p>
             <p>Suggested extensions: <strong>mp4, mov, m4v</strong>.</p>
           </div>
         </div>
@@ -333,7 +333,7 @@
       if (!current) {
         video.hidden = true;
         empty.hidden = false;
-        summaryEl.textContent = "Open local videos or a folder of videos through Finder.";
+        summaryEl.textContent = "Drop videos or a video folder into this window to begin.";
         metaEl.textContent = "Local file queue";
         return;
       }
@@ -425,7 +425,7 @@
         notice.id = "htmltoapp-browser-notice";
         notice.setAttribute("role", "note");
         notice.style.cssText = "position:fixed;left:16px;right:16px;bottom:16px;z-index:2147483647;padding:14px 16px;border-radius:10px;background:#111827;color:#fff;box-shadow:0 12px 32px rgba(0,0,0,.28);font:14px/1.45 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
-        notice.innerHTML = '<strong style="display:block;margin-bottom:2px;">HTML to App example</strong><span>These examples are made to work in HTML to App only. Visit <a href="https://htmltoapp.app" style="color:#93c5fd;font-weight:700;">https://htmltoapp.app</a> for more information.</span>';
+        notice.innerHTML = '<strong style="display:block;margin-bottom:2px;">HTML to App example</strong><span>These examples are made to work in HTML to App only. Visit <a href="https://htmltoapp.app/?utm_source=htmltoapp" style="color:#93c5fd;font-weight:700;">https://htmltoapp.app</a> for more information.</span>';
         document.body.appendChild(notice);
       }
       if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", showHTMLtoAppBrowserNotice);

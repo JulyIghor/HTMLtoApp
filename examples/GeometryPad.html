@@ -38,6 +38,7 @@
       display: grid;
       grid-template-rows: auto auto auto 1fr;
       min-height: 0;
+      overflow: auto;
     }
     .section {
       padding: 18px;
@@ -177,9 +178,10 @@
       line-height: 1.5;
     }
     .drop-overlay[hidden] { display: none !important; }
-    @media (max-width: 1000px) {
-      .app { grid-template-columns: 1fr; grid-template-rows: 360px 1fr; }
+    @media (max-width: 700px) {
+      .app { grid-template-columns: 1fr; grid-template-rows: minmax(0, 45%) minmax(0, 1fr); }
       .sidebar { border-right: 0; border-bottom: 1px solid var(--line); }
+      .assets { overflow: visible; }
     }
   </style>
 </head>
@@ -189,8 +191,8 @@
       <section class="section">
         <div class="eyebrow">HTML to App Demo</div>
         <h1>GeometryPad</h1>
-        <p>Draw precise shapes on a blank board or on top of an image opened from Finder. Export the composition as a PNG.</p>
-        <p style="margin-top:8px;">Made for <a class="brand-link" href="https://htmltoapp.app">HTML to App</a>.</p>
+        <p>Draw on the blank canvas now, or drop an image into this preview to annotate it. Export PNG saves your drawing. Choose Export App to use Finder Open With in a standalone app.</p>
+        <p style="margin-top:8px;">Made for <a class="brand-link" href="https://htmltoapp.app/?utm_source=htmltoapp">HTML to App</a>.</p>
       </section>
 
       <section class="section">
@@ -434,7 +436,7 @@
     function renderAssets() {
       assetsEl.innerHTML = "";
       if (!state.assets.length) {
-        assetsEl.innerHTML = `<p>No opened images yet. Launch the generated app with an image file or an image folder.</p>`;
+        assetsEl.innerHTML = `<p>No images loaded yet. Drop an image or image folder into this window, or draw on the blank canvas. Finder Open With is available in an exported app bundle.</p>`;
         return;
       }
       state.assets.forEach((asset, index) => {
@@ -654,7 +656,7 @@
         notice.id = "htmltoapp-browser-notice";
         notice.setAttribute("role", "note");
         notice.style.cssText = "position:fixed;left:16px;right:16px;bottom:16px;z-index:2147483647;padding:14px 16px;border-radius:10px;background:#111827;color:#fff;box-shadow:0 12px 32px rgba(0,0,0,.28);font:14px/1.45 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
-        notice.innerHTML = '<strong style="display:block;margin-bottom:2px;">HTML to App example</strong><span>These examples are made to work in HTML to App only. Visit <a href="https://htmltoapp.app" style="color:#93c5fd;font-weight:700;">https://htmltoapp.app</a> for more information.</span>';
+        notice.innerHTML = '<strong style="display:block;margin-bottom:2px;">HTML to App example</strong><span>These examples are made to work in HTML to App only. Visit <a href="https://htmltoapp.app/?utm_source=htmltoapp" style="color:#93c5fd;font-weight:700;">https://htmltoapp.app</a> for more information.</span>';
         document.body.appendChild(notice);
       }
       if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", showHTMLtoAppBrowserNotice);

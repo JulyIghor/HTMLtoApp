@@ -218,8 +218,8 @@
       <section class="brand">
         <div class="eyebrow">HTML to App Demo</div>
         <h1>ImageViewer</h1>
-        <p class="sub">Open image files directly from Finder or point the generated app at a folder to browse a local gallery.</p>
-        <p class="sub" style="margin-top:10px;">Made for <a class="brand-link" href="https://htmltoapp.app">HTML to App</a>.</p>
+        <p class="sub">Drop images or an image folder into this preview to browse them now. Choose Export App to open images using Finder Open With in a standalone app.</p>
+        <p class="sub" style="margin-top:10px;">Made for <a class="brand-link" href="https://htmltoapp.app/?utm_source=htmltoapp">HTML to App</a>.</p>
       </section>
       <section class="controls">
         <div class="eyebrow">View Mode</div>
@@ -235,13 +235,13 @@
     <main class="stage">
       <header class="stage-header">
         <div class="counter" id="counter">Waiting for images</div>
-        <div id="titleLine">Open the generated app with image files or folders to populate the gallery.</div>
+        <div id="titleLine">Drop images or an image folder into this window to begin.</div>
       </header>
       <section class="stage-main">
         <div class="frame fit-contain" id="frame">
           <div class="empty" id="empty">
             <h2>No images loaded</h2>
-            <p>Open image files or folders from Finder, or drag them into the window.</p>
+            <p>Drop image files or folders into this preview. No photos are bundled. Finder Open With is available after you choose Export App and open the exported app bundle.</p>
             <p>Suggested extensions: <strong>jpg, jpeg, png, gif, webp, bmp, tif, tiff</strong>.</p>
           </div>
           <img id="hero" alt="" hidden>
@@ -429,7 +429,7 @@
       if (!item) {
         hero.hidden = true;
         empty.hidden = false;
-        titleLine.textContent = "Open the generated app with image files or folders to populate the gallery.";
+        titleLine.textContent = "Drop images or an image folder into this window to begin.";
         counter.textContent = "Waiting for images";
         footerMeta.textContent = "Local file-powered gallery";
         return;
@@ -535,7 +535,7 @@
         notice.id = "htmltoapp-browser-notice";
         notice.setAttribute("role", "note");
         notice.style.cssText = "position:fixed;left:16px;right:16px;bottom:16px;z-index:2147483647;padding:14px 16px;border-radius:10px;background:#111827;color:#fff;box-shadow:0 12px 32px rgba(0,0,0,.28);font:14px/1.45 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
-        notice.innerHTML = '<strong style="display:block;margin-bottom:2px;">HTML to App example</strong><span>These examples are made to work in HTML to App only. Visit <a href="https://htmltoapp.app" style="color:#93c5fd;font-weight:700;">https://htmltoapp.app</a> for more information.</span>';
+        notice.innerHTML = '<strong style="display:block;margin-bottom:2px;">HTML to App example</strong><span>These examples are made to work in HTML to App only. Visit <a href="https://htmltoapp.app/?utm_source=htmltoapp" style="color:#93c5fd;font-weight:700;">https://htmltoapp.app</a> for more information.</span>';
         document.body.appendChild(notice);
       }
       if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", showHTMLtoAppBrowserNotice);

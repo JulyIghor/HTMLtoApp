@@ -502,7 +502,7 @@
           </div>
         </div>
         <p class="editor-copy" id="editorMeta">
-          Package this file with HTML to App, enable Open With, and launch the app on a text file or folder.
+          Drop a disposable text file or folder into this preview to try editing. Choose Export App to use Finder Open With in a standalone app. Save changes the opened file.
         </p>
         <div class="editor-tools">
           <button class="tool-button primary" id="saveButton" type="button">Save</button>
@@ -517,7 +517,7 @@
             <div>
               <h3>Waiting for content</h3>
               <p>
-                Open a text file to edit it directly, or open a folder to browse text documents and create new ones.
+                Drop a text file here to edit it directly, or drop a folder to browse text documents and create new ones.
                 In editor mode, save replaces the opened file in place.
               </p>
             </div>
@@ -810,7 +810,7 @@
       if (!state.roots.length) {
         const empty = document.createElement("div");
         empty.className = "empty-panel";
-        empty.innerHTML = "Launch this app on a text file or folder. Later Finder opens arrive through <code>window.HTMLtoApp.launchItems</code> and <code>htmltoapp-open</code>.";
+        empty.textContent = "Drop a text file or folder into this preview. Use a disposable copy because Save changes the original file. Choose Export App to use Finder Open With.";
         rootList.appendChild(empty);
         return;
       }
@@ -860,7 +860,7 @@
         const empty = document.createElement("div");
         empty.className = "empty-panel";
         empty.innerHTML = root.droppedFile
-          ? "This dropped file is loaded read-only. Use Finder Open With if you want write-back editing through the HTML to App bridge."
+          ? "This file was opened read-only by the web file API, so Save is disabled. Choose Export App with the Editor role and Open With enabled, then open a disposable text file with the exported app to test native write-back."
           : "This launch item is a file. Save writes directly back to that same path when the app role is <code>Editor</code>.";
         entryList.appendChild(empty);
         renderButtons();
@@ -1379,7 +1379,7 @@
         notice.id = "htmltoapp-browser-notice";
         notice.setAttribute("role", "note");
         notice.style.cssText = "position:fixed;left:16px;right:16px;bottom:16px;z-index:2147483647;padding:14px 16px;border-radius:10px;background:#111827;color:#fff;box-shadow:0 12px 32px rgba(0,0,0,.28);font:14px/1.45 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
-        notice.innerHTML = '<strong style="display:block;margin-bottom:2px;">HTML to App example</strong><span>These examples are made to work in HTML to App only. Visit <a href="https://htmltoapp.app" style="color:#93c5fd;font-weight:700;">https://htmltoapp.app</a> for more information.</span>';
+        notice.innerHTML = '<strong style="display:block;margin-bottom:2px;">HTML to App example</strong><span>These examples are made to work in HTML to App only. Visit <a href="https://htmltoapp.app/?utm_source=htmltoapp" style="color:#93c5fd;font-weight:700;">https://htmltoapp.app</a> for more information.</span>';
         document.body.appendChild(notice);
       }
       if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", showHTMLtoAppBrowserNotice);

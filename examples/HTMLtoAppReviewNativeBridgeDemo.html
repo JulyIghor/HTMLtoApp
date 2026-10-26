@@ -243,9 +243,14 @@
 
             <section id="appOnly" class="grid hidden">
                 <div class="card wide ok">
-                    <h2>Reviewer workflow</h2>
-                    <p>This page is now running inside the exported HTML to App app bundle. Use the steps below to test features that are not possible in a regular browser or web clip.</p>
-                    <ol>
+                    <h2 id="workflowTitle">Try the native features</h2>
+                    <p id="workflowIntro">Use this exported app to test native bridge features.</p>
+                    <ol id="previewSteps" class="hidden">
+                        <li>Create a native menu bar item or change the preview window title.</li>
+                        <li>Drop a disposable file or folder into this preview to try the scoped file bridge.</li>
+                        <li>Choose <strong>Export App</strong> in the workspace and open the exported app bundle to test notifications, its Dock badge, Finder Open With, and standalone app behavior.</li>
+                    </ol>
+                    <ol id="exportSteps">
                         <li>Press <strong>Request notification permission</strong>, then use the Dock badge and native notification buttons once they unlock.</li>
                         <li>Press <strong>Create native menu bar item</strong>. A macOS menu bar icon and native menu should appear, and the menu bar badge/window buttons should unlock.</li>
                         <li>Press <strong>Destroy menu bar item</strong> when you want to remove the status item and start the menu bar test again.</li>
@@ -266,7 +271,7 @@
                 <div class="card third">
                     <h2>Why this is not browser behavior</h2>
                     <table>
-                        <thead><tr><th>Feature</th><th>Browser</th><th>This app</th></tr></thead>
+                        <thead><tr><th>Feature</th><th>Browser</th><th>Exported app</th></tr></thead>
                         <tbody>
                             <tr><td>Render HTML</td><td>Yes</td><td>Yes</td></tr>
                             <tr><td>Standalone .app bundle</td><td>No</td><td>Yes</td></tr>
@@ -296,12 +301,12 @@
                         <button id="badgeText" disabled>Set Dock badge to JS</button>
                         <button id="clearBadge" disabled>Clear Dock badge</button>
                     </div>
-                    <p id="permissionHint" class="muted" style="margin-top: 10px;">Notification permission is required before notification and Dock badge actions are enabled.</p>
+                    <p id="permissionHint" class="muted" role="status" style="margin-top: 10px;">Notification permission is required before notification and Dock badge actions are enabled.</p>
                 </div>
 
                 <div class="card wide">
                     <h2>Native menu bar icon and menu</h2>
-                    <p class="muted">This is a native macOS status item created from JavaScript. A browser tab or web clip cannot add a native menu bar item.</p>
+                    <p class="muted" id="menuBarHint">This is a native macOS status item created from JavaScript. A browser tab or web clip cannot add a native menu bar item.</p>
                     <div class="controls">
                         <button id="createMenuBar" class="primary">Create native menu bar item</button>
                         <button id="destroyMenuBar" disabled>Destroy menu bar item</button>
@@ -314,8 +319,8 @@
 
                 <div class="card wide">
                     <h2>Finder Open With passthrough</h2>
-                    <p class="muted">Test this by opening this same HTML file from Finder with the exported app bundle. The file should be delivered to JavaScript as an opened item.</p>
-                    <div class="callout">
+                    <p class="muted" id="finderHint">Test this by opening this same HTML file from Finder with the exported app bundle. The file should be delivered to JavaScript as an opened item.</p>
+                    <div class="callout" id="finderSteps">
                         <strong>Exact test:</strong> Find <code>HTMLtoAppReviewNativeBridgeDemo.html</code> in Finder, right-click it, choose <strong>Open With</strong>, select the exported app bundle, then return here.
                     </div>
                     <table>
@@ -327,7 +332,7 @@
                         <button id="statSelected">Stat selected item</button>
                         <button id="listSelected">List selected folder</button>
                     </div>
-                    <p class="muted">When the file appears here, the generated app has received a Finder-opened file and passed it to JavaScript. That is not possible with a normal web page or web clip.</p>
+                    <p class="muted">Only files and folders you open or drop into this window are available through the scoped file bridge.</p>
                 </div>
 
                 <div class="card">
@@ -360,6 +365,9 @@
 
                 const $ = function (id) { return document.getElementById(id); };
                 const hasBridge = function () { return !!window.HTMLtoApp; };
+                const isPreview = function () { return hasBridge() && window.HTMLtoApp.isPreview === true; };
+                let notificationPending = false;
+                let notificationError = "";
                 let selectedItem = null;
                 let menuChecked = false;
                 let finderOpenAlertShown = false;
@@ -439,7 +447,18 @@
                     }
 
                     const rt = runtime();
+                    $("workflowTitle").textContent = isPreview() ? "Workspace preview" : "Try the exported app";
+                    $("workflowIntro").textContent = isPreview()
+                        ? "Menu bar controls, window titles, and the file bridge can be tried here. Notifications and Dock badges are reserved for the exported app and do not request permissions for HTML to App."
+                        : "This page is running in an exported app bundle. Follow these steps to try its native features.";
+                    $("previewSteps").classList.toggle("hidden", !isPreview());
+                    $("exportSteps").classList.toggle("hidden", isPreview());
+                    $("finderHint").textContent = isPreview()
+                        ? "Drop a disposable file or folder into this preview to try reading it. Finder Open With registration is available after you choose Export App and open the exported app bundle."
+                        : "Open a file from Finder with the exported app bundle, or drop a file or folder into this window.";
+                    $("finderSteps").classList.toggle("hidden", isPreview());
                     const rows = [
+                                  ["Environment", isPreview() ? "Workspace preview" : "Exported app"],
                                   ["Bridge available", "Yes"],
                                   ["Open With enabled", valueOrUnknown(rt.enabled)],
                                   ["Open With role", valueOrUnknown(rt.role)],
@@ -453,7 +472,7 @@
                                   }).join("");
 
                                   $("bridgeStatus").innerHTML = badge("Available", "good");
-                                  $("notificationStatus").innerHTML = "Notification" in window ? badge(Notification.permission, Notification.permission === "granted" ? "good" : "warn") : badge("Unavailable", "bad");
+                                  $("notificationStatus").innerHTML = notificationAvailabilityMessage() ? badge("Available after export", "warn") : badge(Notification.permission, Notification.permission === "granted" ? "good" : "warn");
                                   updateNotificationGatedControls();
                                   updateMenuBarGatedControls();
                                   $("bridgeObject").textContent = stringify({
@@ -472,11 +491,19 @@
                 }
 
                 function notificationPermissionGranted() {
-                    return "Notification" in window && Notification.permission === "granted";
+                    return !notificationAvailabilityMessage() && Notification.permission === "granted";
+                }
+
+                function notificationAvailabilityMessage() {
+                    if (isPreview()) return "Notifications and Dock badges are available after export. Choose Export App, open the exported app bundle, then request notification permission there. This preview does not request permission or change HTML to App's Dock badge.";
+                    if (!hasBridge() || typeof window.Notification !== "function" || typeof Notification.requestPermission !== "function")
+                        return "The notification API is not available here. Choose Export App in HTML to App and open the exported app bundle to request notification permission.";
+                    return "";
                 }
 
                 function updateNotificationGatedControls() {
                     const granted = notificationPermissionGranted();
+                    const unavailable = notificationAvailabilityMessage();
                     const gatedButtonIds = ["showNotification", "badge1", "badgeText", "clearBadge"];
                     gatedButtonIds.forEach(function (id) {
                         const button = $(id);
@@ -493,19 +520,19 @@
                             requestButton.textContent = "Notification permission granted";
                             requestButton.classList.remove("primary");
                         } else {
-                            requestButton.disabled = !("Notification" in window);
-                            requestButton.textContent = "Request notification permission";
+                            requestButton.disabled = !!unavailable || notificationPending || Notification.permission === "denied";
+                            requestButton.textContent = unavailable ? "Available after export" : notificationPending ? "Waiting for permission" : "Request notification permission";
                             requestButton.classList.add("primary");
                         }
                     }
 
                     const hint = $("permissionHint");
                     if (hint) {
-                        hint.style.display = granted ? "none" : "";
-                        if (!("Notification" in window)) {
-                            hint.textContent = "Notification API is unavailable in this runtime, so Dock badge actions cannot be unlocked.";
+                        hint.style.display = granted && !notificationError ? "none" : "";
+                        if (unavailable || notificationError) {
+                            hint.textContent = unavailable || notificationError;
                         } else if (Notification.permission === "denied") {
-                            hint.textContent = "Notification permission was denied. Re-enable it in macOS System Settings > Notifications for this app to unlock notification and Dock badge actions.";
+                            hint.textContent = "Notification permission was denied. Allow notifications for the exported app in macOS System Settings > Notifications, then return here.";
                         } else {
                             hint.textContent = "Notification permission is required before notification and Dock badge actions are enabled.";
                         }
@@ -513,23 +540,28 @@
                 }
 
                 function updateMenuBarGatedControls() {
+                    const menuBar = window.HTMLtoApp && window.HTMLtoApp.menuBar;
+                    const available = menuBar && (typeof menuBar.setIcon === "function" || typeof menuBar.setStatusItem === "function");
+                    $("menuBarHint").textContent = available
+                        ? "Create a native menu bar item to try menus and window controls here. Choose Export App to test standalone launch and background behavior."
+                        : "The native menu bar API is unavailable here. Choose Export App in HTML to App and open the exported app bundle to try native menus and window controls.";
                     const gatedButtonIds = ["setMenuBarBadge", "clearMenuBarBadge", "hideWindow", "showWindow", "hideWindow2", "showWindow2", "destroyMenuBar"];
                     gatedButtonIds.forEach(function (id) {
                         const button = $(id);
                         if (button) {
-                            button.disabled = !nativeMenuBarVisible;
+                            button.disabled = !available || !nativeMenuBarVisible;
                         }
                     });
 
                     const createButton = $("createMenuBar");
                     if (createButton) {
-                        createButton.disabled = nativeMenuBarVisible;
+                        createButton.disabled = !available || nativeMenuBarVisible;
                         createButton.classList.toggle("primary", !nativeMenuBarVisible);
                     }
                 }
 
                 function showFinderOpenAlertIfNeeded(items) {
-                    if (finderOpenAlertShown || !items.length) {
+                    if (isPreview() || finderOpenAlertShown || !items.length) {
                         return;
                     }
 
@@ -547,7 +579,7 @@
                     showFinderOpenAlertIfNeeded(items);
 
                     if (!items.length) {
-                        $("itemsBody").innerHTML = '<tr><td colspan="4" class="muted">No Finder-opened items received yet. Use Finder Open With and choose the exported app bundle.</td></tr>';
+                        $("itemsBody").innerHTML = '<tr><td colspan="4" class="muted">Drop a file or folder into this window to try the file bridge. Use Export App to test Finder Open With.</td></tr>';
                         selectedItem = null;
                         return;
                     }
@@ -575,8 +607,10 @@
                 }
 
                 function requireNotificationPermission(feature) {
-                    if (!("Notification" in window)) {
-                        log(feature + " requires the Notification API, which is unavailable in this runtime.");
+                    const unavailable = notificationAvailabilityMessage();
+                    if (unavailable) {
+                        log(unavailable);
+                        updateNotificationGatedControls();
                         return false;
                     }
                     if (Notification.permission !== "granted") {
@@ -780,25 +814,48 @@
                 }
 
                 async function requestNotification() {
-                    if (!("Notification" in window)) {
-                        log("Notification API is unavailable.");
+                    const unavailable = notificationAvailabilityMessage();
+                    if (unavailable || notificationPending) {
+                        if (unavailable) log(unavailable);
+                        updateNotificationGatedControls();
                         return;
                     }
-                    const permission = await Notification.requestPermission();
-                    log("Notification permission result", permission);
+                    notificationPending = true;
+                    notificationError = "";
                     updateNotificationGatedControls();
-                    render();
+                    try {
+                        const permission = await Notification.requestPermission();
+                        log("Notification permission result", permission);
+                    } catch (error) {
+                        notificationError = "Notification permission could not be requested. Open the exported app bundle and check its notification settings in macOS System Settings.";
+                        log(notificationError);
+                    } finally {
+                        notificationPending = false;
+                        render();
+                    }
                 }
 
                 function showNotification() {
                     if (!requireNotificationPermission("Native notification")) {
                         return;
                     }
-                    new Notification("HTML to App native notification", {
-                        body: "Triggered by JavaScript inside the generated macOS app.",
-                        tag: "htmltoapp-review-demo"
-                    });
-                    log("Native notification requested");
+                    try {
+                        notificationError = "";
+                        const notification = new Notification("HTML to App native notification", {
+                            body: "Triggered by JavaScript inside the generated macOS app.",
+                            tag: "htmltoapp-review-demo"
+                        });
+                        notification.onerror = function () {
+                            notificationError = "macOS could not display the notification. Check notification settings for the exported app.";
+                            updateNotificationGatedControls();
+                        };
+                        log("Native notification requested. macOS notification settings determine delivery.");
+                        updateNotificationGatedControls();
+                    } catch (error) {
+                        notificationError = "Notifications are unavailable in this runtime. Open the exported app bundle and allow notifications for that app.";
+                        updateNotificationGatedControls();
+                        log(notificationError);
+                    }
                 }
 
                 function showWindow() {
@@ -937,6 +994,7 @@
 
                 function bind() {
                     $("refresh").addEventListener("click", render);
+                    window.addEventListener("focus", render);
                     $("badge1").addEventListener("click", function () { setDockBadge("1"); });
                     $("badgeText").addEventListener("click", function () { setDockBadge("JS"); });
                     $("clearBadge").addEventListener("click", clearDockBadge);

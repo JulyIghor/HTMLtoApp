@@ -319,6 +319,7 @@ h2 {
             <p class="intro">
                 Standalone HTML example for the HTML to App menu bar bridge: generated icons, optional template rendering, image-plus-title placement, dynamic menu rebuilds, status item clicks, menu callbacks, toggles, nested submenus, badges, background mode, and window title control.
             </p>
+            <p id="runtimeHint" class="note" role="note">Menu bar icons and window controls can be tried in the workspace preview. Choose Export App to test standalone launch, Dock visibility, and background behavior.</p>
         </div>
         <div id="bridgeStatus" class="bridge-pill">Checking bridge</div>
     </header>
@@ -496,7 +497,7 @@ const els = {
 };
 
 function bridgeReady() {
-    return Boolean(menuBar);
+    return Boolean(menuBar && typeof menuBar.setIcon === "function" && typeof menuBar.setMenu === "function");
 }
 
 function nowLabel() {
@@ -516,7 +517,7 @@ function log(message, payload, warning) {
 
 function runNative(label, fn) {
     if (!bridgeReady()) {
-        log(label + " skipped because window.HTMLtoApp.menuBar is not available.", null, true);
+        log(label + " is unavailable here. Choose Export App in HTML to App and open the exported app bundle to use the native menu bar controls.", null, true);
         return false;
     }
 
@@ -781,8 +782,8 @@ function registerCallbacks() {
         return;
     }
 
-    menuBar.onClick(handleStatusClick);
-    menuBar.onItemClick(handleMenuItemClick);
+    if (typeof menuBar.onClick === "function") menuBar.onClick(handleStatusClick);
+    if (typeof menuBar.onItemClick === "function") menuBar.onItemClick(handleMenuItemClick);
 
     window.addEventListener("htmltoapp-menubar-click", (event) => {
         state.lastDomEvent = "status item";
@@ -799,7 +800,7 @@ function registerCallbacks() {
 }
 
 function render() {
-    els.bridgeStatus.textContent = bridgeReady() ? "Native bridge available" : "Native bridge unavailable";
+    els.bridgeStatus.textContent = bridgeReady() ? (bridge.isPreview ? "Workspace preview" : "Native bridge available") : "Export to use native controls";
     els.bridgeStatus.classList.toggle("ready", bridgeReady());
     els.bridgeStatus.classList.toggle("warning", !bridgeReady());
 
@@ -815,7 +816,15 @@ function render() {
     els.syncPreview.textContent = state.autoSync ? "On" : "Off";
     els.lastMenuPreview.textContent = state.lastMenuGenerated;
     els.domEventPreview.textContent = state.lastDomEvent;
-    els.incrementBadge.disabled = !state.useImageIcon;
+    document.getElementById("runtimeHint").textContent = !bridgeReady()
+        ? "The native menu bar API is unavailable in this environment. Choose Export App in HTML to App, then open the exported app bundle. You can still explore the controls here."
+        : bridge.isPreview
+        ? "Menu bar icons, menus, and window controls work in this workspace preview. Choose Export App to test standalone launch, Dock visibility, and background behavior."
+        : "These controls operate this exported app's menu bar item and window. Use the menu bar item to show the window again after hiding it.";
+    ["applyIcon", "hideIcon", "installMenu", "setBadge", "incrementBadge", "clearBadge", "setTitle", "showWindow", "hideWindow", "backgroundMode"].forEach((id) => {
+        document.getElementById(id).disabled = !bridgeReady();
+    });
+    els.incrementBadge.disabled = !bridgeReady() || !state.useImageIcon;
 
     els.log.innerHTML = state.logEntries.map((entry) => {
         const payload = entry.payload ? "<code>" + escapeHTML(JSON.stringify(entry.payload, null, 2)) + "<\/code>" : "";
@@ -909,7 +918,7 @@ if (bridgeReady()) {
         notice.id = "htmltoapp-browser-notice";
         notice.setAttribute("role", "note");
         notice.style.cssText = "position:fixed;left:16px;right:16px;bottom:16px;z-index:2147483647;padding:14px 16px;border-radius:10px;background:#111827;color:#fff;box-shadow:0 12px 32px rgba(0,0,0,.28);font:14px/1.45 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
-        notice.innerHTML = '<strong style="display:block;margin-bottom:2px;">HTML to App example</strong><span>These examples are made to work in HTML to App only. Visit <a href="https://htmltoapp.app" style="color:#93c5fd;font-weight:700;">https://htmltoapp.app</a> for more information.</span>';
+        notice.innerHTML = '<strong style="display:block;margin-bottom:2px;">HTML to App example</strong><span>These examples are made to work in HTML to App only. Visit <a href="https://htmltoapp.app/?utm_source=htmltoapp" style="color:#93c5fd;font-weight:700;">https://htmltoapp.app</a> for more information.</span>';
         document.body.appendChild(notice);
     }
     if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", showHTMLtoAppBrowserNotice);

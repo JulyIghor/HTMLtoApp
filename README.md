@@ -1,31 +1,98 @@
-# HTML to App Community Demos
+# HTML to App Examples
 
-This repository is a small set of standalone HTML demos built for [HTML to App](https://htmltoapp.app).
+Editable HTML examples and a JavaScript bridge reference for [HTML to App](https://htmltoapp.app), a Mac workspace for creating, editing, previewing, and exporting local HTML projects as standalone `.app` bundles for personal use and local testing.
 
-HTML to App lets you turn an HTML file or folder into a native macOS app bundle. You can use it to package offline tools, media viewers, internal utilities, dashboards, launchers, and file-driven apps without rewriting them in AppKit or SwiftUI.
+[Download HTML to App on the Mac App Store](https://apps.apple.com/app/apple-store/id6796812125?pt=127627850&ct=github&mt=8)
+
+HTML to App is available for $9.99 USD. Regional prices and availability may vary. The builder requires macOS 12 or newer. The current exported launcher separately targets macOS 12 or newer and uses the system WebKit engine.
+
+This repository contains 10 HTML examples, not the source code of the macOS builder. Start with a text editor, media player, camera tool, drawing app, or native integration demo, then adapt it to your own project.
+
+## Start with a Project
+
+The main window keeps your projects in a sidebar alongside a source editor and Checks & Output. Open the + menu beside Projects and choose a starting point.
+
+- **New Project** creates a folder containing an editable notes app with `index.html`, `style.css`, `app.js`, and a README.
+- **Add Project Folder** opens an existing website folder with `index.html` at its root. It uses the folder in place without copying it. For projects built with other tools, choose the generated website folder containing the HTML and assets.
+- **Example Gallery** lets you browse the 10 bundled examples and choose Create Project to save an editable copy in a new folder.
+
+Select a source file to edit HTML, CSS, JavaScript, JSON, Markdown, or other supported UTF-8 text. Save or Command-S writes to the original project folder. Use Command-F to find text and Project's Reload Files command after external changes.
+
+Choose Run to open a preview. Save your edits and run again to see changes. Checks & Output collects JavaScript errors and console messages. Check Project reports missing static HTML and CSS resources, paths outside the project folder, and external URLs. It does not test JavaScript-generated paths or replace testing the app's behavior.
+
+Duplicate Project makes a separate copy for experiments. Remove from List only removes the workspace entry, not your files. Reconnect Folder restores access to an unavailable folder, and Show in Finder opens its location. Project settings are kept for later previews and exports.
+
+If you already have a finished HTML file or folder, use **Convert HTML to App** without adding it to the project workspace.
+
+## Export Your Own Mac Tool
+
+Choose Export App for the selected project, or start a direct conversion. Set the app name, window title, icon, optional Dock label and animation effects, Finder Open With settings, and any required capabilities. On Ready to Export, choose Save HTML App and a destination.
+
+HTML Source and Packaging offers two content modes.
+
+- **Embed the website** copies the HTML, CSS, JavaScript, images, and other assets into the app bundle. A self-contained project works offline. Export again when you want to include source changes.
+- **Use the original location** keeps the app connected to your source folder. Save changes in your usual editor, then relaunch the exported app to load the latest files without exporting again. The source folder must remain available. This is not automatic live reload of an already-open page.
+
+The exported app opens in its own window with its own Dock icon, without a local HTTP server for compatible local HTML projects. It runs browser JavaScript using macOS WebKit, not a Node.js or PHP backend. Web features and media codecs depend on the macOS version, so test your project on the system you use.
+
+Remote APIs, scripts, fonts, media, and other online resources still need a network connection. An online page embedded in an `iframe` only works when the destination permits embedding. HTML to App does not bypass `X-Frame-Options` or Content-Security-Policy `frame-ancestors` restrictions.
 
 ## What HTML to App Can Do
 
-- Convert a local HTML file or an entire site folder into a macOS app.
-- Bundle assets inside the app so the result works offline.
 - Launch apps with a native window, standard menu bar, copy/paste shortcuts, and normal text editing behavior inside web content.
-- Customize the generated app name, icon, and visual label treatment.
+- Give personal tools their own app icon, Dock label, and optional Dock animations.
 - Register the generated app as a Finder handler for selected file extensions or folders.
 - Open compatible files and folders directly from Finder into the web app.
 - Pass opened items into JavaScript through the built-in bridge.
 - Expose scoped read and write APIs so editor-role apps can save back to opened files or folders.
-- Preselect app permissions such as camera, microphone, or location services from HTML metadata.
-- Send native macOS notifications from local HTML with the standard `Notification` API.
+- Use native open and save dialogs for files your project works with.
+- Preselect camera, microphone, or location capabilities from HTML metadata. The exported app still needs the user's permission to access protected resources.
+- Send local native macOS notifications with the standard `Notification` API after permission is granted.
 - Control the Dock badge from JavaScript through `window.HTMLtoApp.setBadge()` and `window.HTMLtoApp.clearBadge()` after notification permission is granted.
 - Create a JavaScript-controlled menu bar icon, regenerate its menu on every popup, handle menu item clicks, show menu bar badges, and keep the app running in the background after the window closes.
 - Use drag and drop inside the example apps for local files and folders.
 - Support media-style apps such as image viewers, video players, audio players, and folder browsers.
 - Support canvas-style tools such as annotation or geometry drawing apps, plus document-style editors.
-- Export standalone app bundles that are easy to test, share, and submit.
+
+Your HTML and JavaScript must implement the tool's interface and call the relevant APIs. Converting an arbitrary page does not automatically turn it into an editor, player, or camera app.
+
+### Preview Limitations
+
+The workspace preview supports layout, navigation, local content, and supported bridge features. Test camera, microphone, location, notifications, Dock badges, Finder Open With registration, and close-to-menu-bar behavior in the exported app. Preview storage and exported app storage are separate. A regular browser does not provide the `window.HTMLtoApp` native bridge.
+
+## What Export Does and Does Not Do
+
+Export copies the bundled, precompiled launcher and configures its name, icon, resources, and settings. It embeds your content or references its original location. It does not compile new native code. The export process includes an ad hoc signing step that requires macOS 12 or newer.
+
+Exported bundles are ad hoc signed for personal use and local testing. They are not Developer ID signed, notarized, submitted to App Review, or ready for public distribution as exported. HTML to App does not replace the Apple Developer Program or Apple's signing, notarization, and review requirements.
+
+HTML to App's Mac App Store availability and approval apply to the builder, not to the apps you export.
+
+### First Launch and Optional Automation
+
+Choose Open App on the export completion screen, or Show in Finder to locate the saved bundle. If macOS requires local launch confirmation, follow the completion screen's manual guidance for your own trusted export. If macOS reports damage or malicious software, stop and investigate instead of approving it.
+
+The completion screen also offers an optional script for local launch handling.
+
+1. Use View Script to review it, then choose Install Script if you want to enable it. Keep the exact Application Scripts destination and the name `HTMLtoAppApproval` shown in the dialog.
+2. Installation handles the current export. Once installed and up to date, the script runs automatically after subsequent exports. Use Update Script when offered to resume automation.
+3. If approval fails or is cancelled, the exported app remains saved. Use Retry Approval or the manual guidance. To disable automation, open Scripts Folder and remove `HTMLtoAppApproval`.
+
+The script runs outside the App Sandbox and removes quarantine from the specific exported bundle. It does not change the signature, grant privacy permissions, or disable Gatekeeper across your Mac. Local launch approval is not Developer ID signing, notarization, an Apple malware review, or App Store approval.
+
+See the [first-launch guide](https://htmltoapp.app/documentation/#first-launch) for the full workflow and manual options.
+
+## Privacy and File Access
+
+Project creation, editing, and export happen locally. HTML to App does not upload your project files or collect usage analytics. Previews and exported apps can still make network requests when your HTML includes remote resources or APIs.
+
+The builder and exported apps are sandboxed. Besides its own app container, every export includes read-only permission for the Downloads folder by default, even when individual Downloads files have not been selected. This does not grant write access to Downloads, and macOS privacy protections still apply.
+
+Reference-mode apps also have read-only access to the selected source folder. Native open and save dialogs can authorize other locations. Editor-role Open With handling allows scoped write-back to the specific file or folder opened into the app, not arbitrary filesystem access. See the [privacy policy](https://htmltoapp.app/privacy-policy/) for details.
 
 ## Opened Files and Permissions
 
-Generated apps can be configured with **Open With** settings so macOS sends matching files or folders into the app. In the page JavaScript, the launcher provides launch items through:
+Generated apps can be configured with **Open With** settings so macOS sends matching files or folders into the app. The launcher exposes opened items, runtime settings, and file operations to page JavaScript through the following properties and events.
 
 - `window.HTMLtoApp.launchItems`
 - `window` event `htmltoapp-open`
@@ -35,13 +102,16 @@ Generated apps can be configured with **Open With** settings so macOS sends matc
 
 For file-backed apps, this makes it possible to build viewers, players, and editors that react to real Finder-opened content instead of only loading bundled assets.
 
-HTML to App can also auto-detect recommended Open With settings and app permissions from your main HTML file. Add this in the document `<head>`:
+Read `launchItems` for items already delivered and listen for `htmltoapp-open` to handle later items while the app is running. The event's `detail.items` contains the delivered items and `detail.replaceExisting` indicates whether to replace the current list. Listen for `htmltoapp-runtime` when your interface depends on runtime settings that can change.
+
+HTML to App can also auto-detect recommended Open With settings and app permissions from your main HTML file. Add metadata in the document `<head>`.
 
 ```html
 <meta name="htmltoapp:open-with" content="role=viewer; files=jpg,jpeg,png; folders=true; permissions=camera">
 ```
 
-Supported keys:
+Supported keys
+
 - `role=viewer` or `role=editor`
 - `files=ext1,ext2,ext3`
 - `folders=true` or `folders=false`
@@ -49,11 +119,11 @@ Supported keys:
 - `camera=true`, `microphone=true`, or `location=true` as explicit booleans
 - `mic`, `audio`, `geolocation`, and `gps` are accepted aliases
 
-When someone browses that HTML source in HTML to App, the app can automatically enable Open With, prefill the role, file extensions, and files/folders options, and preselect requested app permissions in Advanced Settings.
+When someone browses that HTML source in HTML to App, the app can automatically enable Open With, prefill the role, file extensions, and files/folders options, and preselect requested app capabilities in Advanced Settings. Metadata does not grant macOS privacy permission on the user's behalf.
 
 ## Scoped File Bridge
 
-`window.HTMLtoApp.runtime` reports whether the exported app is configured as a viewer or editor, and whether write-back is available:
+`window.HTMLtoApp.runtime` reports whether the exported app is configured as a viewer or editor, and whether write-back is available.
 
 - `enabled`
 - `role`
@@ -63,13 +133,18 @@ When someone browses that HTML source in HTML to App, the app can automatically 
 
 `window.HTMLtoApp.fs` accepts either a launch item object, a folder entry object, or an opened-item id string. Read methods work in both viewer and editor mode. Mutating methods only work when Open With is enabled and the role is `editor`.
 
+This snippet assumes an existing textarea referenced by `editor`. It reads the current launch items and runtime settings each time a function is called.
+
 ```html
 <script>
-  const launchItems = (window.HTMLtoApp && window.HTMLtoApp.launchItems) || [];
-  const runtime = (window.HTMLtoApp && window.HTMLtoApp.runtime) || {};
+  const appBridge = window.HTMLtoApp;
+
+  function firstItem(isDirectory) {
+    return (appBridge?.launchItems || []).find((item) => !!item.isDirectory === isDirectory);
+  }
 
   async function openFirstTextFile() {
-    const fileItem = launchItems.find((item) => !item.isDirectory);
+    const fileItem = firstItem(false);
     if (!fileItem) return;
 
     const opened = await window.HTMLtoApp.fs.readText(fileItem.id);
@@ -77,15 +152,15 @@ When someone browses that HTML source in HTML to App, the app can automatically 
   }
 
   async function saveBackToOpenedFile() {
-    const fileItem = launchItems.find((item) => !item.isDirectory);
-    if (!fileItem || !runtime.canWriteBack) return;
+    const fileItem = firstItem(false);
+    if (!fileItem || !appBridge?.runtime?.canWriteBack) return;
 
     await window.HTMLtoApp.fs.writeText(fileItem.id, editor.value);
   }
 
   async function createNoteInOpenedFolder() {
-    const folderItem = launchItems.find((item) => item.isDirectory);
-    if (!folderItem || !runtime.canWriteBack) return;
+    const folderItem = firstItem(true);
+    if (!folderItem || !appBridge?.runtime?.canWriteBack) return;
 
     await window.HTMLtoApp.fs.createDirectory(folderItem.id, "Drafts");
     await window.HTMLtoApp.fs.writeText(folderItem.id, "# New note\n", "Drafts/today.md");
@@ -93,11 +168,11 @@ When someone browses that HTML source in HTML to App, the app can automatically 
 </script>
 ```
 
-Available methods:
+Available methods
 
 - `stat(itemOrId, relativePath?)`
 - `list(itemOrId, relativePath?)`
-- `readText(itemOrId, relativePath?)`
+- `readText(itemOrId, relativePath?, options?)`
 - `readData(itemOrId, relativePath?)`
 - `writeText(itemOrId, text, relativePath?, options?)`
 - `writeData(itemOrId, base64Data, relativePath?, options?)`
@@ -105,7 +180,7 @@ Available methods:
 - `remove(itemOrId, relativePath?, options?)`
 - `move(itemOrId, fromRelativePath, toRelativePath, options?)`
 
-Notes:
+File operation notes
 
 - A file item can be read or overwritten directly with no relative path.
 - A folder item uses relative paths inside that opened folder tree only.
@@ -118,7 +193,7 @@ Notes:
 
 ## Notifications and Dock Badge
 
-Generated apps can pass notification requests from local HTML to native macOS notifications. This is local notification passthrough from the exported app, not APNs or server-delivered remote push. Use the standard browser-style `Notification` API:
+Generated apps can pass notification requests from local HTML to native macOS notifications. This is local notification passthrough from the exported app, not APNs or server-delivered remote push. Use the standard browser-style `Notification` API.
 
 ```html
 <script>
@@ -136,7 +211,7 @@ Generated apps can pass notification requests from local HTML to native macOS no
 </script>
 ```
 
-Generated apps can also control their Dock badge from JavaScript. On macOS, Dock badge visibility is tied to notification authorization for the generated app, so request notification permission before enabling badge controls in your UI:
+Generated apps can also control their Dock badge from JavaScript. On macOS, Dock badge visibility is tied to notification authorization for the generated app, so request notification permission before enabling badge controls in your UI.
 
 ```html
 <script>
@@ -206,97 +281,105 @@ Generated apps can create a menu bar icon from JavaScript. The native launcher a
 </script>
 ```
 
-The generated app icon is shown by default. If `title` is also set, the status item shows icon and title together; use `imagePosition: "left"` or `imagePosition: "right"` to choose the side. Set `imageVisible: false` for a text-only menu bar item. Menu bar badges draw on the image icon and are not appended to text-only titles.
+The generated app icon is shown by default. If `title` is also set, the status item shows icon and title together. Use `imagePosition: "left"` or `imagePosition: "right"` to choose the side. Set `imageVisible: false` for a text-only menu bar item. Menu bar badges draw on the image icon and are not appended to text-only titles.
 
-Use `window.HTMLtoApp.setWindowTitle(title)` to control the native window title. `window.HTMLtoApp.showWindow()`, `window.HTMLtoApp.hideWindow()`, and `window.HTMLtoApp.quit()` are useful from menu item callbacks. Only expose window hide/show controls when a menu bar item exists, so the user has a visible way to restore the app. Use `window.HTMLtoApp.menuBar.hideIcon()` or `menuBar.configure({ visible: false })` to remove the menu bar item and let the user start the menu bar flow again. When `closeToMenuBarOnWindowClose` is enabled and the menu bar icon is visible, closing the generated app window hides the window and Dock icon while the WebView keeps running; the app shows a one-time native message explaining that it is still running in the menu bar.
+Use `window.HTMLtoApp.setWindowTitle(title)` to control the native window title. `window.HTMLtoApp.showWindow()`, `window.HTMLtoApp.hideWindow()`, and `window.HTMLtoApp.quit()` are useful from menu item callbacks. Only expose window hide/show controls when a menu bar item exists, so the user has a visible way to restore the app. Use `window.HTMLtoApp.menuBar.hideIcon()` or `menuBar.configure({ visible: false })` to remove the menu bar item and let the user start the menu bar flow again. When `closeToMenuBarOnWindowClose` is enabled and the menu bar icon is visible, closing the generated app window hides the window and Dock icon while the WebView keeps running. The app shows a one-time native message explaining that it is still running in the menu bar.
 
 ## Examples
 
-Each example below is a single HTML file you can package with HTML to App.
+These files are copied directly from the app's built-in Example Gallery. The [gallery catalog](./examples/Catalog.plist) contains the same names, descriptions, and instructions used in the app.
+
+Each example below is a single HTML file you can convert directly with HTML to App. Download or clone the repository to work with the actual files, not the GitHub page displaying their source. To use the project workspace instead, create an editable copy from the built-in Example Gallery or put an example in its own folder as `index.html` and add that folder.
+
+Use disposable files when testing editor examples because Save can change the file you opened. Media files are not included. Camera access, notifications, Dock badges, and Finder registration need testing in an exported app.
 
 ### [Image Viewer](./examples/ImageViewer.html)
 
 Local gallery viewer for images opened from Finder or from a folder.
 
-Recommended Open With setup:
-- Role: `Viewer`
-- Accept: files and folders
-- Extensions: `jpg, jpeg, png, gif, webp, bmp, tif, tiff`
-- Permissions: none
+Recommended Open With setup
+
+- Use the `Viewer` role and accept files and folders.
+- Register `jpg, jpeg, png, gif, webp, bmp, tif, tiff`.
+- No camera, microphone, or location capability is required.
 
 ### [Geometry Pad](./examples/GeometryPad.html)
 
 Canvas app for drawing rectangles, circles, arrows, lines, and labels. It can also use an opened image as the background.
 
-Recommended Open With setup:
-- Role: `Editor`
-- Accept: files
-- Extensions: `jpg, jpeg, png, webp`
-- Permissions: none
+Recommended Open With setup
+
+- Use the `Editor` role and accept files.
+- Register `jpg, jpeg, png, webp`.
+- No camera, microphone, or location capability is required.
 
 ### [Text Editor](./examples/TextEditor.html)
 
 Text editor that opens Finder-selected files as text, saves directly back to the opened file, and can create or remove files and folders when launched on a folder.
 
-Recommended Open With setup:
-- Role: `Editor`
-- Accept: files and folders
-- Extensions: `txt, md, html, htm, css, js, json, xml, csv, log`
-- Permissions: none
+Recommended Open With setup
+
+- Use the `Editor` role and accept files and folders.
+- Register `txt, md, html, htm, css, js, json, xml, csv, log`.
+- No camera, microphone, or location capability is required.
 
 ### [Video Player](./examples/VideoPlayer.html)
 
 Local video player with playlist-style navigation for one file or a whole folder.
 
-Recommended Open With setup:
-- Role: `Viewer`
-- Accept: files and folders
-- Extensions: `mp4, mov, m4v`
-- Permissions: none
+Recommended Open With setup
+
+- Use the `Viewer` role and accept files and folders.
+- Register `mp4, mov, m4v`.
+- No camera, microphone, or location capability is required.
 
 ### [Audio Player](./examples/AudioPlayer.html)
 
 Simple local audio player with queue support for tracks or album folders.
 
-Recommended Open With setup:
-- Role: `Viewer`
-- Accept: files and folders
-- Extensions: `mp3, m4a, aac, wav, aif, aiff`
-- Permissions: none
+Recommended Open With setup
+
+- Use the `Viewer` role and accept files and folders.
+- Register `mp3, m4a, aac, wav, aif, aiff`.
+- No camera, microphone, or location capability is required.
 
 ### [Camera Viewer](./examples/CameraViewer.html)
 
 Live camera viewer with device switching, mirroring, framing guides, still capture, and offline snapshots.
 
-Recommended Open With setup:
-- None needed
-- Permissions: `Camera Access`
+Open With registration is not needed. Keep `Camera Access` enabled when exporting, then allow access when the exported app asks. The workspace preview does not request camera access.
 
 ### [Notifications and Badge Demo](./examples/NotificationsBadge.html)
 
 Demonstrates native notification passthrough from local HTML and Dock badge control from JavaScript after notification permission is granted.
 
-Recommended Open With setup:
-- None needed
-- Permissions: none
+Open With registration and camera, microphone, or location capabilities are not needed. Export the app and grant notification permission there before trying notifications or Dock badges.
 
 ### [Menu Bar Controls Demo](./examples/MenuBarControls.html)
 
 Demonstrates JavaScript-controlled menu bar icons, image-plus-title placement, per-popup dynamic menu regeneration, status item and menu item callbacks, toggled items, recursive submenus, menu bar badges, hiding/removing the menu bar item, background menu bar behavior, and native window title control.
 
-Recommended Open With setup:
-- None needed
-- Permissions: none
+Open With registration and camera, microphone, or location capabilities are not needed. Preview can demonstrate menu bar controls, but test standalone launch and close-to-menu-bar behavior after export.
 
 ### [Folder Board](./examples/FolderBoard.html)
 
 Mixed-media folder browser for quickly previewing assets such as images, video, audio, and text files.
 
-Recommended Open With setup:
-- Role: `Viewer`
-- Accept: folders
-- Extensions: none
-- Permissions: none
+Recommended Open With setup
+
+- Use the `Viewer` role and accept folders.
+- No file extensions need to be registered.
+- No camera, microphone, or location capability is required.
+
+### [Native Integration Demo](./examples/HTMLtoAppReviewNativeBridgeDemo.html)
+
+Explore runtime information, Finder launch items, scoped file access, native menu bar controls, window titles and visibility, notifications, and Dock badges in one example. Export the app to test standalone behavior and permissions.
+
+Recommended Open With setup
+
+- Use the `Viewer` role and accept files and folders.
+- Register `html, htm, txt, md, json, css, js`.
+- No camera, microphone, or location capability is required. Notifications and Dock badges require notification permission in the exported app.
 
 ## Typical Uses
 
@@ -314,6 +397,15 @@ Recommended Open With setup:
 - Kiosk-style launcher
 - Drawing or annotation utility
 
-## Website
+## Links and Support
 
-Made for [HTML to App](https://htmltoapp.app).
+- [Mac App Store](https://apps.apple.com/app/apple-store/id6796812125?pt=127627850&ct=github&mt=8)
+- [Website](https://htmltoapp.app/)
+- [Documentation and native bridge](https://htmltoapp.app/documentation/)
+- [FAQ](https://htmltoapp.app/faq/)
+- [Privacy policy](https://htmltoapp.app/privacy-policy/)
+- [Support](https://htmltoapp.app/support/)
+
+## License
+
+The example source code in this repository is available under the [MIT License](./LICENSE). This does not include the HTML to App builder or change the distribution requirements for its exported launcher.
