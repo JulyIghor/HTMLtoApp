@@ -6,7 +6,7 @@ Editable HTML examples and a JavaScript bridge reference for [HTML to App](https
 
 HTML to App is available for $9.99 USD. Regional prices and availability may vary. The builder requires macOS 12 or newer. The current exported launcher separately targets macOS 12 or newer and uses the system WebKit engine.
 
-This repository contains 10 HTML examples, not the source code of the macOS builder. Start with a text editor, media player, camera tool, drawing app, or native integration demo, then adapt it to your own project.
+This repository contains editable HTML examples, not the source code of the macOS builder. Start with a text editor, media player, camera tool, drawing app, or menu bar utility, then adapt it to your own project.
 
 ## Start with a Project
 
@@ -14,7 +14,7 @@ The main window keeps your projects in a sidebar alongside a source editor and C
 
 - **New Project** creates a folder containing an editable notes app with `index.html`, `style.css`, `app.js`, and a README.
 - **Add Project Folder** opens an existing website folder with `index.html` at its root. It uses the folder in place without copying it. For projects built with other tools, choose the generated website folder containing the HTML and assets.
-- **Example Gallery** lets you browse the 10 bundled examples and choose Create Project to save an editable copy in a new folder.
+- **Example Gallery** lets you browse the bundled examples and choose Create Project to save an editable copy in a new folder.
 
 Select a source file to edit HTML, CSS, JavaScript, JSON, Markdown, or other supported UTF-8 text. Save or Command-S writes to the original project folder. Use Command-F to find text and Project's Reload Files command after external changes.
 
@@ -287,7 +287,7 @@ Use `window.HTMLtoApp.setWindowTitle(title)` to control the native window title.
 
 ## Examples
 
-These files are copied directly from the app's built-in Example Gallery. The [gallery catalog](./examples/Catalog.plist) contains the same names, descriptions, and instructions used in the app.
+These examples are drawn from the app's built-in Example Gallery.
 
 Each example below is a single HTML file you can convert directly with HTML to App. Download or clone the repository to work with the actual files, not the GitHub page displaying their source. To use the project workspace instead, create an editable copy from the built-in Example Gallery or put an example in its own folder as `index.html` and add that folder.
 
@@ -370,16 +370,6 @@ Recommended Open With setup
 - Use the `Viewer` role and accept folders.
 - No file extensions need to be registered.
 - No camera, microphone, or location capability is required.
-
-### [Native Integration Demo](./examples/HTMLtoAppReviewNativeBridgeDemo.html)
-
-Explore runtime information, Finder launch items, scoped file access, native menu bar controls, window titles and visibility, notifications, and Dock badges in one example. Export the app to test standalone behavior and permissions.
-
-Recommended Open With setup
-
-- Use the `Viewer` role and accept files and folders.
-- Register `html, htm, txt, md, json, css, js`.
-- No camera, microphone, or location capability is required. Notifications and Dock badges require notification permission in the exported app.
 
 ## Typical Uses
 
