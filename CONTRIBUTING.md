@@ -15,8 +15,8 @@ python3 scripts/gallery.py --upstream "/Applications/HTML to App.app/Contents/Re
 python3 scripts/gallery.py --upstream "/Applications/HTML to App.app/Contents/Resources/Examples"
 ```
 
-The second command is read-only. It compares the built-in entry pages, artwork and resources with the release and reconstructs their ZIP files in memory. It also verifies that each single-file download matches its repository source byte for byte. Unlisted resources are not copied. Unexpected files are reported, not deleted.
+The second command is read-only. It compares the built-in entry pages, artwork and resources with the release and reconstructs their ZIP files in memory. It also verifies that each single-file download contains an `index.html` byte-identical to its repository source. Unlisted resources are not copied. Unexpected files are reported, not deleted.
 
-For a new single-file example, put its original HTML in `examples/`, list it in `SINGLE_FILE_EXTRAS` and run `python3 scripts/gallery.py --write`. The download keeps the original HTML and embedded artwork with the `.htmltoapp` extension. Do not add repository-only projects to the released app's catalog.
+For a new single-file example, put its original HTML in `examples/`, list it in `SINGLE_FILE_EXTRAS` and run `python3 scripts/gallery.py --write`. The download wraps the untouched HTML as the only entry in a ZIP-backed `.htmltoapp` file so GitHub serves it as a download rather than plain text. Do not add repository-only projects to the released app's catalog.
 
 Before publishing, open the downloads with the matching HTML to App release, check representative projects in Preview and review the README against the [authoring guide](https://htmltoapp.app/documentation/authoring/) and [public bridge reference](https://htmltoapp.app/documentation/bridge/). Keep the existing HTML filenames so incoming links still work.

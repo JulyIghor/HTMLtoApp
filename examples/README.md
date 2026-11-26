@@ -4,7 +4,7 @@ Each download is an editable project for HTML to App 1.1.1. Click **Download**, 
 
 ## Single-file examples from GitHub
 
-These examples are not in the built-in gallery. Each download is the HTML source itself. To edit one, save a copy as `index.html` in its own folder and choose **Add Project Folder**. There is nothing to unzip.
+These examples are not in the built-in gallery. Each project is a single editable HTML file with its artwork embedded. The **Download** link packages that file as `index.html` so your browser saves a `.htmltoapp` document. To edit it, save the linked source as `index.html` in its own folder and choose **Add Project Folder**.
 
 | Example source | What you can try | Project |
 | --- | --- | --- |

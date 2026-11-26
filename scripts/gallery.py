@@ -98,7 +98,7 @@ Each download is an editable project for HTML to App 1.1.1. Click **Download**, 
 
 ## Single-file examples from GitHub
 
-These examples are not in the built-in gallery. Each download is the HTML source itself. To edit one, save a copy as `index.html` in its own folder and choose **Add Project Folder**. There is nothing to unzip.
+These examples are not in the built-in gallery. Each project is a single editable HTML file with its artwork embedded. The **Download** link packages that file as `index.html` so your browser saves a `.htmltoapp` document. To edit it, save the linked source as `index.html` in its own folder and choose **Add Project Folder**.
 
 """
     bundled = """
@@ -162,9 +162,10 @@ def main():
         download = Path(name).stem + ".htmltoapp"
         if name in files or download in packages:
             raise ValueError(f"Duplicate gallery example {name}")
-        # Plain HTML is a supported portable document. Keep the download byte-identical
-        # to the repository source, including when refreshing built-ins from an app.
-        files[name] = packages[download] = read_file(EXAMPLES, name)
+        # GitHub serves bare HTML as text even with the .htmltoapp extension.
+        # A one-entry ZIP downloads normally and preserves the project's original bytes.
+        files[name] = read_file(EXAMPLES, name)
+        packages[download] = archive({"index.html": files[name]})
     outputs = [(EXAMPLES, files), (DOWNLOADS, packages)]
     for directory, expected in outputs:
         check_inventory(directory, set(expected))
