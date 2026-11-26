@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 130" role="img" aria-label="Wading heron">
+  <rect width="240" height="130" rx="12" fill="#eae5cf"/>
+  <circle cx="176" cy="36" r="22" fill="#f4d4a1"/>
+  <path d="M10 112q60-7 110 1t109-4m-172 12 81 1" fill="none" stroke="#8db3ac" stroke-width="4"/>
+  <path d="m104 75-3 36 9 1m10-34 5 30 10 1" fill="none" stroke="#675840" stroke-width="3"/>
+  <path d="M47 84q19-21 53-29 21-4 29 7-8 22-36 23z" fill="#66848c"/>
+  <path d="M107 64q19-9 34-10 4-1-5-10-11-13-1-22 7-7 21-5l3 6q-14-3-17 4-2 5 9 15 17 19-6 25l-20 8z" fill="#adc0ba"/>
+  <path d="m151 17 32 4-29 5z" fill="#be873d"/><path d="m150 15-23 3-10 9 21-8z" fill="#384d56"/><circle cx="149" cy="20" r="2" fill="#293d48"/>
+  <path d="m60 79 38-15 13 4-25 13z" fill="#485f6d"/>
+</svg>

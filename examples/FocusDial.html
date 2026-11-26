@@ -1,0 +1,489 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Focus Dial</title>
+    <!-- Follow remaining() through render() and paintDock() to see one timer drive two views. -->
+    <style>
+      /* Controls and artwork are not documents. Keep the actual text available to copy. */
+      body { -webkit-user-select: none; user-select: none; }
+      :where(h1, h2, p, output, time, #time, input[type="number"]) {
+        -webkit-user-select: text; user-select: text;
+      }
+      :where(button, button *, select, summary, img, svg, svg *, canvas, [data-htmltoapp-drag], [data-htmltoapp-drag] *) {
+        -webkit-user-select: none; user-select: none;
+      }
+      :where(img, svg, a) { -webkit-user-drag: none; }
+
+      :root {
+        color-scheme: light dark;
+        --page-inset: clamp(16px, 3vw, 24px);
+        --bg: #f4efe9;
+        --paper: #fffcf7;
+        --ink: #322820;
+        --soft: #705c50;
+        --line: #dbcabd;
+        --accent: #9d482e;
+        --tint: #f1e1d3;
+        font:
+          15px/1.45 -apple-system,
+          system-ui,
+          sans-serif;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #201d1c;
+          --paper: #2d2826;
+          --ink: #fff4e8;
+          --soft: #d0b9a9;
+          --line: #53463f;
+          --accent: #ffac83;
+          --tint: #4c3730;
+        }
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        padding: var(--page-inset);
+        background: var(--bg);
+        color: var(--ink);
+      }
+      main {
+        max-width: 620px;
+        margin: auto;
+        background: var(--paper);
+        border: 1px solid var(--line);
+        border-radius: 20px;
+        padding: 16px;
+        display: grid;
+        gap: 16px;
+      }
+      h1,
+      h2,
+      p {
+        margin: 0;
+      }
+      h1 {
+        font-size: clamp(28px, 5vw, 40px);
+        letter-spacing: -0.045em;
+        line-height: 1.08;
+      }
+      h2 {
+        font-size: 15px;
+      }
+      .eyebrow {
+        font-size: 11px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--accent);
+        font-weight: 650;
+      }
+      .muted {
+        color: var(--soft);
+        font-size: 13px;
+      }
+      header,
+      .group,
+      .controls,
+      .dock {
+        display: grid;
+        gap: 8px;
+      }
+      .timer {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        align-items: center;
+        gap: 16px;
+        border-block: 1px solid var(--line);
+        padding-block: 16px;
+      }
+      .face {
+        position: relative;
+        width: 100%;
+        max-width: 250px;
+        margin: auto;
+        aspect-ratio: 1;
+        display: grid;
+        place-items: center;
+      }
+      .face canvas {
+        width: 100%;
+        height: 100%;
+      }
+      .face div {
+        position: absolute;
+        text-align: center;
+        pointer-events: none;
+      }
+      .face output {
+        font-size: clamp(26px, 5vw, 42px);
+        font-weight: 600;
+        font-variant-numeric: tabular-nums;
+        line-height: 1.2;
+        letter-spacing: -0.06em;
+        display: block;
+      }
+      .face small {
+        color: var(--soft);
+      }
+      button,
+      select {
+        min-height: 36px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--paper);
+        color: var(--ink);
+        font: inherit;
+        padding: 5px 10px;
+      }
+      button {
+        cursor: pointer;
+        font-weight: 550;
+      }
+      .primary {
+        background: var(--accent);
+        color: var(--paper);
+        border-color: transparent;
+      }
+      button:not(.primary):hover {
+        background: var(--tint);
+      }
+      button:focus-visible,
+      input:focus-visible,
+      select:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+      .pair {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+      label {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+      }
+      label[for="length"] {
+        font-size: 13px;
+        font-weight: 600;
+      }
+      .dock input {
+        accent-color: var(--accent);
+      }
+      [hidden] {
+        display: none !important;
+      }
+      #message:empty {
+        display: none;
+      }
+      @media (max-width: 430px) {
+        .timer {
+          grid-template-columns: 1fr;
+          gap: 10px;
+        }
+        .face {
+          max-width: 170px;
+        }
+      }
+    </style>
+    <!-- Folder projects use ProjectIcon.png beside index.html for their app icon. -->
+  </head>
+  <body>
+    <main>
+      <header>
+        <p class="eyebrow">Time studio</p>
+        <h1>Focus Dial</h1>
+        <p class="muted">Set aside one uninterrupted stretch. Keep an eye on the dial without
+          switching windows.</p>
+      </header>
+      <section class="timer" aria-label="Focus timer">
+        <div class="face">
+          <canvas id="ring" width="320" height="320" aria-hidden="true"></canvas>
+          <div>
+            <output id="time" role="timer" aria-live="off">25:00</output>
+            <small id="phase">Ready</small>
+          </div>
+        </div>
+        <div class="controls">
+          <label for="length">Session length</label>
+          <select id="length">
+            <option value="5">5 minutes</option>
+            <option value="15">15 minutes</option>
+            <option value="25" selected>25 minutes</option>
+            <option value="45">45 minutes</option>
+            <option value="60">60 minutes</option>
+          </select>
+          <div class="pair">
+            <button class="primary" id="toggle">Start</button>
+            <button id="reset">Reset</button>
+          </div>
+          <p class="muted">Pause when you need to. The timer keeps its place when you reopen this
+            project.</p>
+        </div>
+      </section>
+      <section class="dock">
+        <h2>Progress in the Dock</h2>
+        <div id="dockOptions" hidden>
+          <label>
+            <input type="checkbox" id="showDock"> Show remaining time on the Dock icon
+          </label>
+          <label>
+            <input type="checkbox" id="dockClick"> Click the Dock icon to pause or resume
+          </label>
+        </div>
+        <p class="muted" id="dockHint">The timer works here. Choose Export App and keep a visible
+          Dock icon to use it as a second dial.</p>
+      </section>
+      <p class="muted" id="message" role="status"></p>
+    </main>
+    <script>
+      (() => {
+        "use strict";
+        const $ = (id) => document.getElementById(id),
+          key = "focus-dial.session.v1",
+          valid = new Set([5, 15, 25, 45, 60]);
+        const host = window.HTMLtoApp,
+          dock = host?.dock,
+          picture = document.createElement("canvas");
+        picture.width = picture.height = 192;
+        let minutes = 25,
+          left = 1500000,
+          until = 0,
+          completed = false,
+          last = "",
+          dockFrame = "",
+          dockBusy = false,
+          revision = 0,
+          unsub,
+          disposed = false,
+          timer = 0,
+          retry = 0;
+
+        function report(s) {
+          $("message").textContent = s;
+        }
+
+        // Remember the deadline as well as the paused time so closing the page does not reset a session.
+        function save() {
+          try {
+            localStorage.setItem(key, JSON.stringify({ v: 1, minutes, left, until, completed }));
+          } catch {
+            report("This session could not be saved on this device.");
+          }
+        }
+        try {
+          const raw = localStorage.getItem(key);
+          if (raw) {
+            const v = JSON.parse(raw);
+            if (
+              v.v !== 1 ||
+              !valid.has(v.minutes) ||
+              !Number.isFinite(v.left) ||
+              v.left < 0 ||
+              v.left > v.minutes * 60000 ||
+              !Number.isSafeInteger(v.until) ||
+              v.until < 0
+            )
+              throw Error();
+            minutes = v.minutes;
+            left = v.left;
+            until = v.until;
+            completed = v.completed === true;
+          }
+        } catch {
+          report("The saved session could not be read. Start a new timer when ready.");
+        }
+        $("length").value = String(minutes);
+
+        // While running, calculate from a deadline rather than subtracting one tick at a time.
+        // A delayed callback after sleep still shows the right amount of time.
+        function remaining() {
+          return until ? Math.max(0, Math.min(minutes * 60000, until - Date.now())) : left;
+        }
+
+        // Work in a 100-unit square. Scaling it to either canvas keeps the same ring proportions.
+        function draw(c, fraction, dark, dockTime = "") {
+          const g = c.getContext("2d"),
+            n = c.width,
+            icon = Boolean(dockTime);
+          g.clearRect(0, 0, n, n);
+          g.save();
+          g.scale(n / 100, n / 100);
+          if (icon) {
+            g.fillStyle = "#352b2b";
+            g.beginPath();
+            g.moveTo(18, 3);
+            g.arcTo(97, 3, 97, 97, 17);
+            g.arcTo(97, 97, 3, 97, 17);
+            g.arcTo(3, 97, 3, 3, 17);
+            g.arcTo(3, 3, 97, 3, 17);
+            g.fill();
+          }
+          g.lineWidth = icon ? 5 : 4;
+          g.strokeStyle = icon ? "#655052" : dark ? "#57463e" : "#ebd9ca";
+          g.beginPath();
+          g.arc(50, 50, 41, 0, 2 * Math.PI);
+          g.stroke();
+          g.strokeStyle = icon || dark ? "#ffac83" : "#a64a32";
+          g.lineCap = "round";
+          if (fraction > 0) {
+            g.beginPath();
+            g.arc(50, 50, 41, -Math.PI / 2, -Math.PI / 2 + 2 * Math.PI * fraction);
+            g.stroke();
+          }
+          if (icon) {
+            g.fillStyle = "#fff2e8";
+            g.textAlign = "center";
+            g.textBaseline = "middle";
+            // Fixed-width digits stay still as the seconds change. Fit 59:59 as well as 0:09.
+            g.font = `bold ${dockTime.length > 4 ? 26 : 31}px ui-monospace, Menlo, monospace`;
+            g.fillText(dockTime, 50, 50, 74);
+          } else {
+            g.strokeStyle = dark ? "#ab9484" : "#9d8274";
+            g.lineWidth = 0.8;
+            for (let i = 0; i < 24; i++) {
+              const a = (i * Math.PI) / 12;
+              g.beginPath();
+              g.moveTo(50 + 34 * Math.cos(a), 50 + 34 * Math.sin(a));
+              g.lineTo(50 + (i % 6 ? 35 : 37) * Math.cos(a), 50 + (i % 6 ? 35 : 37) * Math.sin(a));
+              g.stroke();
+            }
+          }
+          g.restore();
+        }
+        const theme = matchMedia("(prefers-color-scheme:dark)");
+
+        // Send only a changed frame. A slow Dock update must not overwrite a newer session or reset.
+        async function paintDock(tag, frac, time) {
+          if (!$("showDock").checked || dockBusy || disposed || tag === dockFrame) return;
+          dockBusy = true;
+          const seq = revision;
+          try {
+            draw(picture, frac, true, time);
+            const sent = await dock.setIcon(picture);
+            if (seq === revision && !disposed) {
+              if (sent !== false) dockFrame = tag;
+              else if (!retry)
+                retry = setTimeout(() => {
+                  retry = 0;
+                  render();
+                }, 140);
+            }
+          } catch {
+            if (seq === revision) {
+              $("showDock").checked = false;
+              report("Dock artwork is unavailable. The timer is still running here.");
+            }
+          } finally {
+            dockBusy = false;
+            // A tick or a pause may have arrived while the previous frame was being sent.
+            if (!disposed && $("showDock").checked && (seq !== revision || tag !== last)) render();
+          }
+        }
+
+        function render() {
+          if (disposed) return;
+          clearTimeout(timer);
+          const ms = remaining();
+          if (until && ms === 0) {
+            until = 0;
+            left = 0;
+            completed = true;
+            save();
+            report("Session complete. Take a break.");
+          }
+          const sec = Math.ceil(ms / 1000),
+            time = Math.floor(sec / 60) + ":" + String(sec % 60).padStart(2, "0"),
+            phase = until
+              ? "Focusing"
+              : completed
+                ? "Complete"
+                : left < minutes * 60000
+                  ? "Paused"
+                  : "Ready";
+          const tag = [sec, minutes, phase, theme.matches].join("/"),
+            frac = sec / (minutes * 60);
+          if (tag !== last) {
+            last = tag;
+            $("time").textContent = time;
+            $("phase").textContent = phase;
+            $("toggle").textContent = until
+              ? "Pause"
+              : completed
+                ? "Start again"
+                : phase === "Paused"
+                  ? "Resume"
+                  : "Start";
+            $("length").disabled = !!until;
+            draw($("ring"), frac, theme.matches);
+          }
+          paintDock(tag, frac, time);
+          if (until) timer = setTimeout(render, (ms % 1000 || 1000) + 15);
+        }
+
+        function toggle() {
+          if (until) {
+            left = remaining();
+            until = 0;
+          } else {
+            if (completed || left === 0) left = minutes * 60000;
+            until = Date.now() + left;
+            completed = false;
+          }
+          save();
+          render();
+        }
+
+        function reset() {
+          until = 0;
+          left = minutes * 60000;
+          completed = false;
+          save();
+          render();
+        }
+        $("toggle").onclick = toggle;
+        $("reset").onclick = reset;
+        $("length").onchange = () => {
+          minutes = Number($("length").value);
+          reset();
+        };
+        $("showDock").onchange = async () => {
+          revision++;
+          dockFrame = "";
+          if ($("showDock").checked) render();
+          else
+            try {
+              await dock.resetIcon();
+            } catch {
+              report("The Dock icon could not be restored.");
+            }
+        };
+        if (!host?.isPreview && typeof dock?.isAvailable === "function")
+          dock
+            .isAvailable()
+            .then((yes) => {
+              if (!yes || disposed) return;
+              $("dockOptions").hidden = false;
+              $("dockHint").textContent = "The Dock icon shows the same minutes and seconds as the timer.";
+              unsub = dock.onClick(() => {
+                if ($("dockClick").checked) toggle();
+              });
+            })
+            .catch(() => {});
+        theme.addEventListener("change", render);
+        document.addEventListener("visibilitychange", render);
+        addEventListener("pagehide", () => {
+          disposed = true;
+          clearTimeout(timer);
+          clearTimeout(retry);
+          unsub?.();
+        });
+        render();
+      })();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en" data-theme="play">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Icon Pairs</title>
+    <link rel="stylesheet" href="GalleryKit/spacing.css">
+    <meta name="htmltoapp:open-with" content="permissions=ListInstalledApps">
+    <!-- The lesson's JavaScript and sample assets live together in IconPairs/. -->
+    <link rel="stylesheet" href="GalleryKit/interaction.css">
+    <link rel="stylesheet" href="GalleryKit/lesson.css">
+    <link rel="stylesheet" href="GalleryKit/activity.css">
+    <script defer src="GalleryKit/activity.js"></script>
+    <style>
+      #game { background: #322645; color: #f9f5ff; }
+      #board { width: 100%; display: block; border-radius: 10px; touch-action: manipulation; }
+      #keys { color: #e2d9ec; }
+      #accessible:not(:focus-within) { position: absolute; width: 1px; height: 1px; clip-path: inset(50%); overflow: hidden; }
+      #accessible:focus-within { display: flex; flex-wrap: wrap; gap: var(--copy-gap); }
+      #accessible button { color: var(--ink); }
+    </style>
+    <script type="module" src="IconPairs/app.js"></script>
+    <!-- Folder projects use ProjectIcon.png beside index.html for their app icon. -->
+  </head>
+  <body>
+    <div data-gallery-activity role="status" hidden><progress aria-label="Loading"></progress><span></span></div>
+    <main>
+      <header>
+        <p class="kicker">Game table / Memory</p>
+        <h1>Icon Pairs</h1>
+        <p>Turn over two cards at a time and find six matching pairs.</p>
+      </header>
+      <section class="panel stack" aria-label="Game controls">
+        <div class="bar"><button id="restart" class="primary">New sample game</button><button id="installed">Play with My Apps</button>
+          <strong id="score" aria-live="polite">0 pairs / 0 turns</strong></div>
+        <p id="status" class="status" role="status">Play the sample deck, or use your installed app icons with listing access.</p>
+      </section>
+      <section id="game" class="panel stack" aria-label="Card table">
+        <canvas id="board" width="640" height="404" tabindex="0" aria-describedby="keys" aria-label="Memory game board"></canvas>
+        <p id="keys" class="hint">Use the arrow keys to choose a card and Space to turn it. F toggles fullscreen.</p>
+        <div id="accessible" aria-label="Card choices"></div>
+      </section>
+    </main>
+  </body>
+</html>

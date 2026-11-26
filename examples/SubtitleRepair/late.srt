@@ -1,0 +1,11 @@
+1
+00:00:01,000 --> 00:00:04,000
+Green with one block
+
+2
+00:00:04,000 --> 00:00:07,000
+Amber with two blocks
+
+3
+00:00:07,000 --> 00:00:10,000
+Blue with three blocks

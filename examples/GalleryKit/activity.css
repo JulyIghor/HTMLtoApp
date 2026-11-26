@@ -1,0 +1,13 @@
+/* A small status strip remains visible while the rest of the tool stays usable. */
+[data-gallery-activity] {
+  position: fixed; z-index: 5; inset-inline: 12px; bottom: 12px; margin-inline: auto;
+  width: max-content; max-width: calc(100% - 24px); box-sizing: border-box;
+  display: flex; align-items: center; gap: 8px; padding: 8px 12px;
+  border: 1px solid #96a6b7; border-radius: 8px; color: #17232e; background: #f2f6fa;
+  font: 500 13px/1.35 system-ui, sans-serif; overflow-wrap: anywhere; pointer-events: none;
+}
+[data-gallery-activity][hidden] { display: none; }
+[data-gallery-activity] progress { width: 56px; min-width: 32px; flex-shrink: 0; }
+@media (prefers-color-scheme: dark) {
+  [data-gallery-activity] { color: #eff5fa; background: #233241; border-color: #74879a; }
+}

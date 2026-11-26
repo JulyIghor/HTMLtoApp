@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en" data-theme="film">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Subtitle Repair</title>
+    <link rel="stylesheet" href="GalleryKit/spacing.css">
+    <meta name="htmltoapp:open-with" content="role=viewer; files=srt,mp4,mov,m4v; folders=false">
+    <!-- The lesson's JavaScript and sample assets live together in SubtitleRepair/. -->
+    <link rel="stylesheet" href="GalleryKit/interaction.css">
+    <link rel="stylesheet" href="GalleryKit/lesson.css">
+    <link rel="stylesheet" href="GalleryKit/activity.css">
+    <script defer src="GalleryKit/activity.js"></script>
+    <style>
+      #screen { position: relative; margin: 0; background: #19212a; border-radius: 10px; overflow: hidden; }
+      video { display: block; margin: auto; width: 100%; max-height: 36vh; }
+      #caption { position: absolute; bottom: 3.25rem; left: 5%; width: 90%; text-align: center; color: white; white-space: pre-line; pointer-events: none; font-weight: 650; text-shadow: 0 1px 3px black, 0 0 5px black; }
+      #offset { width: 7rem; } td:last-child { white-space: pre-line; }
+    </style>
+    <script type="module" src="SubtitleRepair/app.js"></script>
+    <!-- Folder projects use ProjectIcon.png beside index.html for their app icon. -->
+  </head>
+  <body>
+    <div data-gallery-activity role="status" hidden><progress aria-label="Loading"></progress><span></span></div>
+    <main>
+      <header>
+        <p class="kicker">Editing room / Sync</p>
+        <h1>Subtitle Repair</h1>
+        <p>The sample captions arrive one second late. Play the clip and move them earlier to match the colors.</p>
+      </header>
+      <section class="panel stack">
+        <figure id="screen"><video id="video" controls playsinline preload="auto" src="SubtitleRepair/colors.mp4" aria-label="Subtitle timing preview"></video>
+          <figcaption id="caption" aria-label="Current caption"></figcaption></figure>
+        <div class="bar"><button id="earlier">1 second earlier</button><label>Offset in ms <input id="offset" type="number" value="0" step="100" min="-3600000" max="3600000"></label><button id="later">1 second later</button></div>
+        <div class="bar">
+          <button type="button" id="openFile" aria-haspopup="dialog" aria-controls="file">Open video or SRT...</button>
+          <input hidden id="file" type="file" accept=".srt,.mp4,.mov,.m4v" multiple>
+          <button id="save" class="primary" disabled>Save corrected SRT</button>
+        </div>
+        <p id="status" class="status" role="status">Loading the sample captions...</p>
+      </section>
+      <section class="panel stack"><h2>Cue sheet</h2><div class="table-wrap"><table><thead><tr><th>Start</th><th>End</th><th>Caption</th></tr></thead><tbody id="cues"></tbody></table></div></section>
+    </main>
+  </body>
+</html>

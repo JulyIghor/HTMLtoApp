@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Screen Ruler</title>
+    <!-- ruler.css lays out the controls. ruler.js draws the two arms and defines which parts accept clicks. -->
+    <link rel="stylesheet" href="ScreenRuler/ruler.css">
+    <!-- Wait until the controls below exist before connecting their event handlers. -->
+    <script defer src="ScreenRuler/ruler.js"></script>
+    <!-- Folder projects use ProjectIcon.png beside index.html for their app icon. -->
+  </head>
+  <body>
+    <main id="setup">
+      <header>
+        <p class="kicker">Layout tools</p>
+        <h1>Screen Ruler</h1>
+        <p>Measure a layout in Mac screen points. The two arms mark the top and left of your
+          selection.</p>
+      </header>
+      <div class="sample" aria-hidden="true">
+        <div class="sampleTop"></div>
+        <div class="sampleLeft"></div>
+        <span id="sampleSize">360 × 220 pt</span>
+      </div>
+      <form id="settings">
+        <fieldset>
+          <legend>Measurement</legend>
+          <div class="numbers">
+            <label>Width in pt
+              <input id="widthPt" type="number" value="360" min="180" max="10000" required>
+            </label>
+            <label>Height in pt
+              <input id="heightPt" type="number" value="220" min="96" max="10000" required>
+            </label>
+          </div>
+        </fieldset>
+        <fieldset>
+          <legend>Placement</legend>
+          <div class="numbers">
+            <label>
+              Display
+              <select id="screen">
+                <option value="">Current display</option>
+              </select>
+            </label>
+            <label>
+              Window level
+              <select id="level">
+                <option value="floating">Above other windows</option>
+                <option value="desktop">On the desktop</option>
+                <option value="normal">Normal window level</option>
+              </select>
+            </label>
+          </div>
+          <label class="check">
+            <input id="through" type="checkbox" checked> Let clicks pass through the clear center
+          </label>
+          <label class="check">
+            <input id="stationary" type="checkbox" checked> Stay in place across Spaces and Mission Control
+          </label>
+        </fieldset>
+        <p class="hint">Drag either arm to move the ruler. Turn off center click-through to drag from the center too.
+          Arrow keys nudge by one point. Hold Shift and press an arrow to resize.
+          Choose Click through for 5s to click the window underneath either arm. The ruler accepts clicks again
+          automatically. Choose Edit to return here.</p>
+        <button id="place" type="submit" disabled>Place ruler</button>
+        <output id="notice" role="status">Preview the ruler here or choose Export App to keep it as its own tool.</output>
+      </form>
+    </main>
+    <section id="overlay" aria-label="Screen ruler" tabindex="-1" hidden>
+      <canvas id="ticks" aria-hidden="true"></canvas>
+      <div id="topArm" class="dragArm" data-htmltoapp-region title="Drag to move the ruler" aria-hidden="true">
+        <span id="grip">⠿</span>
+      </div>
+      <div id="leftArm" class="dragArm" data-htmltoapp-region title="Drag to move the ruler" aria-hidden="true"></div>
+      <div id="actions">
+        <button id="pass" aria-label="Click through for five seconds"
+          title="Let clicks reach the window underneath the entire ruler for five seconds">Click through for 5s</button>
+        <button id="edit">Edit</button>
+      </div>
+      <span id="readout" title="Ruler width and height in screen points"></span>
+    </section>
+  </body>
+</html>

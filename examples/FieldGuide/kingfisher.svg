@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 130" role="img" aria-label="Kingfisher over water">
+  <rect width="240" height="130" rx="12" fill="#eae5cf"/>
+  <circle cx="176" cy="36" r="22" fill="#f4d4a1"/>
+  <path d="M25 108 173 87" stroke="#806649" stroke-width="7"/><path d="m98 84 5 13m11-16 6 13" stroke="#614838" stroke-width="3"/>
+  <path d="m60 93 28-35q12-16 27-17l7-11 7 3 1-10 8 8 5-6 5 9q11 3 12 15l32 2-32 9q-9 23-28 30-18 7-34-3z" fill="#4c7584"/>
+  <path d="m110 55 16 3 31-8-4 11-28 7z" fill="#fcf0d4"/><path d="m94 75 27-9 26-1q-11 19-27 23z" fill="#e4d8b9"/>
+  <path d="m74 86 25-25 18-2-7 13z" fill="#2f5268"/><circle cx="148" cy="43" r="2.7" fill="#202f35"/>
+</svg>

@@ -1,293 +1,372 @@
 <!doctype html>
 <html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Notifications and Badge Demo</title>
-<style>
-:root {
-    color-scheme: light dark;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-}
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Notifications and Badge</title>
+    <!-- Compare showNotification() with setBadge(). One uses the web Notification API, the other the Dock bridge. -->
+    <style>
+      /* Controls and artwork are not documents. Keep the actual text available to copy. */
+      body { -webkit-user-select: none; user-select: none; }
+      :where(h1, h2, p, [role="status"], input:not([type]), input[type="text"]) {
+        -webkit-user-select: text; user-select: text;
+      }
+      :where(button, button *, select, summary, img, svg, svg *, canvas, [data-htmltoapp-drag], [data-htmltoapp-drag] *) {
+        -webkit-user-select: none; user-select: none;
+      }
+      :where(img, svg, a) { -webkit-user-drag: none; }
 
-body {
-    margin: 0;
-    min-height: 100vh;
-    display: grid;
-    place-items: center;
-    background:
-        radial-gradient(circle at top left, rgba(80, 160, 255, 0.35), transparent 34rem),
-        radial-gradient(circle at bottom right, rgba(180, 90, 255, 0.30), transparent 32rem),
-        Canvas;
-    color: CanvasText;
-}
+      :root {
+        color-scheme: light dark;
+        --page-inset: clamp(16px, 3vw, 24px);
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
 
-main {
-    width: min(720px, calc(100vw - 48px));
-    padding: 32px;
-    border: 1px solid color-mix(in srgb, CanvasText 15%, transparent);
-    border-radius: 28px;
-    background: color-mix(in srgb, Canvas 82%, transparent);
-    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.18);
-    backdrop-filter: blur(24px);
-}
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
 
-h1 {
-    margin: 0 0 8px;
-    font-size: 34px;
-    letter-spacing: -0.04em;
-}
+      body {
+        margin: 0;
+        padding: var(--page-inset);
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        background:
+          radial-gradient(circle at top left, rgba(80, 160, 255, 0.35), transparent 34rem),
+          radial-gradient(circle at bottom right, rgba(180, 90, 255, 0.3), transparent 32rem),
+          Canvas;
+        color: CanvasText;
+      }
 
-p {
-    margin: 0 0 24px;
-    line-height: 1.5;
-    color: color-mix(in srgb, CanvasText 72%, transparent);
-}
+      main {
+        width: min(720px, 100%);
+        min-width: 0;
+        padding: 16px;
+        border: 1px solid color-mix(in srgb, CanvasText 15%, transparent);
+        border-radius: 28px;
+        background: color-mix(in srgb, Canvas 82%, transparent);
+        box-shadow: 0 24px 80px rgba(0, 0, 0, 0.18);
+        backdrop-filter: blur(24px);
+      }
 
-.panel {
-    display: grid;
-    gap: 14px;
-    margin-top: 24px;
-}
+      h1 {
+        margin: 0;
+        font-size: 34px;
+        letter-spacing: -0.04em;
+      }
 
-.row {
-    display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
-}
+      p {
+        margin: 0;
+        line-height: 1.5;
+        color: color-mix(in srgb, CanvasText 72%, transparent);
+      }
 
-button {
-    appearance: none;
-    border: 0;
-    border-radius: 14px;
-    padding: 12px 16px;
-    font: inherit;
-    font-weight: 650;
-    cursor: pointer;
-    background: CanvasText;
-    color: Canvas;
-}
+      main {
+        display: grid;
+        gap: 16px;
+      }
+      header {
+        display: grid;
+        gap: 8px;
+      }
+      .panel {
+        display: grid;
+        gap: 12px;
+      }
 
-button.secondary {
-    background: color-mix(in srgb, CanvasText 12%, transparent);
-    color: CanvasText;
-}
+      .row {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
 
-button:disabled {
-    opacity: 0.5;
-    cursor: default;
-}
+      button {
+        appearance: none;
+        border: 0;
+        border-radius: 14px;
+        padding: 12px 16px;
+        font: inherit;
+        font-weight: 650;
+        cursor: pointer;
+        background: CanvasText;
+        color: Canvas;
+      }
 
-input {
-    min-width: 120px;
-    border: 1px solid color-mix(in srgb, CanvasText 18%, transparent);
-    border-radius: 14px;
-    padding: 12px 14px;
-    font: inherit;
-    background: Canvas;
-    color: CanvasText;
-}
+      button.secondary {
+        background: color-mix(in srgb, CanvasText 12%, transparent);
+        color: CanvasText;
+      }
 
-.status {
-    margin-top: 20px;
-    padding: 14px 16px;
-    border-radius: 16px;
-    background: color-mix(in srgb, CanvasText 8%, transparent);
-    color: color-mix(in srgb, CanvasText 78%, transparent);
-}
-</style>
-</head>
-<body>
-<main>
-    <h1>Notifications and Badge Demo</h1>
-    <p>
-        This local HTML file demonstrates native notification passthrough and Dock badge control in an exported HTML to App bundle. Dock badge buttons unlock after native notification permission is granted.
-    </p>
-    <p id="capabilityHint" role="note">Choose Export App and open the exported app bundle to test notifications and its Dock badge. Notification permission belongs to that app.</p>
+      button:disabled {
+        opacity: 0.5;
+        cursor: default;
+      }
 
-    <section class="panel">
+      input {
+        min-width: 120px;
+        border: 1px solid color-mix(in srgb, CanvasText 18%, transparent);
+        border-radius: 14px;
+        padding: 12px 14px;
+        font: inherit;
+        background: Canvas;
+        color: CanvasText;
+      }
+
+      .status {
+        padding: 14px 16px;
+        border-radius: 16px;
+        background: color-mix(in srgb, CanvasText 8%, transparent);
+        color: color-mix(in srgb, CanvasText 78%, transparent);
+      }
+    </style>
+    <!-- Folder projects use ProjectIcon.png beside index.html for their app icon. -->
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>Notifications and Badge</h1>
+        <p>Send a test notification or put a count on your app's Dock icon.</p>
+        <p id="capabilityHint" role="note">Choose Export App and open the exported app bundle to
+          test notifications and its Dock badge. Notification permission belongs to that app.</p>
+      </header>
+
+      <section class="panel">
         <div class="row">
-            <button id="requestPermission">Request notification permission</button>
-            <button id="notify" disabled>Show notification</button>
-            <button id="notifyCount" class="secondary" disabled>Notify with current badge</button>
+          <button id="requestPermission">Request notification permission</button>
+          <button id="notify" disabled>Show notification</button>
+          <button id="notifyCount" class="secondary" disabled>Notify with current badge</button>
         </div>
 
         <div class="row">
-            <input id="badgeValue" value="1" aria-label="Dock badge value">
-            <button id="setBadge" disabled>Set Dock badge</button>
-            <button id="incrementBadge" class="secondary" disabled>Increment</button>
-            <button id="clearBadge" class="secondary" disabled>Clear badge</button>
+          <input id="badgeValue" value="1" aria-label="Dock badge value">
+          <button id="setBadge" disabled>Set Dock badge</button>
+          <button id="incrementBadge" class="secondary" disabled>Increment</button>
+          <button id="clearBadge" class="secondary" disabled>Clear badge</button>
         </div>
-    </section>
+      </section>
 
-    <div id="status" class="status" role="status">Ready.</div>
-</main>
+      <div id="status" class="status" role="status">Ready.</div>
+    </main>
 
-<script>
-const statusElement = document.getElementById("status");
-const badgeInput = document.getElementById("badgeValue");
-const gatedButtonIds = ["notify", "notifyCount", "setBadge", "incrementBadge", "clearBadge"];
-let permissionPending = false;
+    <script>
+      const statusElement = document.getElementById("status");
+      const badgeInput = document.getElementById("badgeValue");
+      const gatedButtonIds = ["notify", "notifyCount", "setBadge", "incrementBadge", "clearBadge"];
+      let permissionPending = false;
 
-function notificationAvailabilityMessage() {
-    if (window.HTMLtoApp && window.HTMLtoApp.isPreview) {
-        return "Notifications and Dock badges are available after export. This workspace preview does not request notification permission or change HTML to App's Dock badge. Choose Export App, open the exported app bundle, then request notification permission there.";
-    }
-    if (typeof window.Notification !== "function" || typeof Notification.requestPermission !== "function" ||
-        !window.HTMLtoApp || typeof HTMLtoApp.setBadge !== "function" || typeof HTMLtoApp.clearBadge !== "function") {
-        return "The native notification and Dock badge APIs are not available here. Choose Export App in HTML to App, open the exported app bundle, then request notification permission there.";
-    }
-    return "";
-}
+      function notificationAvailabilityMessage() {
+        if (window.HTMLtoApp && window.HTMLtoApp.isPreview) {
+          return "Choose Export App, open your app, then allow notifications to try the controls. Preview leaves the workspace's Dock badge unchanged.";
+        }
+        if (
+          typeof window.Notification !== "function" ||
+          typeof Notification.requestPermission !== "function" ||
+          !window.HTMLtoApp ||
+          typeof HTMLtoApp.setBadge !== "function" ||
+          typeof HTMLtoApp.clearBadge !== "function"
+        ) {
+          return "The native notification and Dock badge APIs are not available here. Choose Export App in HTML to App, open the exported app bundle, then request notification permission there.";
+        }
+        return "";
+      }
 
-function permissionGuidance() {
-    return "Notification permission was not granted. Allow notifications for the exported app in macOS System Settings > Notifications, then return here.";
-}
+      function permissionGuidance() {
+        return "Notification permission was not granted. Allow notifications for the exported app in macOS System Settings > Notifications, then return here.";
+      }
 
-function setStatus(text) {
-    statusElement.textContent = text;
-}
+      function setStatus(text) {
+        statusElement.textContent = text;
+      }
 
-function updateGatedControls() {
-    const unavailable = notificationAvailabilityMessage();
-    const granted = !unavailable && Notification.permission === "granted";
-    gatedButtonIds.forEach((id) => {
-        document.getElementById(id).disabled = !granted;
-    });
+      function updateGatedControls() {
+        const unavailable = notificationAvailabilityMessage();
+        const granted = !unavailable && Notification.permission === "granted";
+        gatedButtonIds.forEach((id) => {
+          document.getElementById(id).disabled = !granted;
+        });
 
-    const requestButton = document.getElementById("requestPermission");
-    requestButton.disabled = !!unavailable || granted || permissionPending || Notification.permission === "denied";
-    requestButton.textContent = unavailable ? "Available after export" : permissionPending ? "Waiting for permission" : granted ? "Notification permission granted" : "Request notification permission";
-    document.getElementById("capabilityHint").textContent = unavailable ||
-        (Notification.permission === "denied" ? permissionGuidance() : "Notification permission belongs to this exported app. macOS notification settings determine how notifications and badges appear.");
-}
+        const requestButton = document.getElementById("requestPermission");
+        requestButton.disabled =
+          !!unavailable || granted || permissionPending || Notification.permission === "denied";
+        requestButton.textContent = unavailable
+          ? "Available after export"
+          : permissionPending
+            ? "Waiting for permission"
+            : granted
+              ? "Notification permission granted"
+              : "Request notification permission";
+        document.getElementById("capabilityHint").textContent =
+          unavailable ||
+          (Notification.permission === "denied"
+            ? permissionGuidance()
+            : "Notification permission belongs to this exported app. macOS notification settings determine how notifications and badges appear.");
+      }
 
-async function ensureNotificationPermission() {
-    const unavailable = notificationAvailabilityMessage();
-    if (unavailable) {
-        setStatus(unavailable);
+      // Only ask from a user action. If permission was denied, explain where to change it instead of asking again.
+      async function ensureNotificationPermission() {
+        const unavailable = notificationAvailabilityMessage();
+        if (unavailable) {
+          setStatus(unavailable);
+          updateGatedControls();
+          return false;
+        }
+
+        if (Notification.permission === "granted") {
+          updateGatedControls();
+          return true;
+        }
+
+        if (Notification.permission === "denied") {
+          setStatus(permissionGuidance());
+          updateGatedControls();
+          return false;
+        }
+        if (permissionPending) return false;
+        permissionPending = true;
         updateGatedControls();
-        return false;
-    }
+        setStatus("Respond to the exported app's notification permission request.");
+        try {
+          const permission = await Notification.requestPermission();
+          setStatus(
+            permission === "granted"
+              ? "Notification permission granted. Notification and badge controls are ready."
+              : permissionGuidance()
+          );
+          return permission === "granted";
+        } catch (error) {
+          setStatus(
+            "Notification permission could not be requested. Open the exported app bundle and check its notification settings in macOS System Settings."
+          );
+          return false;
+        } finally {
+          permissionPending = false;
+          updateGatedControls();
+        }
+      }
 
-    if (Notification.permission === "granted") {
-        updateGatedControls();
-        return true;
-    }
+      async function showNotification(title, body) {
+        const allowed = await ensureNotificationPermission();
+        if (!allowed) return;
+        try {
+          // Reuse the tag so repeated examples can replace a previous notification instead of stacking banners.
+          const notification = new Notification(title, { body, tag: "html-to-app-demo" });
+          notification.onerror = () =>
+            setStatus(
+              "macOS could not display the notification. Check notification settings for the exported app."
+            );
+          setStatus(
+            "Notification requested. Check macOS notification settings if no banner appears."
+          );
+        } catch (error) {
+          setStatus(
+            "Notifications are unavailable in this runtime. Open the exported app bundle and allow notifications for that app."
+          );
+        }
+      }
 
-    if (Notification.permission === "denied") {
-        setStatus(permissionGuidance());
-        updateGatedControls();
-        return false;
-    }
-    if (permissionPending) return false;
-    permissionPending = true;
-    updateGatedControls();
-    setStatus("Respond to the exported app's notification permission request.");
-    try {
-        const permission = await Notification.requestPermission();
-        setStatus(permission === "granted" ? "Notification permission granted. Notification and badge controls are ready." : permissionGuidance());
-        return permission === "granted";
-    } catch (error) {
-        setStatus("Notification permission could not be requested. Open the exported app bundle and check its notification settings in macOS System Settings.");
-        return false;
-    } finally {
-        permissionPending = false;
-        updateGatedControls();
-    }
-}
+      // A Dock badge belongs to the app icon, not the page. Check permission before sending its label to the bridge.
+      function setBadge(value) {
+        const unavailable = notificationAvailabilityMessage();
+        if (unavailable) {
+          setStatus(unavailable);
+          return;
+        }
+        if (!("Notification" in window) || Notification.permission !== "granted") {
+          setStatus("Grant notification permission before using Dock badge controls.");
+          updateGatedControls();
+          return;
+        }
 
-async function showNotification(title, body) {
-    const allowed = await ensureNotificationPermission();
-    if (!allowed) return;
-    try {
-        const notification = new Notification(title, { body, tag: "html-to-app-demo" });
-        notification.onerror = () => setStatus("macOS could not display the notification. Check notification settings for the exported app.");
-        setStatus("Notification requested. Check macOS notification settings if no banner appears.");
-    } catch (error) {
-        setStatus("Notifications are unavailable in this runtime. Open the exported app bundle and allow notifications for that app.");
-    }
-}
+        if (window.HTMLtoApp && typeof window.HTMLtoApp.setBadge === "function") {
+          window.HTMLtoApp.setBadge(value);
+          setStatus(`Dock badge set to "${value}".`);
+          return;
+        }
 
-function setBadge(value) {
-    const unavailable = notificationAvailabilityMessage();
-    if (unavailable) { setStatus(unavailable); return; }
-    if (!("Notification" in window) || Notification.permission !== "granted") {
-        setStatus("Grant notification permission before using Dock badge controls.");
-        updateGatedControls();
-        return;
-    }
+        setStatus("HTMLtoApp badge bridge is not available.");
+      }
 
-    if (window.HTMLtoApp && typeof window.HTMLtoApp.setBadge === "function") {
-        window.HTMLtoApp.setBadge(value);
-        setStatus(`Dock badge set to "${value}".`);
-        return;
-    }
+      function clearBadge() {
+        const unavailable = notificationAvailabilityMessage();
+        if (unavailable) {
+          setStatus(unavailable);
+          return;
+        }
+        if (!("Notification" in window) || Notification.permission !== "granted") {
+          setStatus("Grant notification permission before using Dock badge controls.");
+          updateGatedControls();
+          return;
+        }
 
-    setStatus("HTMLtoApp badge bridge is not available.");
-}
+        if (window.HTMLtoApp && typeof window.HTMLtoApp.clearBadge === "function") {
+          window.HTMLtoApp.clearBadge();
+          setStatus("Dock badge cleared.");
+          return;
+        }
 
-function clearBadge() {
-    const unavailable = notificationAvailabilityMessage();
-    if (unavailable) { setStatus(unavailable); return; }
-    if (!("Notification" in window) || Notification.permission !== "granted") {
-        setStatus("Grant notification permission before using Dock badge controls.");
-        updateGatedControls();
-        return;
-    }
+        setStatus("HTMLtoApp badge bridge is not available.");
+      }
 
-    if (window.HTMLtoApp && typeof window.HTMLtoApp.clearBadge === "function") {
-        window.HTMLtoApp.clearBadge();
-        setStatus("Dock badge cleared.");
-        return;
-    }
+      document
+        .getElementById("requestPermission")
+        .addEventListener("click", ensureNotificationPermission);
 
-    setStatus("HTMLtoApp badge bridge is not available.");
-}
+      document.getElementById("notify").addEventListener("click", () => {
+        showNotification("HTML to App", "This notification was triggered by local HTML.");
+      });
 
-document.getElementById("requestPermission").addEventListener("click", ensureNotificationPermission);
+      document.getElementById("notifyCount").addEventListener("click", () => {
+        showNotification(
+          "Current badge",
+          `The current badge value is ${badgeInput.value || "empty"}.`
+        );
+      });
 
-document.getElementById("notify").addEventListener("click", () => {
-    showNotification("HTML to App", "This notification was triggered by local HTML.");
-});
+      document.getElementById("setBadge").addEventListener("click", () => {
+        setBadge(badgeInput.value);
+      });
 
-document.getElementById("notifyCount").addEventListener("click", () => {
-    showNotification("Current badge", `The current badge value is ${badgeInput.value || "empty"}.`);
-});
+      document.getElementById("incrementBadge").addEventListener("click", () => {
+        const nextValue = String((parseInt(badgeInput.value, 10) || 0) + 1);
+        badgeInput.value = nextValue;
+        setBadge(nextValue);
+      });
 
-document.getElementById("setBadge").addEventListener("click", () => {
-    setBadge(badgeInput.value);
-});
+      document.getElementById("clearBadge").addEventListener("click", () => {
+        badgeInput.value = "";
+        clearBadge();
+      });
 
-document.getElementById("incrementBadge").addEventListener("click", () => {
-    const nextValue = String((parseInt(badgeInput.value, 10) || 0) + 1);
-    badgeInput.value = nextValue;
-    setBadge(nextValue);
-});
-
-document.getElementById("clearBadge").addEventListener("click", () => {
-    badgeInput.value = "";
-    clearBadge();
-});
-
-updateGatedControls();
-setStatus(notificationAvailabilityMessage() || "Request notification permission to try this exported app's notifications and Dock badge.");
-window.addEventListener("focus", updateGatedControls);
-</script>
-<script>
-(function () {
-    function showHTMLtoAppBrowserNotice() {
-        if (window.HTMLtoApp || document.getElementById("htmltoapp-browser-notice")) return;
-        const notice = document.createElement("aside");
-        notice.id = "htmltoapp-browser-notice";
-        notice.setAttribute("role", "note");
-        notice.style.cssText = "position:fixed;left:16px;right:16px;bottom:16px;z-index:2147483647;padding:14px 16px;border-radius:10px;background:#111827;color:#fff;box-shadow:0 12px 32px rgba(0,0,0,.28);font:14px/1.45 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
-        notice.innerHTML = '<strong style="display:block;margin-bottom:2px;">HTML to App example</strong><span>These examples are made to work in HTML to App only. Visit <a href="https://htmltoapp.app/?utm_source=htmltoapp" style="color:#93c5fd;font-weight:700;">https://htmltoapp.app</a> for more information.</span>';
-        document.body.appendChild(notice);
-    }
-    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", showHTMLtoAppBrowserNotice);
-    else showHTMLtoAppBrowserNotice();
-}());
-</script>
-</body>
+      updateGatedControls();
+      setStatus(
+        notificationAvailabilityMessage()
+          ? "Notification and badge controls are unavailable here."
+          : Notification.permission === "granted"
+            ? "Ready to send a notification or set a badge."
+            : "Allow notifications to get started."
+      );
+      window.addEventListener("focus", updateGatedControls);
+    </script>
+    <script>
+      (function () {
+        function showHTMLtoAppBrowserNotice() {
+          if (window.HTMLtoApp || document.getElementById("htmltoapp-browser-notice")) return;
+          const notice = document.createElement("aside");
+          notice.id = "htmltoapp-browser-notice";
+          notice.setAttribute("role", "note");
+          notice.style.cssText =
+            "position:fixed;left:16px;right:16px;bottom:16px;z-index:2147483647;padding:14px 16px;border-radius:10px;background:#111827;color:#fff;box-shadow:0 12px 32px rgba(0,0,0,.28);font:14px/1.45 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
+          notice.innerHTML =
+            '<strong style="display:block;margin-bottom:2px;">HTML to App example</strong><span>These examples are made to work in HTML to App only. Visit <a href="https://htmltoapp.app/?utm_source=htmltoapp" style="color:#93c5fd;font-weight:700;">https://htmltoapp.app</a> for more information.</span>';
+          document.body.appendChild(notice);
+        }
+        if (document.readyState === "loading")
+          document.addEventListener("DOMContentLoaded", showHTMLtoAppBrowserNotice);
+        else showHTMLtoAppBrowserNotice();
+      })();
+    </script>
+  </body>
 </html>

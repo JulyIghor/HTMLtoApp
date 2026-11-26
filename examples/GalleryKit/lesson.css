@@ -1,0 +1,69 @@
+/* Shared by the gallery lessons. Each copied project owns this stylesheet. */
+:root {
+  color-scheme: light dark;
+  font: 16px/1.45 -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --paper: #f4f5ef;
+  --panel: #ffffff;
+  --ink: #202924;
+  --muted: #4e5c54;
+  --line: #c5cec6;
+  --button-edge: #738078;
+  --accent: #21624b;
+  --wash: #e2f0e5;
+}
+:root[data-theme="ink"] { --accent: #425a99; --wash: #e8ecfa; }
+:root[data-theme="film"] { --accent: #8c4238; --wash: #faeae3; }
+:root[data-theme="play"] { --accent: #63408d; --wash: #f1eaf8; }
+:root[data-theme="print"] { --accent: #79551d; --wash: #f6edda; }
+@media (prefers-color-scheme: dark) {
+  :root { --paper: #18201d; --panel: #242d29; --ink: #eff4ef; --muted: #c1ccc3; --line: #536159; --accent: #9ce0b7; --wash: #283f35; }
+  :root { --button-edge: #90a097; }
+  :root[data-theme="ink"] { --accent: #b4c7ff; --wash: #2d374e; }
+  :root[data-theme="film"] { --accent: #ffb9aa; --wash: #48342e; }
+  :root[data-theme="play"] { --accent: #d8baff; --wash: #3e314d; }
+  :root[data-theme="print"] { --accent: #edcb89; --wash: #403a29; }
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { margin: 0; color: var(--ink); background: var(--paper); }
+main { max-width: 58rem; padding: var(--page-inset); margin: auto; display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--section-gap); }
+h1, h2, p, figure { margin: 0; }
+h1 { font-size: clamp(1.8rem, 4vw, 2.65rem); line-height: 1.1; letter-spacing: -.04em; }
+h2 { font-size: 1.15rem; line-height: 1.3; }
+/* Align the introduction with the content inside the bordered panels below it. */
+header { display: grid; gap: var(--copy-gap); padding-inline: calc(var(--panel-inset) + 1px); }
+header > p, .hint, .status { color: var(--muted); }
+.kicker { color: var(--accent); font-size: .76rem; font-weight: 650; text-transform: uppercase; letter-spacing: .1em; }
+.panel { min-width: 0; padding: var(--panel-inset); border: 1px solid var(--line); border-radius: 14px; background: var(--panel); }
+.stack { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--group-gap); align-content: start; }
+.bar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--copy-gap); }
+.split { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: var(--section-gap); align-items: stretch; }
+button, input, select { font: inherit; color: inherit; accent-color: var(--accent); }
+button, select, input:not([type="checkbox"]):not([type="range"]):not([type="file"]) {
+  border: 1px solid var(--line); border-radius: 8px; background: var(--panel); padding: .42rem .68rem;
+}
+button {
+  appearance: none; min-height: 2.25rem; cursor: pointer; font-weight: 550;
+  background: var(--wash); border-color: var(--button-edge);
+}
+button[aria-haspopup="dialog"] { color: var(--accent); border-color: var(--accent); }
+button.primary, button[aria-pressed="true"] { background: var(--accent); color: var(--panel); border-color: var(--accent); }
+button:enabled:hover { box-shadow: inset 0 0 0 1px currentColor; }
+button:enabled:active { box-shadow: inset 0 0 0 2px currentColor; }
+button:disabled { opacity: .55; cursor: default; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+label { display: inline-flex; flex-wrap: wrap; align-items: center; max-width: 100%; min-width: 0; gap: .45rem; }
+input[type="file"] { min-width: 0; max-width: 100%; }
+input[type="range"] { max-width: 100%; }
+.status { overflow-wrap: anywhere; }
+/* Reserve a line while empty. Once populated, let the grid measure every wrapped line. */
+.status:empty { min-height: 1.45em; }
+details p { margin-block-start: .5rem; }
+summary { cursor: pointer; color: var(--accent); }
+canvas, video, img { max-width: 100%; }
+.table-wrap { overflow: auto; max-height: 21rem; }
+table { border-collapse: collapse; width: 100%; font-size: .92rem; }
+td, th { padding: .45rem .65rem; text-align: left; vertical-align: middle; border-bottom: 1px solid var(--line); }
+th { color: var(--muted); }
+code { font-size: .92em; }
+@media (max-width: 640px) { .split { grid-template-columns: 1fr; } }

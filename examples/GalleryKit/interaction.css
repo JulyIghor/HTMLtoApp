@@ -1,0 +1,27 @@
+/* Treat empty space and controls as app surfaces. Only content can start a text selection. */
+body {
+  -webkit-user-select: none;
+  user-select: none;
+}
+:where(h1, h2, h3, h4, h5, h6, p, li, dt, dd, blockquote, figcaption, td, th, pre, code,
+       output, time, [role="status"], [role="note"], [aria-live], [data-copyable]) {
+  -webkit-user-select: text;
+  user-select: text;
+}
+/* A filename inside a button is still a button. The same text in a document can be copied. */
+:where(button, button *, summary, label, label *, select, option, [role="button"], [role="button"] *,
+       [data-htmltoapp-drag], [data-htmltoapp-drag] *, [aria-hidden="true"], [aria-hidden="true"] *,
+       img, svg, svg *, canvas, audio, video) {
+  -webkit-user-select: none;
+  user-select: none;
+}
+:where(textarea, input:not([type]), input[type="text"], input[type="search"], input[type="number"],
+       input[type="url"], input[type="email"], input[type="tel"], input[type="password"],
+       [contenteditable]:not([contenteditable="false"])) {
+  -webkit-user-select: text;
+  user-select: text;
+}
+/* Disable WebKit's outgoing picture/link drag, not incoming Finder drops or pointer gestures. */
+:where(img, svg, a) {
+  -webkit-user-drag: none;
+}

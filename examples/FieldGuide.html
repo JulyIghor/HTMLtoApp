@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en" data-theme="leaf">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Field Guide</title>
+    <link rel="stylesheet" href="GalleryKit/spacing.css">
+    <!-- The lesson's JavaScript and sample assets live together in FieldGuide/. -->
+    <link rel="stylesheet" href="GalleryKit/interaction.css">
+    <link rel="stylesheet" href="GalleryKit/lesson.css">
+    <link rel="stylesheet" href="GalleryKit/activity.css">
+    <script defer src="GalleryKit/activity.js"></script>
+    <style>
+      .birds { display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,15rem),1fr)); gap: var(--group-gap); }
+      article { padding: var(--group-gap); display: grid; align-content: start; gap: var(--copy-gap); background: var(--wash); border-radius: 10px; }
+      article img { display: block; width: 100%; height: 7rem; object-fit: contain; }
+      article small { color: var(--accent); }
+    </style>
+    <script type="module" src="FieldGuide/app.js"></script>
+    <!-- Folder projects use ProjectIcon.png beside index.html for their app icon. -->
+  </head>
+  <body>
+    <div data-gallery-activity role="status" hidden><progress aria-label="Loading"></progress><span></span></div>
+    <main>
+      <header>
+        <p class="kicker">Notebook 01 / Birds</p>
+        <h1>Field Guide</h1>
+        <p>Four birds to know by sight. Search a name, a habitat, or a field mark.</p>
+      </header>
+      <section class="panel stack" aria-label="Bird sightings">
+        <label>Find a bird <input id="search" type="search" placeholder="Try woodland or blue"></label>
+        <div id="birds" class="birds"></div>
+        <p id="status" class="status" role="status">Opening the field notebook...</p>
+      </section>
+      <details class="panel">
+        <summary>Make a fifth field card</summary>
+        <p>Copy a record in <code>FieldGuide/birds.json</code>, give it a new name, and save. Reload the page. A linked export reads the edited collection without rebuilding the app.</p>
+      </details>
+    </main>
+  </body>
+</html>

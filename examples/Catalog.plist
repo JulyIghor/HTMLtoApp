@@ -1,0 +1,425 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<array>
+	<dict>
+		<key>name</key>
+		<string>Audio Player</string>
+		<key>file</key>
+		<string>AudioPlayer.html</string>
+		<key>sharedResources</key>
+		<array>
+			<string>spacing.css</string>
+			<string>interaction.css</string>
+			<string>activity.css</string>
+			<string>activity.js</string>
+		</array>
+		<key>symbol</key>
+		<string>music.note.list</string>
+		<key>category</key>
+		<string>Audio</string>
+		<key>summary</key>
+		<string>Play local audio files and browse tracks from folders using native file-opening integration.</string>
+		<key>instructions</key>
+		<string>Run the project and drop compatible audio files into the preview. Media files are not bundled with this example. Export the app to open tracks directly from Finder.</string>
+	</dict>
+	<dict>
+		<key>name</key>
+		<string>Camera Viewer</string>
+		<key>file</key>
+		<string>CameraViewer.html</string>
+		<key>symbol</key>
+		<string>camera</string>
+		<key>category</key>
+		<string>Camera access</string>
+		<key>setappInstructions</key>
+		<string>Choose Run, then Start Camera. Allow camera access when WebKit and macOS ask. Connect a camera to capture stills. Export App creates a separate app with its own camera permission.</string>
+		<key>summary</key>
+		<string>A camera viewer with still capture, mirroring, frame guides, and image export.</string>
+		<key>instructions</key>
+		<string>Run to explore the interface without accessing your camera. Choose Export App, keep Camera Access enabled, then export and open the app bundle. Connect a camera and allow access when the exported app asks. The workspace preview explains these steps and does not request camera access.</string>
+	</dict>
+	<dict>
+		<key>name</key>
+		<string>Contact Sheet</string>
+		<key>file</key>
+		<string>ContactSheet.html</string>
+		<key>symbol</key>
+		<string>photo.on.rectangle</string>
+		<key>category</key>
+		<string>Images</string>
+		<key>summary</key>
+		<string>Arrange pictures and filenames on a single PNG sheet.</string>
+		<key>instructions</key>
+		<string>Try the sample prints, change the columns, then save a PNG or drop your own folder.</string>
+		<key>resources</key>
+		<array>
+			<string>app.js</string>
+			<string>dunes.svg</string>
+			<string>cove.svg</string>
+			<string>peaks.svg</string>
+		</array>
+		<key>sharedResources</key>
+		<array>
+			<string>spacing.css</string>
+			<string>interaction.css</string>
+			<string>lesson.css</string>
+			<string>files.js</string>
+			<string>activity.js</string>
+		</array>
+	</dict>
+	<dict>
+		<key>name</key>
+		<string>CSV Cleaner</string>
+		<key>file</key>
+		<string>CSVCleaner.html</string>
+		<key>symbol</key>
+		<string>tablecells</string>
+		<key>category</key>
+		<string>Files and editing</string>
+		<key>summary</key>
+		<string>Preview changes to a CSV and save a clean copy.</string>
+		<key>instructions</key>
+		<string>Compare the sample rows, choose what to clean, then save a new file.</string>
+		<key>resources</key>
+		<array>
+			<string>app.js</string>
+			<string>csv.js</string>
+			<string>sample.csv</string>
+		</array>
+		<key>sharedResources</key>
+		<array>
+			<string>spacing.css</string>
+			<string>interaction.css</string>
+			<string>lesson.css</string>
+			<string>files.js</string>
+			<string>activity.js</string>
+			<string>activity.css</string>
+		</array>
+	</dict>
+	<dict>
+		<key>name</key>
+		<string>Cue Cards</string>
+		<key>file</key>
+		<string>CueCards.html</string>
+		<key>symbol</key>
+		<string>rectangle.stack</string>
+		<key>category</key>
+		<string>Presentations</string>
+		<key>summary</key>
+		<string>Rehearse a talk one cue at a time, present on multiple displays, and share an editable, self-contained deck.</string>
+		<key>instructions</key>
+		<string>Edit a few cues, then choose Present. Use the arrow keys to advance and Escape to finish. Save Portable Deck creates a .htmltoapp file. Open it in HTML to App to convert the deck with its cues and icon intact.</string>
+	</dict>
+	<dict>
+		<key>name</key>
+		<string>Desk Clock</string>
+		<key>file</key>
+		<string>DeskClock.html</string>
+		<key>symbol</key>
+		<string>clock</string>
+		<key>category</key>
+		<string>Focus and time</string>
+		<key>summary</key>
+		<string>A round analog clock that shows the same local time in its window and on its Dock icon.</string>
+		<key>instructions</key>
+		<string>Drag the face to move the clock. Press Escape for window controls. Export with a visible Dock icon to see both clocks run together.</string>
+	</dict>
+	<dict>
+		<key>name</key>
+		<string>Edge Shelf</string>
+		<key>file</key>
+		<string>EdgeShelf.html</string>
+		<key>symbol</key>
+		<string>rectangle.righthalf.inset.filled</string>
+		<key>category</key>
+		<string>Desktop widgets</string>
+		<key>summary</key>
+		<string>Keep your favorite apps in a strip of clickable icons along any display edge.</string>
+		<key>instructions</key>
+		<string>Choose apps for your shelf, then pin it to a display edge. Try a shortcut in Preview and confirm which app to open. The project recommends separate permissions for listing and opening apps when you export.</string>
+	</dict>
+	<dict>
+		<key>name</key>
+		<string>Field Guide</string>
+		<key>file</key>
+		<string>FieldGuide.html</string>
+		<key>symbol</key>
+		<string>book</string>
+		<key>category</key>
+		<string>Files and editing</string>
+		<key>summary</key>
+		<string>Explore an illustrated bird guide stored as local JSON.</string>
+		<key>instructions</key>
+		<string>Search for a bird. Edit birds.json and reload to see your changes.</string>
+		<key>resources</key>
+		<array>
+			<string>app.js</string>
+			<string>birds.js</string>
+			<string>birds.json</string>
+			<string>robin.svg</string>
+			<string>heron.svg</string>
+			<string>kingfisher.svg</string>
+			<string>owl.svg</string>
+		</array>
+		<key>sharedResources</key>
+		<array>
+			<string>spacing.css</string>
+			<string>interaction.css</string>
+			<string>lesson.css</string>
+			<string>activity.js</string>
+			<string>activity.css</string>
+		</array>
+	</dict>
+	<dict>
+		<key>name</key>
+		<string>Focus Dial</string>
+		<key>file</key>
+		<string>FocusDial.html</string>
+		<key>symbol</key>
+		<string>timer</string>
+		<key>category</key>
+		<string>Focus and time</string>
+		<key>summary</key>
+		<string>Run a focus timer and see the remaining minutes and seconds on the exported app's Dock icon.</string>
+		<key>instructions</key>
+		<string>Start a session in Preview. Choose Export App with a visible Dock icon, then turn on Dock progress. You can also let a Dock click pause or resume the timer.</string>
+	</dict>
+	<dict>
+		<key>name</key>
+		<string>Folder Board</string>
+		<key>file</key>
+		<string>FolderBoard.html</string>
+		<key>sharedResources</key>
+		<array>
+			<string>spacing.css</string>
+			<string>interaction.css</string>
+			<string>activity.css</string>
+			<string>activity.js</string>
+		</array>
+		<key>symbol</key>
+		<string>folder</string>
+		<key>category</key>
+		<string>Folders and files</string>
+		<key>summary</key>
+		<string>Explore a folder and preview its images, audio, video, and text files through the local file bridge.</string>
+		<key>instructions</key>
+		<string>Run the project and drop a folder into the preview. Export the app to open folders directly from Finder.</string>
+	</dict>
+	<dict>
+		<key>name</key>
+		<string>Geometry Pad</string>
+		<key>file</key>
+		<string>GeometryPad.html</string>
+		<key>sharedResources</key>
+		<array>
+			<string>spacing.css</string>
+			<string>interaction.css</string>
+			<string>activity.css</string>
+			<string>activity.js</string>
+		</array>
+		<key>symbol</key>
+		<string>pencil.and.outline</string>
+		<key>category</key>
+		<string>Drawing and images</string>
+		<key>summary</key>
+		<string>Draw lines, shapes, arrows, and labels on a blank canvas or an image. Export your composition as a PNG.</string>
+		<key>instructions</key>
+		<string>Run the project and draw on the canvas. Drop an image into the preview to annotate it, then use Export PNG to save a copy.</string>
+	</dict>
+	<dict>
+		<key>name</key>
+		<string>Icon Pairs</string>
+		<key>file</key>
+		<string>IconPairs.html</string>
+		<key>symbol</key>
+		<string>square.grid.2x2</string>
+		<key>category</key>
+		<string>Native integration</string>
+		<key>summary</key>
+		<string>Match pairs using sample artwork or installed app icons.</string>
+		<key>instructions</key>
+		<string>Turn over two cards. Try your app icons with listing access. No app is launched.</string>
+		<key>resources</key>
+		<array>
+			<string>app.js</string>
+		</array>
+		<key>sharedResources</key>
+		<array>
+			<string>spacing.css</string>
+			<string>interaction.css</string>
+			<string>lesson.css</string>
+			<string>activity.js</string>
+			<string>activity.css</string>
+		</array>
+	</dict>
+	<dict>
+		<key>name</key>
+		<string>Image Viewer</string>
+		<key>file</key>
+		<string>ImageViewer.html</string>
+		<key>sharedResources</key>
+		<array>
+			<string>spacing.css</string>
+			<string>interaction.css</string>
+			<string>activity.css</string>
+			<string>activity.js</string>
+		</array>
+		<key>symbol</key>
+		<string>photo.on.rectangle</string>
+		<key>category</key>
+		<string>Images</string>
+		<key>summary</key>
+		<string>Browse images from a file or folder with a focused image viewer and native launch-item support.</string>
+		<key>instructions</key>
+		<string>Run the project and drop images or an image folder into the preview. Export the app to register the supported image formats with Finder.</string>
+	</dict>
+	<dict>
+		<key>name</key>
+		<string>Menu Bar Controls</string>
+		<key>file</key>
+		<string>MenuBarControls.html</string>
+		<key>symbol</key>
+		<string>menubar.rectangle</string>
+		<key>category</key>
+		<string>Native integration</string>
+		<key>summary</key>
+		<string>Experiment with a native menu bar item, menus, badges, window titles, and window visibility.</string>
+		<key>instructions</key>
+		<string>Run the project to try the native controls. The demo can add a menu bar item while its preview is open. Close the preview to remove it. Test launch and close-to-menu-bar behavior in an exported app.</string>
+	</dict>
+	<dict>
+		<key>name</key>
+		<string>Notifications and Badge</string>
+		<key>file</key>
+		<string>NotificationsBadge.html</string>
+		<key>symbol</key>
+		<string>bell.badge</string>
+		<key>category</key>
+		<string>Native integration</string>
+		<key>summary</key>
+		<string>Send native notifications and update the Dock badge from JavaScript.</string>
+		<key>instructions</key>
+		<string>Run to explore the interface without requesting notification permission for HTML to App. Notifications and Dock badges are available after export. Choose Export App, open the exported app bundle, and request notification permission there. macOS notification settings may affect delivery.</string>
+	</dict>
+	<dict>
+		<key>name</key>
+		<string>Screen Ruler</string>
+		<key>file</key>
+		<string>ScreenRuler.html</string>
+		<key>symbol</key>
+		<string>ruler</string>
+		<key>resources</key>
+		<array>
+			<string>ruler.css</string>
+			<string>ruler.js</string>
+		</array>
+		<key>category</key>
+		<string>Desktop widgets</string>
+		<key>summary</key>
+		<string>Measure a layout with two graduated arms. The clear center lets you work with the window underneath.</string>
+		<key>instructions</key>
+		<string>Choose a size, display, and window level, then place the ruler. Drag either arm or use arrow keys to nudge it. Hold Shift to resize. Edit returns to setup. Share Project keeps its separate artwork, stylesheet, and script together.</string>
+	</dict>
+	<dict>
+		<key>name</key>
+		<string>Subtitle Repair</string>
+		<key>file</key>
+		<string>SubtitleRepair.html</string>
+		<key>symbol</key>
+		<string>captions.bubble</string>
+		<key>category</key>
+		<string>Video</string>
+		<key>summary</key>
+		<string>Adjust subtitle timing and save a corrected SRT copy.</string>
+		<key>instructions</key>
+		<string>Play the sample and move the captions one second earlier to match the colors.</string>
+		<key>resources</key>
+		<array>
+			<string>app.js</string>
+			<string>captions.js</string>
+			<string>colors.mp4</string>
+			<string>late.srt</string>
+		</array>
+		<key>sharedResources</key>
+		<array>
+			<string>spacing.css</string>
+			<string>interaction.css</string>
+			<string>lesson.css</string>
+			<string>files.js</string>
+			<string>activity.js</string>
+			<string>activity.css</string>
+		</array>
+	</dict>
+	<dict>
+		<key>name</key>
+		<string>Text Editor</string>
+		<key>file</key>
+		<string>TextEditor.html</string>
+		<key>sharedResources</key>
+		<array>
+			<string>spacing.css</string>
+			<string>interaction.css</string>
+			<string>activity.css</string>
+			<string>activity.js</string>
+		</array>
+		<key>symbol</key>
+		<string>doc.text</string>
+		<key>category</key>
+		<string>Files and editing</string>
+		<key>summary</key>
+		<string>A text editor that demonstrates reading, editing, and saving local files through the native file bridge.</string>
+		<key>instructions</key>
+		<string>Run the project and drop a text file or folder into the preview. Work with a disposable copy when testing Save, because it changes the opened file. Export the app to use it with Finder's Open With menu.</string>
+	</dict>
+	<dict>
+		<key>name</key>
+		<string>Tracing Paper</string>
+		<key>file</key>
+		<string>TracingPaper.html</string>
+		<key>symbol</key>
+		<string>square.on.square</string>
+		<key>category</key>
+		<string>Desktop widgets</string>
+		<key>summary</key>
+		<string>Float a reference image over another app for tracing.</string>
+		<key>instructions</key>
+		<string>Float the sample, adjust its opacity, then lock it. Unlock it from the menu bar.</string>
+		<key>resources</key>
+		<array>
+			<string>app.js</string>
+			<string>lighthouse.svg</string>
+		</array>
+		<key>sharedResources</key>
+		<array>
+			<string>spacing.css</string>
+			<string>interaction.css</string>
+			<string>lesson.css</string>
+			<string>files.js</string>
+			<string>activity.js</string>
+			<string>activity.css</string>
+		</array>
+	</dict>
+	<dict>
+		<key>name</key>
+		<string>Video Player</string>
+		<key>file</key>
+		<string>VideoPlayer.html</string>
+		<key>sharedResources</key>
+		<array>
+			<string>spacing.css</string>
+			<string>interaction.css</string>
+			<string>activity.css</string>
+			<string>activity.js</string>
+		</array>
+		<key>symbol</key>
+		<string>play.rectangle</string>
+		<key>category</key>
+		<string>Video</string>
+		<key>summary</key>
+		<string>Play local movies in a dedicated viewer with support for files and folders opened from Finder.</string>
+		<key>instructions</key>
+		<string>Run the project and drop an MP4, MOV, or M4V file into the preview. Media files are not bundled with this example. Playback depends on the codecs supported by macOS.</string>
+	</dict>
+</array>
+</plist>

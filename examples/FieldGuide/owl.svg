@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 130" role="img" aria-label="Barn owl">
+  <rect width="240" height="130" rx="12" fill="#eae5cf"/>
+  <circle cx="176" cy="36" r="22" fill="#f4d4a1"/>
+  <path d="m52 113 134-14" stroke="#806649" stroke-width="7"/>
+  <path d="m111 91 1 15m15-16 4 14" stroke="#77603e" stroke-width="4"/>
+  <path d="M91 97q-5-25 5-40-10-33 17-39 29-9 39 17 5 17-4 27 4 28-12 40l-8-6q-20 11-37 1z" fill="#aa8459"/>
+  <path d="M101 37q11-16 24-4 9-15 21-1 7 12-20 30-22-7-25-25z" fill="#faf0d3"/>
+  <path d="M98 61q18 7 25 28l-15 10-12-8z" fill="#d5b98b"/><path d="m139 61-5 34 10-10z" fill="#785e4b"/>
+  <g fill="#393a31"><circle cx="113" cy="41" r="3.7"/><circle cx="135" cy="39" r="3.7"/><path d="m122 45 5-1-1 8z"/></g>
+</svg>

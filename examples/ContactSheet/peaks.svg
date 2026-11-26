@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="236" viewBox="0 0 400 236" role="img" aria-label="First light on the peaks">
+  <!-- Layer simple paths to make a printable landscape without external images. -->
+  <rect width="400" height="236" fill="#c3cadf"/>
+  <circle cx="303" cy="52" r="33" fill="#f7dfb9"/>
+  <path d="m0 170 77-80 44 37L201 34l91 110 48-62 60 73v81H0z" fill="#717f9c"/>
+  <path d="m147 98 54-64 33 40-20-8-13 13-9-10-20 29 8-26z" fill="#f4eddb"/>
+  <path d="m0 191 100-66 54 38 85-45 72 34 89-38v122H0z" fill="#4c6678"/>
+  <path d="M0 204q101-45 230-5t170 0v37H0z" fill="#324d5b"/>
+</svg>

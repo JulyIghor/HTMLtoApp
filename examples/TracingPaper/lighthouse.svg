@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 460 310" role="img" aria-label="Lighthouse line drawing">
+  <!-- The gaps between the pen strokes are transparent, not painted white. -->
+  <g fill="none" stroke="#4178a4" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="m42 264 88-27 69 10 57-21 72 20 92-7M65 281l77-22 56 12m56-24 50 15 67-7M90 299l65-18 50 8"/>
+    <path d="m177 244 18-139h56l19 132m-82-78 56-25m-59 57 63-27m-66 60 70-31"/>
+    <path d="M186 104h74v-9h-74zm10-10V68h53v26m-57-27 30-29 32 29zM222 38V25m-15 44v23m14-23v23m15-23v23"/>
+    <path d="M209 242v-22q8-12 16 0v20m-12-109v-11h9v11M87 132q11-6 18 2 6-11 17-11m195-18q12-7 20 1 6-11 16-10"/>
+  </g>
+</svg>

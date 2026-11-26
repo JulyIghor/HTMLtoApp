@@ -1,0 +1,580 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Desk Clock</title>
+    <!-- Start at draw() to see how one canvas becomes both a clock face and a live Dock icon. -->
+    <style>
+      /* Controls and artwork are not documents. Keep the actual text available to copy. */
+      body { -webkit-user-select: none; user-select: none; }
+      :where(h1, h2, p, output, time) {
+        -webkit-user-select: text; user-select: text;
+      }
+      :where(button, button *, select, summary, img, svg, svg *, canvas, [data-htmltoapp-drag], [data-htmltoapp-drag] *) {
+        -webkit-user-select: none; user-select: none;
+      }
+      :where(img, svg, a) { -webkit-user-drag: none; }
+
+      :root {
+        color-scheme: light dark;
+        --page-inset: clamp(16px, 3vw, 24px);
+        font:
+          16px/1.45 -apple-system,
+          system-ui,
+          sans-serif;
+        color: #203e3a;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+      }
+      main {
+        min-height: 100vh;
+        display: grid;
+        align-content: center;
+        justify-items: center;
+        gap: 16px;
+        padding: var(--page-inset);
+        background: #f2efe7;
+        text-align: center;
+      }
+      #dial {
+        position: relative;
+        width: min(70vmin, 320px);
+        aspect-ratio: 1;
+        border-radius: 50%;
+      }
+      canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+      h1,
+      p {
+        margin: 0;
+      }
+      h1 {
+        font-size: 22px;
+      }
+      #details {
+        max-width: 34em;
+        display: grid;
+        justify-items: center;
+        gap: 8px;
+      }
+      time {
+        font-size: 20px;
+        font-variant-numeric: tabular-nums;
+      }
+      #hint {
+        color: #47615a;
+      }
+      button {
+        font: inherit;
+        font-weight: 550;
+        color: white;
+        background: #24524b;
+        border: 0;
+        border-radius: 18px;
+        padding: 6px 14px;
+        cursor: pointer;
+      }
+      button:focus-visible {
+        outline: 3px solid #d46931;
+        outline-offset: 2px;
+      }
+      [hidden] {
+        display: none !important;
+      }
+      #clockActions {
+        display: grid;
+        justify-items: center;
+        gap: 4px;
+      }
+      .actionRow {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 8px;
+      }
+      .actionRow button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+      }
+      .actionRow svg {
+        width: 14px;
+        height: 14px;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 1.6;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+      #alwaysOnTop {
+        color: #193e39;
+        background: #fff4d9;
+        border: 1px solid #496c5e;
+      }
+      #alwaysOnTop[aria-pressed="true"] {
+        color: white;
+        background: #24524b;
+      }
+      #alwaysOnTop[aria-pressed="true"] svg {
+        fill: currentColor;
+      }
+      #levelStatus:not(:empty) {
+        max-width: 24em;
+        padding: 3px 8px;
+        border-radius: 6px;
+        background: #fff4d9;
+        color: #193e39;
+        font-size: 12px;
+      }
+      #controls {
+        display: none;
+      }
+      /* Switch the same clock from a settings page to a bare dial. The bridge makes the outside transparent. */
+      .round main {
+        display: block;
+        position: fixed;
+        inset: 0;
+        margin: auto;
+        width: 100vmin;
+        height: 100vmin;
+        min-height: 0;
+        padding: 0;
+        background: transparent;
+      }
+      .round #dial {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        user-select: none;
+        cursor: grab;
+      }
+      .round #dial:active {
+        cursor: grabbing;
+      }
+      .round #clockActions {
+        position: absolute;
+        left: 50%;
+        top: 64%;
+        width: 84%;
+        transform: translateX(-50%);
+        opacity: 0;
+        pointer-events: none;
+      }
+      .round .actionRow {
+        flex-wrap: nowrap;
+        gap: 4px;
+      }
+      .round .actionRow button {
+        padding: 4px 8px;
+        font-size: 12px;
+        white-space: nowrap;
+      }
+      .round #controls {
+        display: inline-flex;
+      }
+      .round main:hover #clockActions,
+      .round #clockActions:focus-within,
+      .round #clockActions.has-notice {
+        opacity: 1;
+      }
+      .round main:hover .actionRow,
+      .round #clockActions:focus-within .actionRow {
+        pointer-events: auto;
+      }
+      @media (max-width: 260px), (max-height: 260px) {
+        /* The buttons keep their accessible names and tooltips on a small dial. */
+        .round .actionRow button span {
+          position: absolute;
+          width: 1px;
+          height: 1px;
+          overflow: hidden;
+          clip-path: inset(50%);
+        }
+      }
+      .round #details {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          color: #f5f0e4;
+        }
+        main {
+          background: #172925;
+        }
+        #hint {
+          color: #bdcec5;
+        }
+      }
+    </style>
+    <!-- Folder projects use ProjectIcon.png beside index.html for their app icon. -->
+  </head>
+  <body>
+    <main>
+      <div id="dial" data-htmltoapp-region="ellipse">
+        <canvas id="face" width="640" height="640" aria-hidden="true"></canvas>
+      </div>
+      <div id="details">
+        <h1>Desk Clock</h1>
+        <time id="readout" role="timer" aria-live="off"></time>
+        <p id="hint">Open this project in HTML to App for a round window. Choose Export App with a
+          visible Dock icon to show the time there too.</p>
+      </div>
+      <div id="clockActions" hidden>
+        <div class="actionRow" role="group" aria-label="Clock window">
+          <button id="alwaysOnTop" type="button" aria-pressed="false" title="Always on Top">
+            <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+              <path d="M5 2h6l-1 2v3l2 2v1H4V9l2-2V4z M8 10v4"/>
+            </svg>
+            <span>Always on Top</span>
+          </button>
+          <button id="controls" type="button" title="Restore the standard window (Escape)">
+            <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+              <rect x="1.5" y="3" width="13" height="10" rx="2"/><path d="M2 6h12"/>
+            </svg>
+            <span>Window controls</span>
+          </button>
+          <button id="round" type="button" hidden>Use round window</button>
+        </div>
+        <p id="levelStatus" role="status"></p>
+      </div>
+    </main>
+    <script>
+      (() => {
+        "use strict";
+        const byId = (id) => document.getElementById(id);
+        const face = byId("face"),
+          ctx = face.getContext("2d"),
+          dial = byId("dial");
+        const readout = byId("readout"),
+          hint = byId("hint"),
+          roundButton = byId("round"),
+          clockActions = byId("clockActions"),
+          topButton = byId("alwaysOnTop");
+        const host = window.HTMLtoApp,
+          dock = host?.dock;
+        const win = ["getState", "configure", "setBounds", "setShape", "reset"].every(
+          (method) => typeof host?.window?.[method] === "function"
+        )
+          ? host.window
+          : null;
+        const tau = 2 * Math.PI,
+          ink = "#193e39",
+          paper = "#fff4d9",
+          vermilion = "#bd412e";
+        let timeFormat, timezoneOffset;
+
+        // Cache the enamel dial. Only the three hands need repainting each second.
+        const plate = document.createElement("canvas");
+        plate.width = face.width;
+        plate.height = face.height;
+        const pen = plate.getContext("2d"),
+          scale = face.width / 512;
+        pen.scale(scale, scale);
+        pen.translate(256, 256);
+
+        function circle(g, radius, color) {
+          g.beginPath();
+          g.arc(0, 0, radius, 0, tau);
+          g.fillStyle = color;
+          g.fill();
+        }
+        circle(pen, 256, ink);
+        circle(pen, 245, "#b69961");
+        circle(pen, 242, paper);
+        for (let i = 0; i < 60; i++) {
+          pen.save();
+          pen.rotate((i * tau) / 60);
+          const hour = i % 5 === 0;
+          pen.fillStyle = hour ? ink : "#918c76";
+          pen.fillRect(hour ? -3.5 : -1.5, -230, hour ? 7 : 3, hour ? 18 : 8);
+          pen.restore();
+        }
+        pen.fillStyle = ink;
+        pen.textAlign = "center";
+        pen.textBaseline = "middle";
+        pen.font = "600 48px -apple-system, system-ui, sans-serif";
+        for (const [number, x, y] of [
+          ["12", 0, -166],
+          ["3", 170, 0],
+          ["6", 0, 169],
+          ["9", -170, 0]
+        ])
+          pen.fillText(number, x, y);
+        pen.fillStyle = "#696d59";
+        pen.font = "600 13px -apple-system, system-ui, sans-serif";
+        pen.fillText("LOCAL TIME", 0, -75);
+
+        // Draw straight up at zero turns. Rotating the canvas lets every hand use the same line.
+        function hand(turns, length, tail, width, color) {
+          ctx.save();
+          ctx.rotate(turns * tau);
+          ctx.beginPath();
+          ctx.moveTo(0, tail);
+          ctx.lineTo(0, -length);
+          ctx.lineWidth = width;
+          ctx.lineCap = "round";
+          ctx.strokeStyle = color;
+          ctx.stroke();
+          ctx.restore();
+        }
+
+        // The painted dial never changes. Copy it first, then add the hands for this instant.
+        // Including minutes in the hour fraction keeps the hour hand between the numbers.
+        function draw(date) {
+          const s = date.getSeconds(),
+            m = date.getMinutes() + s / 60,
+            h = (date.getHours() % 12) + m / 60;
+          ctx.clearRect(0, 0, face.width, face.height);
+          ctx.drawImage(plate, 0, 0);
+          ctx.save();
+          ctx.scale(scale, scale);
+          ctx.translate(256, 256);
+          hand(h / 12, 109, 12, 16, ink);
+          hand(m / 60, 183, 17, 10, ink);
+          hand(s / 60, 208, 38, 4, vermilion);
+          circle(ctx, 10, ink);
+          circle(ctx, 5, vermilion);
+          ctx.restore();
+          if (timezoneOffset !== date.getTimezoneOffset()) {
+            timezoneOffset = date.getTimezoneOffset();
+            timeFormat = new Intl.DateTimeFormat(undefined, {
+              hour: "numeric",
+              minute: "2-digit",
+              second: "2-digit"
+            });
+          }
+          readout.dateTime = date.toISOString();
+          readout.textContent = timeFormat.format(date);
+        }
+
+        let timer,
+          lastSecond,
+          active = true,
+          liveDock = false;
+
+        // The Dock receives the same canvas the page displays. It needs no second clock or timer.
+        function publishFace() {
+          if (active && liveDock)
+            dock.setIcon(face).catch(() => {
+              liveDock = false;
+              hint.textContent =
+                "The clock still runs here. A visible Dock icon is needed to show it in the Dock.";
+            });
+        }
+
+        // Schedule the next whole second from the wall clock so a late callback never accumulates drift.
+        function tick() {
+          clearTimeout(timer);
+          if (!active) return;
+          const now = Date.now(),
+            second = Math.floor(now / 1000);
+          if (lastSecond !== second) {
+            lastSecond = second;
+            draw(new Date(now));
+            publishFace();
+          }
+          timer = setTimeout(tick, 1000 - (Date.now() % 1000));
+        }
+
+        async function connectDock() {
+          if (
+            host?.isPreview ||
+            typeof dock?.isAvailable !== "function" ||
+            typeof dock?.setIcon !== "function"
+          )
+            return;
+          try {
+            liveDock = await dock.isAvailable();
+            if (liveDock) {
+              hint.textContent = "The Dock icon shows this same clock while the app is running.";
+              publishFace();
+            }
+          } catch {
+            /* The window clock also works without native Dock access. */
+          }
+        }
+        tick();
+        connectDock();
+        addEventListener("focus", tick);
+        document.addEventListener("visibilitychange", tick);
+        addEventListener("pagehide", () => {
+          active = false;
+          clearTimeout(timer);
+        });
+        addEventListener("pageshow", (event) => {
+          if (event.persisted) {
+            active = true;
+            lastSecond = undefined;
+            tick();
+            connectDock();
+          }
+        });
+
+        // Seed the circular mask even if WebKit hasn't painted its first frame yet.
+        // The ellipse marker then tracks native resizes without sampling the moving hands.
+        function roundUI(on) {
+          document.documentElement.classList.toggle("round", on);
+          dial.toggleAttribute("data-htmltoapp-drag", on);
+          dial.title = on ? "Drag to move. Hover for Always on Top, or press Escape for window controls." : "";
+          roundButton.hidden = on || !win;
+        }
+        // The preference belongs to this clock. Preview and the exported app have separate storage.
+        const levelKey = "desk-clock.always-on-top.v1";
+        let preferredLevel = "normal";
+        try {
+          if (localStorage.getItem(levelKey) === "floating") preferredLevel = "floating";
+        } catch { /* Window controls still work when storage is unavailable. */ }
+
+        function showLevel(state) {
+          topButton.setAttribute("aria-pressed", String(state.level === "floating"));
+        }
+        function levelNotice(text) {
+          byId("levelStatus").textContent = text;
+          clockActions.classList.toggle("has-notice", Boolean(text));
+        }
+        let transition = "",
+          wantsStandard = false;
+        function beginTransition(action) {
+          transition = action;
+          clockActions.setAttribute("aria-busy", "true");
+        }
+        function finishTransition() {
+          transition = "";
+          clockActions.removeAttribute("aria-busy");
+          if (wantsStandard) {
+            wantsStandard = false;
+            return useStandardWindow();
+          }
+        }
+        async function toggleLevel() {
+          if (!win || transition || clockActions.hidden) return;
+          beginTransition("level");
+          levelNotice("");
+          try {
+            const level = topButton.getAttribute("aria-pressed") === "true" ? "normal" : "floating";
+            // Only change the level. The dial keeps its position, shape and click-through corners.
+            const state = await win.configure({ level });
+            showLevel(state);
+            preferredLevel = state.level;
+            try { localStorage.setItem(levelKey, preferredLevel); } catch { /* Use it for this session. */ }
+          } catch {
+            levelNotice("Leave full screen or close the dialog, then try again.");
+          } finally {
+            finishTransition();
+          }
+        }
+
+        // A transparent page alone still has a rectangular window. The bridge also sets its shape
+        // and lets clicks outside the circular face reach the window underneath.
+        async function useRoundWindow() {
+          if (!win || transition) return;
+          beginTransition("round");
+          levelNotice("");
+          let configured = false;
+          try {
+            const state = await win.getState();
+            if (state.userRestored) {
+              clockActions.hidden = true;
+              roundButton.hidden = true;
+              hint.textContent = "Reload to use the clock's window controls again.";
+              return;
+            }
+            const b = state.bounds,
+              size = 288;
+            showLevel(await win.configure({
+              titleBar: "borderless",
+              transparent: true,
+              clickThrough: "transparent",
+              level: preferredLevel
+            }));
+            configured = true;
+            roundUI(true);
+            await win.setBounds({
+              x: Math.round(b.x + (b.width - size) / 2),
+              y: Math.round(b.y + (b.height - size) / 2),
+              width: size,
+              height: size
+            });
+            await win.setShape(plate);
+            await win.setShape(null);
+          } catch {
+            if (configured) await win.reset().then(showLevel).catch(() => {});
+            roundUI(false);
+            hint.textContent = "The clock is running in a standard window.";
+          } finally {
+            await finishTransition();
+          }
+        }
+
+        async function useStandardWindow() {
+          if (transition === "round" || transition === "level") {
+            wantsStandard = true;
+            return;
+          }
+          if (transition || !document.documentElement.classList.contains("round")) return;
+          beginTransition("standard");
+          levelNotice("");
+          try {
+            const standard = await win.reset();
+            roundUI(false);
+            roundButton.focus();
+            // Reset restores the native frame and normal level. Keep the user's pin in this view too.
+            let state = standard;
+            if (preferredLevel === "floating") {
+              try { state = await win.configure({ level: preferredLevel }); }
+              catch { levelNotice("The standard window is not on top. Use Always on Top to try again."); }
+            }
+            showLevel(state);
+          } catch {
+            byId("controls").title = "Leave full screen or close the open dialog, then try again.";
+          } finally {
+            finishTransition();
+          }
+        }
+        byId("controls").addEventListener("click", useStandardWindow);
+        topButton.addEventListener("click", toggleLevel);
+        roundButton.addEventListener("click", useRoundWindow);
+        addEventListener("keydown", (event) => {
+          if (event.key === "Escape" && !event.metaKey && !event.ctrlKey && !event.altKey)
+            useStandardWindow();
+        });
+        addEventListener("htmltoapp-windowchange", ({ detail }) => {
+          if (detail?.userRestored) {
+            roundUI(false);
+            roundButton.hidden = true;
+            clockActions.hidden = true;
+            hint.textContent = "Reload to use the clock's window controls again.";
+          } else if (detail?.level && !transition) {
+            showLevel(detail);
+          }
+        });
+        if (win) {
+          clockActions.hidden = false;
+          if (host.isPreview)
+            hint.textContent =
+              "Choose Export App with a visible Dock icon to see the clock there too. Preview leaves HTML to App's Dock icon unchanged.";
+          else if (!liveDock)
+            hint.textContent =
+              "Use a visible Dock icon when exporting to show the clock there too.";
+          // Reveal the first face with its final size and shape. Dock artwork loads independently.
+          const ready = win.deferInitialPresentation?.();
+          useRoundWindow().finally(() => ready?.());
+        }
+      })();
+    </script>
+  </body>
+</html>

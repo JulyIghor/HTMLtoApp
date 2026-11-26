@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en" data-theme="print">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Contact Sheet</title>
+    <link rel="stylesheet" href="GalleryKit/spacing.css">
+    <meta name="htmltoapp:open-with" content="role=viewer; files=png,jpg,jpeg,webp,svg; folders=true">
+    <!-- The lesson's JavaScript and sample assets live together in ContactSheet/. -->
+    <link rel="stylesheet" href="GalleryKit/interaction.css">
+    <link rel="stylesheet" href="GalleryKit/lesson.css">
+    <style>
+      #sheet { display: block; height: auto; margin-inline: auto; }
+      #feedbackSlot { min-height: 1.45em; }
+      /* A folder can be dropped near the bottom of a long sheet. Keep the
+         filename, progress and Cancel in view without moving the document. */
+      #feedback.running {
+        position: fixed; z-index: 2; bottom: var(--page-inset); inset-inline: var(--page-inset);
+        max-width: 36rem; margin-inline: auto; padding: var(--group-gap);
+        display: grid; gap: var(--copy-gap); border: 1px solid var(--line);
+        border-radius: .75rem; background: var(--panel);
+        box-shadow: 0 2px 10px #0002;
+      }
+      #work progress { flex: 1; min-width: 3rem; accent-color: var(--accent); }
+    </style>
+    <script defer src="GalleryKit/activity.js"></script>
+    <script type="module" src="ContactSheet/app.js"></script>
+    <!-- Folder projects use ProjectIcon.png beside index.html for their app icon. -->
+  </head>
+  <body>
+    <main>
+      <header>
+        <p class="kicker">Print bench / Proofs</p>
+        <h1>Contact Sheet</h1>
+        <p>Choose pictures or drop a folder to make a labeled proof sheet from up to 24 images. Only pictures directly inside a selected folder are included.</p>
+      </header>
+      <section class="panel stack">
+        <div class="bar">
+          <button id="chooseFiles" type="button" aria-haspopup="dialog" aria-controls="files">Choose files...</button>
+          <input hidden id="files" type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" multiple>
+          <button id="folder" type="button" aria-haspopup="dialog" aria-controls="folderFiles">Choose folder...</button>
+          <input hidden type="file" id="folderFiles" webkitdirectory multiple>
+          <button id="sample">Use sample prints</button>
+        </div>
+        <div class="bar"><label>Columns <select id="columns"><option>1</option><option selected>2</option><option>3</option><option>4</option></select></label>
+          <button class="primary" id="save" disabled>Save sheet as PNG</button></div>
+        <div id="feedbackSlot">
+          <div id="feedback">
+            <p id="status" class="status" role="status">Arranging sample prints...</p>
+            <div id="work" class="bar" hidden>
+              <progress id="progress" aria-labelledby="status"></progress>
+              <button id="cancel" type="button">Cancel</button>
+            </div>
+          </div>
+        </div>
+      </section>
+      <figure class="panel" id="preview"><canvas id="sheet" aria-label="Contact sheet with image filenames"></canvas></figure>
+    </main>
+  </body>
+</html>

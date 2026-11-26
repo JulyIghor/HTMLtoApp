@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="236" viewBox="0 0 400 236" role="img" aria-label="Evening cove">
+  <!-- Layer simple paths to make a printable landscape without external images. -->
+  <rect width="400" height="236" fill="#efc6a0"/>
+  <circle cx="292" cy="70" r="37" fill="#fff2c3"/>
+  <path d="m0 126 80-48 61 37 55-25 60 36 95-46 49 31v125H0z" fill="#828f93"/>
+  <path d="M0 129q86-12 177 1t223 0v106H0z" fill="#477d85"/>
+  <path d="M0 109q49 22 89 67l-37 14 80 46H0z" fill="#284f59"/><path d="m222 160 52-3m9 9 37-2m-83 16 50-4" fill="none" stroke="#b0cac2" stroke-width="3"/>
+</svg>

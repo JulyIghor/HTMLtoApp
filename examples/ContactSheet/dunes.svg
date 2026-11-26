@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="236" viewBox="0 0 400 236" role="img" aria-label="Wind on the dunes">
+  <!-- Layer simple paths to make a printable landscape without external images. -->
+  <rect width="400" height="236" fill="#c5dcce"/>
+  <circle cx="108" cy="70" r="31" fill="#fae6aa"/>
+  <path d="M0 146q128-79 227-39t173-6v135H0z" fill="#c7ad71"/>
+  <path d="M0 172q81-60 144-19t139-3 117-6v92H0z" fill="#af855a"/>
+  <path d="M0 207q89-52 191-9t209-20v58H0z" fill="#855c45"/><path d="m241 153 4-22 7 18m-13 6-8-11m76 25 7-19" fill="none" stroke="#716947" stroke-width="3"/>
+</svg>

@@ -1,0 +1,319 @@
+/* Controls and artwork are not documents. Keep the actual text available to copy. */
+body { -webkit-user-select: none; user-select: none; }
+:where(h1, h2, p, output, input[type="number"]) {
+  -webkit-user-select: text; user-select: text;
+}
+:where(button, button *, select, summary, img, svg, svg *, canvas, [data-htmltoapp-drag], [data-htmltoapp-drag] *) {
+  -webkit-user-select: none; user-select: none;
+}
+:where(img, svg, a) { -webkit-user-drag: none; }
+
+:root {
+  color-scheme: light dark;
+  --page-inset: clamp(16px, 3vw, 24px);
+  --bg: #eaf1ef;
+  --card: #fafdfb;
+  --ink: #18362e;
+  --soft: #49665d;
+  --line: #c0d4ca;
+  --brand: #176751;
+  --paper: #d8eee5;
+  font:
+    15px/1.42 -apple-system,
+    system-ui,
+    sans-serif;
+}
+/* Override just the palette so the ruler uses the same layout in both appearances. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #17231f;
+    --card: #22332c;
+    --ink: #e4f5ea;
+    --soft: #b4cfc0;
+    --line: #405b4c;
+    --brand: #8adbb5;
+    --paper: #314c3e;
+  }
+}
+* {
+  box-sizing: border-box;
+}
+html,
+body {
+  margin: 0;
+}
+body {
+  background: var(--bg);
+  color: var(--ink);
+  padding: var(--page-inset);
+}
+main {
+  max-width: 580px;
+  margin: auto;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 17px;
+  background: var(--card);
+  display: grid;
+  gap: 16px;
+}
+header,
+form,
+fieldset {
+  display: grid;
+  gap: 8px;
+}
+header p,
+form output,
+.hint {
+  font-size: 13px;
+  color: var(--soft);
+}
+h1,
+p {
+  margin: 0;
+}
+h1 {
+  font-size: clamp(28px, 5vw, 39px);
+  line-height: 1.08;
+  letter-spacing: -0.045em;
+}
+.kicker {
+  font-size: 11px;
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--brand);
+}
+.sample {
+  --sample-arm: 16px;
+  --sample-tick: 5px;
+  position: relative;
+  height: 86px;
+  border-radius: 8px;
+  overflow: hidden;
+  background-color: var(--paper);
+  background-image: radial-gradient(var(--line) 1px, transparent 1px);
+  background-size: 10px 10px;
+}
+.sampleTop,
+.sampleLeft {
+  position: absolute;
+  background-color: #215e4e;
+}
+.sampleTop {
+  inset: 0 0 auto 0;
+  height: var(--sample-arm);
+}
+.sampleLeft {
+  inset: 0 auto 0 0;
+  width: var(--sample-arm);
+}
+/* Keep the elbow solid and leave a small margin at the inner edges and tips. */
+.sampleTop::after,
+.sampleLeft::after {
+  content: "";
+  position: absolute;
+}
+.sampleTop::after {
+  inset: auto 4px 1px var(--sample-arm);
+  height: var(--sample-tick);
+  background: repeating-linear-gradient(to right, transparent 0 4px, #b2e5cc 4px 5px, transparent 5px 10px);
+}
+.sampleLeft::after {
+  inset: var(--sample-arm) 1px 4px auto;
+  width: var(--sample-tick);
+  background: repeating-linear-gradient(to bottom, transparent 0 4px, #b2e5cc 4px 5px, transparent 5px 10px);
+}
+.sample span {
+  position: absolute;
+  right: 12px;
+  bottom: 10px;
+  font-variant-numeric: tabular-nums;
+  font-size: 14px;
+  font-weight: 600;
+}
+form {
+  gap: 12px;
+}
+fieldset {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+legend {
+  font-weight: 600;
+  margin: 0 0 5px;
+  padding: 0;
+}
+.numbers {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.numbers label {
+  display: grid;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--soft);
+  min-width: 0;
+}
+button,
+select,
+input[type="number"] {
+  font: inherit;
+  color: var(--ink);
+  background: var(--card);
+  min-height: 34px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 4px 8px;
+  width: 100%;
+}
+.numbers select,
+.numbers input {
+  font-size: 14px;
+}
+.check {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+}
+.check input {
+  margin: 0;
+  accent-color: var(--brand);
+}
+button {
+  cursor: pointer;
+  font-weight: 550;
+}
+button:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+button:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 1px;
+}
+#place {
+  background: var(--brand);
+  color: var(--card);
+  border: 0;
+  justify-self: start;
+  width: auto;
+  padding-inline: 18px;
+}
+output:empty {
+  display: none;
+}
+[hidden] {
+  display: none !important;
+}
+html.measuring,
+html.measuring body {
+  background: transparent;
+  padding: 0;
+  overflow: hidden;
+}
+#overlay {
+  --left-arm: 32px;
+  --toolbar-height: 25px;
+  --top-arm: calc(var(--toolbar-height) + 21px);
+  position: fixed;
+  inset: 0;
+  outline: 0;
+  color: #fff;
+}
+#ticks {
+  width: 100%;
+  height: 100%;
+  display: block;
+  pointer-events: none;
+}
+.dragArm,
+#grip,
+#actions,
+#readout {
+  position: absolute;
+}
+.dragArm,
+#overlay.dragCenter {
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.dragArm:active,
+#overlay.dragCenter:active {
+  cursor: grabbing;
+}
+#topArm {
+  inset: 0 0 auto;
+  height: var(--top-arm);
+}
+#leftArm {
+  inset: var(--top-arm) auto 0 0;
+  width: var(--left-arm);
+}
+#grip {
+  inset: 0 auto auto 0;
+  width: var(--left-arm);
+  height: var(--toolbar-height);
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  color: #f0fff5;
+}
+#actions {
+  top: 2px;
+  right: 3px;
+  display: flex;
+  gap: 4px;
+}
+#actions button {
+  width: auto;
+  height: 21px;
+  min-height: 0;
+  font-size: 11px;
+  white-space: nowrap;
+  color: #f0fff5;
+  background: #285448;
+  border: 1px solid #71a68a;
+  border-radius: 4px;
+  padding: 1px 5px;
+}
+#readout {
+  left: var(--left-arm);
+  top: 0;
+  height: var(--toolbar-height);
+  display: flex;
+  align-items: center;
+  color: #e3f8e9;
+  font-size: 11px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  line-height: 12px;
+  pointer-events: none;
+}
+/* At narrow widths the buttons keep their full names. The size moves to the
+   start of the scale row, above the tick marks and clear of the vertical scale. */
+@media (max-width: 260px) {
+  #grip {
+    width: 18px;
+  }
+  #readout {
+    top: var(--toolbar-height);
+    left: 4px;
+    height: 12px;
+  }
+}
+@media (max-width: 400px) {
+  .numbers {
+    grid-template-columns: 1fr;
+  }
+}

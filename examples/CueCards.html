@@ -1,0 +1,636 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Cue Cards</title>
+    <!-- Edit the deck near the end of the page. It is plain JSON, separate from presentation logic. -->
+    <style>
+      /* Controls and artwork are not documents. Keep the actual text available to copy. */
+      body { -webkit-user-select: none; user-select: none; }
+      :where(h1, h2, p, output, textarea) {
+        -webkit-user-select: text; user-select: text;
+      }
+      :where(button, button *, select, summary, img, svg, svg *, canvas, [data-htmltoapp-drag], [data-htmltoapp-drag] *) {
+        -webkit-user-select: none; user-select: none;
+      }
+      :where(img, svg, a) { -webkit-user-drag: none; }
+
+      :root {
+        color-scheme: light dark;
+        --page-inset: clamp(16px, 3vw, 24px);
+        --bg: #f1ecf2;
+        --paper: #fffcfe;
+        --ink: #322339;
+        --soft: #705e76;
+        --line: #d9cddd;
+        --plum: #75467c;
+        --tint: #f1e6f0;
+        font:
+          15px/1.45 -apple-system,
+          system-ui,
+          sans-serif;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #211d24;
+          --paper: #2e2731;
+          --ink: #f8edf6;
+          --soft: #ccb9cd;
+          --line: #58495a;
+          --plum: #e4b3e0;
+          --tint: #413347;
+        }
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        padding: var(--page-inset);
+        background: var(--bg);
+        color: var(--ink);
+      }
+      main {
+        max-width: 720px;
+        margin: auto;
+        display: grid;
+        gap: 16px;
+        padding: 16px;
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        background: var(--paper);
+      }
+      h1,
+      h2,
+      p {
+        margin: 0;
+      }
+      h1 {
+        font-size: clamp(28px, 5vw, 40px);
+        line-height: 1.1;
+        letter-spacing: -0.045em;
+      }
+      h2 {
+        font-size: 16px;
+      }
+      .kicker,
+      .count {
+        color: var(--plum);
+        font-weight: 650;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        font-size: 11px;
+      }
+      header,
+      .group,
+      #editor {
+        display: grid;
+        gap: 8px;
+      }
+      .hint,
+      output {
+        font-size: 13px;
+        color: var(--soft);
+      }
+      #card {
+        display: grid;
+        align-content: center;
+        gap: 10px;
+        padding: 16px;
+        min-height: 146px;
+        border-left: 4px solid var(--plum);
+        border-radius: 6px;
+        background: var(--tint);
+        overflow-wrap: anywhere;
+      }
+      #cue {
+        font:
+          500 clamp(24px, 5vw, 40px)/1.2 Georgia,
+          serif;
+        letter-spacing: -0.025em;
+      }
+      .buttons,
+      .modes {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+      }
+      .playback {
+        display: grid;
+        gap: 8px;
+      }
+      #present svg {
+        width: 0.8em;
+        height: 0.8em;
+        margin-right: 0.25em;
+        fill: currentColor;
+      }
+      .buttons button {
+        min-width: 88px;
+      }
+      .modes label {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        color: var(--soft);
+        font-size: 13px;
+      }
+      .modes input {
+        accent-color: var(--plum);
+      }
+      button,
+      textarea {
+        font: inherit;
+        color: var(--ink);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--paper);
+      }
+      button {
+        min-height: 34px;
+        padding: 5px 10px;
+        background: var(--tint);
+        border-color: var(--soft);
+        cursor: pointer;
+        font-weight: 550;
+      }
+      button:hover:not(:disabled) {
+        box-shadow: inset 0 0 0 1px currentColor;
+      }
+      button:active:not(:disabled) {
+        box-shadow: inset 0 0 0 2px currentColor;
+      }
+      button.primary,
+      button.primary:hover {
+        background: var(--plum);
+        border-color: transparent;
+        color: var(--paper);
+      }
+      button:disabled {
+        opacity: 0.5;
+        cursor: default;
+      }
+      button:focus-visible,
+      input:focus-visible,
+      textarea:focus-visible {
+        outline: 2px solid var(--plum);
+        outline-offset: 1px;
+      }
+      textarea {
+        width: 100%;
+        min-height: 112px;
+        padding: 8px;
+        resize: vertical;
+      }
+      #tools {
+        border-top: 1px solid var(--line);
+        padding-top: 12px;
+      }
+      #nativeActions {
+        margin-top: 6px;
+      }
+      summary {
+        cursor: pointer;
+        color: var(--soft);
+        font-size: 13px;
+      }
+      details .buttons {
+        margin-top: 6px;
+      }
+      output:empty,
+      [hidden] {
+        display: none !important;
+      }
+      .stage-only {
+        display: none;
+      }
+      /* The reading view belongs to the deck, not to the macOS fullscreen Space. */
+      .presenting {
+        --paper: #241c29;
+        --ink: #fff7ed;
+        --soft: #d7c6d6;
+        --plum: #f0c4e3;
+        --tint: #413347;
+        --line: #796479;
+      }
+      .presenting body {
+        background: var(--paper);
+        padding: 0;
+      }
+      .presenting main {
+        max-width: none;
+        height: 100vh;
+        height: 100dvh;
+        border: 0;
+        border-radius: 0;
+        padding: clamp(18px, 4vw, 48px);
+        grid-template-rows: minmax(0, 1fr) auto;
+      }
+      .presenting #card {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        overflow: auto;
+        background: transparent;
+        min-height: 0;
+        border: 0;
+        padding: 0;
+      }
+      .presenting .card-meta {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: auto;
+      }
+      .presenting .stage-only {
+        display: block;
+      }
+      .presenting .stage-label {
+        padding: 3px 9px;
+        border: 1px solid var(--line);
+        border-radius: 1em;
+      }
+      .presenting #cue {
+        margin-bottom: auto;
+        max-width: 32ch;
+        font-size: clamp(30px, min(7vw, 10vh), 92px);
+      }
+      .presenting #cue[data-long] {
+        max-width: 44ch;
+        font-size: clamp(24px, min(5vw, 7vh), 64px);
+      }
+      .presenting .playback {
+        border-top: 1px solid var(--line);
+        padding-top: 12px;
+      }
+      .presenting #header,
+      .presenting #tools,
+      .presenting #editor {
+        display: none;
+      }
+      .nativeTitle main {
+        padding-top: clamp(44px, 4vw, 48px);
+      }
+      @media (max-width: 400px) {
+        .buttons {
+          gap: 6px;
+        }
+        .buttons button {
+          flex: 1;
+          min-width: 70px;
+        }
+      }
+    </style>
+    <!-- Folder projects use ProjectIcon.png beside index.html for their app icon. -->
+  </head>
+  <body>
+    <main id="app">
+      <header id="header">
+        <p class="kicker">Rehearsal desk</p>
+        <h1>Cue Cards</h1>
+        <p class="hint">Give each idea its own card. Rehearse here, or send someone a playable deck.</p>
+      </header>
+      <section id="card" aria-label="Current cue">
+        <div class="card-meta">
+          <span class="stage-only stage-label kicker">Presenting</span>
+          <p id="count" class="count"></p>
+        </div>
+        <p id="cue" aria-live="polite"></p>
+      </section>
+      <div class="playback">
+        <nav class="buttons" aria-label="Playback">
+          <button id="previous">Previous</button>
+          <button id="next">Next</button>
+          <button class="primary" id="present"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 1v10l9-5z"/></svg>Present</button>
+          <button class="primary" id="done" hidden>End presentation</button>
+        </nav>
+        <p class="stage-only hint">Use the arrow keys to change cues. Press Esc to end the presentation.</p>
+        <output id="message" role="status"></output>
+      </div>
+      <section id="tools" class="group">
+        <div class="buttons">
+          <button id="edit">Edit cues</button>
+          <button id="share">Save portable deck</button>
+        </div>
+        <p class="hint">The saved .htmltoapp file includes the cues and app icon. Open it in HTML
+          to App to convert it. Edits stay in this session until saved.</p>
+        <div id="hostOptions" class="modes" hidden>
+          <label>
+            <input type="checkbox" id="bare"> Hide native title bar while presenting
+          </label>
+          <label>
+            <input type="checkbox" id="mirror"> Show on all displays
+          </label>
+        </div>
+        <details id="nativeActions" hidden>
+          <summary>Window actions</summary>
+          <div class="buttons">
+            <button id="minimize">Minimize</button>
+            <button id="zoom">Zoom window</button>
+            <button id="fullscreen">Toggle fullscreen</button>
+            <button id="close">Close window</button>
+          </div>
+        </details>
+        <p class="hint" id="context">Choose Run to rehearse or Export App to open the deck in its
+          own window.</p>
+      </section>
+      <form id="editor" hidden>
+        <h2>Edit cues</h2>
+        <label for="lines" class="hint">One cue per line, up to 32 cards and 300 characters per cue.</label>
+        <textarea id="lines" maxlength="10000" required></textarea>
+        <p id="validation" role="alert" class="hint"></p>
+        <div class="buttons">
+          <button type="button" id="cancel">Cancel</button>
+          <button class="primary" type="submit">Apply cues</button>
+        </div>
+      </form>
+    </main>
+    <!-- This script holds data, not JavaScript. Each string becomes one card. -->
+    <script type="application/json" id="deck">
+      [
+        "Open with a question your audience cares about.",
+        "Show one concrete example. Let it do the explaining.",
+        "Leave them with one thing to try."
+      ]
+    </script>
+    <script>
+      (() => {
+        "use strict";
+        const $ = (id) => document.getElementById(id),
+          win = window.HTMLtoApp?.window,
+          template = document.documentElement.cloneNode(true);
+        let cards,
+          index = 0,
+          presenting = false,
+          nativeReady = false,
+          customWindow = false,
+          session = 0,
+          windowWork = Promise.resolve();
+        const valid = (a) =>
+          Array.isArray(a) &&
+          a.length > 0 &&
+          a.length <= 32 &&
+          a.every(
+            (s) => typeof s === "string" && s.trim().length > 0 && Array.from(s).length <= 300
+          );
+        try {
+          cards = JSON.parse($("deck").textContent);
+          if (!valid(cards)) throw Error();
+        } catch {
+          cards = ["Edit this card to start a new deck."];
+          $("message").textContent = "This deck could not be read. You can start a new one here.";
+        }
+
+        function paint() {
+          index = Math.max(0, Math.min(cards.length - 1, index));
+          $("cue").textContent = cards[index];
+          $("cue").toggleAttribute("data-long", Array.from(cards[index]).length > 140);
+          $("card").scrollTop = 0;
+          $("count").textContent = "Cue " + (index + 1) + " of " + cards.length;
+          $("previous").disabled = index === 0;
+          $("next").disabled = index === cards.length - 1;
+        }
+
+        function mode(on) {
+          presenting = on;
+          document.documentElement.classList.toggle("presenting", on);
+          document.documentElement.classList.remove("nativeTitle");
+          $("present").hidden = on;
+          $("done").hidden = !on;
+          $("message").textContent = "";
+          (on ? $("done") : $("present")).focus();
+        }
+
+        // Show the card immediately. Only the optional title bar and mirrors need the host.
+        // Serialize those changes so a quick End or a second Present can't leave stale chrome.
+        function enter() {
+          if (presenting || !$("editor").hidden) return;
+          const current = ++session, bare = $("bare").checked, mirror = $("mirror").checked;
+          mode(true);
+          if (!nativeReady) return;
+          windowWork = windowWork.then(async () => {
+            try {
+              if (current !== session) return;
+              const state = await win.getState();
+              if (current !== session) return;
+              if (state.fullscreen || state.userRestored) {
+                if (mirror) $("message").textContent = state.fullscreen
+                  ? "Presenting on this display. To mirror the deck, start the presentation outside macOS fullscreen."
+                  : "Presenting on this display. Reload the deck to enable display mirroring again.";
+                return;
+              }
+              await win.configure({
+                titleBar: bare ? "borderless" : "overlay",
+                displayMode: mirror ? "mirror" : "single",
+                mirrorInteraction: "ignore"
+              });
+              customWindow = true;
+              if (current === session) document.documentElement.classList.toggle("nativeTitle", !bare);
+            } catch {
+              if (current === session) $("message").textContent =
+                "Presenting in the current window. Its title bar and display settings could not be changed.";
+            }
+          });
+        }
+
+        // Restore only changes the deck actually made. If the user entered fullscreen
+        // during the talk, wait for them to leave it before restoring the title bar.
+        function restoreWindow() {
+          windowWork = windowWork.then(async () => {
+            if (!customWindow) return;
+            try {
+              const state = await win.getState();
+              if (state.fullscreen) return;
+              if (!state.userRestored) await win.reset();
+              customWindow = false;
+            } catch {
+              if (!presenting) $("message").textContent =
+                "Back at rehearsal. If the title bar has not returned, choose Restore Standard Window from the Window menu.";
+            }
+          });
+        }
+        function leave() {
+          if (!presenting) return;
+          ++session;
+          mode(false);
+          restoreWindow();
+        }
+        addEventListener("htmltoapp-windowchange", ({ detail }) => {
+          if (!customWindow) return;
+          if (detail.userRestored) {
+            customWindow = false;
+            if (presenting) leave();
+          } else if (!presenting && !detail.fullscreen) restoreWindow();
+        });
+        $("previous").onclick = () => {
+          index--;
+          paint();
+        };
+        $("next").onclick = () => {
+          index++;
+          paint();
+        };
+        $("present").onclick = enter;
+        $("done").onclick = leave;
+
+        function edit(on) {
+          $("editor").hidden = !on;
+          $("tools").hidden = on;
+          $("present").disabled = on;
+          $("validation").textContent = "";
+          if (on) {
+            $("lines").value = cards.join("\n");
+            $("lines").focus();
+          } else $("edit").focus();
+        }
+        $("edit").onclick = () => edit(true);
+        $("cancel").onclick = () => edit(false);
+        $("editor").onsubmit = (e) => {
+          e.preventDefault();
+          const a = $("lines")
+            .value.split(/\r?\n/)
+            .map((s) => s.trim())
+            .filter(Boolean);
+          if (!valid(a)) {
+            $("validation").textContent =
+              "Use 1 to 32 nonempty cues, with no more than 300 characters in each.";
+            return;
+          }
+          cards = a;
+          index = 0;
+          paint();
+          edit(false);
+          $("message").textContent = "Cues updated. Save a portable deck to keep your changes.";
+        };
+
+        async function embedPortableIcon(page) {
+          // A reopened deck already carries its icon and needs no neighboring files.
+          const existing = page.querySelector('head meta[name="htmltoapp:icon"]');
+          if (existing?.content.startsWith("data:image/")) return;
+          const response = await fetch("ProjectIcon.png", { cache: "no-store" });
+          if (!response.ok) throw Error("Icon unavailable");
+          const png = await response.blob();
+          if (png.size < 24 || png.size > 8 * 1024 * 1024) throw Error("Icon unavailable");
+          const header = new DataView(await png.slice(0, 24).arrayBuffer());
+          const width = header.getUint32(16), height = header.getUint32(20);
+          if (header.getUint32(0) !== 0x89504e47 || header.getUint32(4) !== 0x0d0a1a0a ||
+              header.getUint32(12) !== 0x49484452 || !width || !height ||
+              Math.max(width, height) > 8192 || width * height > 16 * 1024 * 1024) {
+            throw Error("Invalid project PNG");
+          }
+
+          // Keep small PNGs intact. Scale large artwork only in the single-file copy.
+          let dataURL;
+          const url = URL.createObjectURL(png);
+          try {
+            const image = new Image();
+            image.src = url;
+            await image.decode();
+            if (png.size <= 256 * 1024) {
+              dataURL = await new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(png.slice(0, png.size, "image/png"));
+              });
+            } else {
+              const scale = Math.min(1, 224 / Math.max(image.naturalWidth, image.naturalHeight));
+              const canvas = document.createElement("canvas");
+              canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
+              canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
+              canvas.getContext("2d").drawImage(image, 0, 0, canvas.width, canvas.height);
+              dataURL = canvas.toDataURL("image/png");
+            }
+          } finally {
+            URL.revokeObjectURL(url);
+          }
+          const tag = existing || document.createElement("meta");
+          tag.name = "htmltoapp:icon";
+          tag.setAttribute("data-htmltoapp-generated", "1");
+          tag.content = dataURL;
+          page.querySelector("meta[charset]").after(tag);
+        }
+
+        async function portable() {
+          // Work from the untouched source template, never a rendered or edited DOM.
+          // Escape the raw-text script delimiter as JSON, not as an HTML entity.
+          const page = template.cloneNode(true);
+          page.querySelector("#deck").textContent = JSON.stringify(cards)
+            .replace(/</g, "\\u003c")
+            .replace(/>/g, "\\u003e")
+            .replace(/&/g, "\\u0026");
+          try {
+            await embedPortableIcon(page);
+            $("message").textContent = "Portable deck prepared with your cues and app icon.";
+          } catch {
+            $("message").textContent = "This copy has no app icon. To include one, put ProjectIcon.png beside index.html and save again.";
+          }
+          return new Blob(["<!doctype html>\n", page.outerHTML], {
+            type: "text/html;charset=utf-8"
+          });
+        }
+        $("share").onclick = async () => {
+          const share = $("share");
+          if (share.disabled) return;
+          share.disabled = true;
+          $("message").textContent = "Preparing your cues and app icon...";
+          try {
+            const url = URL.createObjectURL(await portable());
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = "Cue Cards.htmltoapp";
+            document.body.append(link);
+            link.click();
+            link.remove();
+            setTimeout(() => URL.revokeObjectURL(url), 30000);
+          } finally {
+            share.disabled = false;
+          }
+        };
+        for (const [id, method] of Object.entries({
+          minimize: "minimize",
+          zoom: "zoom",
+          fullscreen: "toggleFullScreen",
+          close: "close"
+        }))
+          $(id).onclick = async () => {
+            try {
+              await win[method]();
+            } catch (e) {
+              $("message").textContent = e.message || String(e);
+            }
+          };
+        addEventListener("keydown", (e) => {
+          if (e.metaKey || e.ctrlKey || e.altKey) return;
+          if (!$("editor").hidden) {
+            if (e.key === "Escape") {
+              e.preventDefault();
+              edit(false);
+            }
+            return;
+          }
+          if (e.key === "Escape" && presenting) {
+            e.preventDefault();
+            leave();
+          } else if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
+            e.preventDefault();
+            index += e.key === "ArrowRight" ? 1 : -1;
+            paint();
+          }
+        });
+        if (win?.getState)
+          win
+            .getState()
+            .then(() => {
+              nativeReady = true;
+              $("hostOptions").hidden = $("nativeActions").hidden = false;
+            })
+            .catch(() => {});
+        paint();
+      })();
+    </script>
+  </body>
+</html>

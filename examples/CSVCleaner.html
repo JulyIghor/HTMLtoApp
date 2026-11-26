@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en" data-theme="leaf">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>CSV Cleaner</title>
+    <link rel="stylesheet" href="GalleryKit/spacing.css">
+    <meta name="htmltoapp:open-with" content="role=viewer; files=csv,tsv; folders=false">
+    <!-- The lesson's JavaScript and sample assets live together in CSVCleaner/. -->
+    <link rel="stylesheet" href="GalleryKit/interaction.css">
+    <link rel="stylesheet" href="GalleryKit/lesson.css">
+    <link rel="stylesheet" href="GalleryKit/activity.css">
+    <script defer src="GalleryKit/activity.js"></script>
+    <style>
+      td { white-space: pre-wrap; }
+    </style>
+    <script type="module" src="CSVCleaner/app.js"></script>
+    <!-- Folder projects use ProjectIcon.png beside index.html for their app icon. -->
+  </head>
+  <body>
+    <div data-gallery-activity role="status" hidden><progress aria-label="Loading"></progress><span></span></div>
+    <main>
+      <header>
+        <p class="kicker">Data desk / Clean copies</p>
+        <h1>CSV Cleaner</h1>
+        <p>Compare the original rows with a cleaned copy. Identifiers such as 00123 stay text.</p>
+      </header>
+      <section class="panel stack">
+        <div class="bar">
+          <button type="button" id="openFile" aria-haspopup="dialog" aria-controls="file">Open CSV or TSV...</button>
+          <input hidden type="file" id="file" accept=".csv,.tsv" multiple>
+          <button id="sample">Use sample CSV</button>
+          <label id="queueLabel" hidden>Opened files <select id="queue"></select></label>
+        </div>
+        <div class="bar"><label>Delimiter <select id="delimiter"><option value="auto">Detect</option><option value=",">Comma</option><option value=";">Semicolon</option><option value="tab">Tab</option><option value="|">Pipe</option></select></label>
+          <label><input id="trim" type="checkbox" checked>Trim spaces</label><label><input id="empty" type="checkbox" checked>Remove blank rows</label>
+          <label><input id="dedupe" type="checkbox" checked>Remove duplicates</label><label><input id="protect" type="checkbox">Protect formula-like cells</label></div>
+        <p id="status" class="status" role="status">Loading the sample table...</p>
+        <div class="bar"><label>Output line endings <select id="lineEnds"><option value="crlf">CRLF</option><option value="lf">LF</option></select></label>
+          <button class="primary" id="save" disabled>Save cleaned copy</button></div>
+        <details><summary>About spreadsheet formulas</summary><p>Some spreadsheets evaluate cells beginning with symbols such as =. Enable formula protection to prefix those values with an apostrophe. The preview shows the change.</p></details>
+      </section>
+      <div class="split"><section class="panel stack"><h2>Original</h2><div class="table-wrap" id="before"></div></section>
+        <section class="panel stack"><h2>Cleaned copy</h2><div class="table-wrap" id="after"></div></section></div>
+    </main>
+  </body>
+</html>

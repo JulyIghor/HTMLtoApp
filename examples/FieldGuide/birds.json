@@ -1,0 +1,26 @@
+[
+  {
+    "name": "American Robin",
+    "habitat": "Lawns and open woodland",
+    "mark": "Look for the orange breast and pale eye ring. Watch it pause between short runs on the grass.",
+    "art": "robin.svg"
+  },
+  {
+    "name": "Great Blue Heron",
+    "habitat": "Marshes and shorelines",
+    "mark": "Long legs, a folded neck, and a straight bill make a distinctive silhouette in shallow water.",
+    "art": "heron.svg"
+  },
+  {
+    "name": "Belted Kingfisher",
+    "habitat": "Streams and lakes",
+    "mark": "Scan branches over water for a shaggy crest, slate-blue back, and a broad white collar.",
+    "art": "kingfisher.svg"
+  },
+  {
+    "name": "Barn Owl",
+    "habitat": "Fields and grassland",
+    "mark": "The pale, heart-shaped face stands out against a warm, mottled back.",
+    "art": "owl.svg"
+  }
+]

@@ -1,0 +1,1091 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Edge Shelf</title>
+    <!-- Recommend both switches. Reading app names and asking to open an app are independent capabilities. -->
+    <meta name="htmltoapp:open-with" content="permissions=ListInstalledApps,OpenInstalledApps">
+    <!-- Start with renderFavorites() for the launcher tiles, then pin() for the native shelf. -->
+    <style>
+      /* Controls and artwork are not documents. Keep the actual text available to copy. */
+      body { -webkit-user-select: none; user-select: none; }
+      :where(h1, h2, p, output, input[type="search"]) {
+        -webkit-user-select: text; user-select: text;
+      }
+      :where(button, button *, select, summary, img, svg, svg *, canvas, [data-htmltoapp-drag], [data-htmltoapp-drag] *) {
+        -webkit-user-select: none; user-select: none;
+      }
+      :where(img, svg, a) { -webkit-user-drag: none; }
+      .widget #shelf, .widget #shelf * { -webkit-user-select: none; user-select: none; }
+
+      :root {
+        color-scheme: light dark;
+        --page-inset: clamp(16px, 3vw, 24px);
+        --page: #e9edf3;
+        --surface: #fcfdff;
+        --ink: #202b40;
+        --muted: #52617a;
+        --line: #d7dee9;
+        --accent: #324f87;
+        --tint: #e9effb;
+        --hover: #f0f3f9;
+        --focus: #3762bd;
+        font:
+          14px/1.45 -apple-system,
+          BlinkMacSystemFont,
+          system-ui,
+          sans-serif;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --page: #1b202a;
+          --surface: #252c38;
+          --ink: #f1f4fc;
+          --muted: #bac6da;
+          --line: #414c61;
+          --accent: #b8d0ff;
+          --tint: #364762;
+          --hover: #303b4c;
+          --focus: #a6c6ff;
+        }
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+      }
+      body {
+        padding: var(--page-inset);
+        background: var(--page);
+        color: var(--ink);
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+      }
+      [hidden] {
+        display: none !important;
+      }
+      button,
+      input,
+      select {
+        font: inherit;
+        color: inherit;
+      }
+      button {
+        cursor: pointer;
+      }
+      button:focus-visible,
+      select:focus-visible,
+      input:focus-visible {
+        outline: 2px solid var(--focus);
+        outline-offset: 2px;
+      }
+      button:disabled {
+        cursor: default;
+        opacity: 0.63;
+      }
+      button,
+      select,
+      input[type="search"] {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--surface);
+        min-height: 34px;
+        padding: 5px 10px;
+      }
+      button:hover:not(:disabled) {
+        background: var(--hover);
+      }
+      button.primary {
+        background: var(--accent);
+        border-color: transparent;
+        color: var(--surface);
+        font-weight: 600;
+      }
+      button.primary:hover:not(:disabled) {
+        filter: brightness(1.08);
+        background: var(--accent);
+      }
+      svg {
+        display: block;
+        pointer-events: none;
+      }
+      .symbols {
+        position: absolute;
+        width: 0;
+        height: 0;
+        overflow: hidden;
+        pointer-events: none;
+      }
+      .glyph {
+        width: 18px;
+        height: 18px;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 1.7;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+      h1,
+      h2,
+      p {
+        margin: 0;
+      }
+      h1 {
+        font-size: 25px;
+        line-height: 1.12;
+        letter-spacing: -0.04em;
+        font-weight: 650;
+      }
+      h2 {
+        font-size: 14px;
+        font-weight: 650;
+      }
+      .muted,
+      .hint {
+        color: var(--muted);
+      }
+      .hint {
+        font-size: 12px;
+        line-height: 1.4;
+      }
+      .shell {
+        width: min(100%, 528px);
+        padding: 16px;
+        display: grid;
+        gap: 16px;
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        background: var(--surface);
+      }
+      .head,
+      .section-head,
+      .line,
+      .foot {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .section-head,
+      .foot {
+        justify-content: space-between;
+      }
+      .head .mark {
+        flex: none;
+        display: grid;
+        place-items: center;
+        border-radius: 12px;
+        width: 46px;
+        height: 46px;
+        background: #273653;
+        color: #bbd6ff;
+      }
+      .mark svg {
+        width: 27px;
+        height: 27px;
+      }
+      .head p {
+        font-size: 13px;
+        margin-top: 3px;
+        color: var(--muted);
+      }
+      .section {
+        border-top: 1px solid var(--line);
+        padding-top: 12px;
+        display: grid;
+        gap: 8px;
+      }
+      .secondary {
+        background: var(--tint);
+        border-color: var(--accent);
+        color: var(--accent);
+        font-weight: 550;
+      }
+      .secondary:enabled:hover {
+        background: var(--tint);
+        box-shadow: inset 0 0 0 1px currentColor;
+      }
+      .secondary:enabled:active {
+        background: var(--accent);
+        color: var(--surface);
+      }
+      .launchers {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: start;
+        gap: 6px;
+      }
+      .tile {
+        border: 0;
+        background: transparent;
+        display: grid;
+        justify-items: center;
+        align-content: start;
+        gap: 4px;
+        padding: 5px 2px;
+        width: 70px;
+        border-radius: 9px;
+        min-height: 0;
+      }
+      .caption {
+        font-size: 11px;
+        line-height: 1.24;
+        font-weight: 500;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%;
+        white-space: nowrap;
+      }
+      .picture {
+        width: 40px;
+        height: 40px;
+        display: grid;
+        place-items: center;
+        border-radius: 11px;
+        background: var(--tile, #536d87);
+        color: white;
+      }
+      .picture { position: relative; }
+      .picture progress {
+        position: absolute; inset-inline: 12%; bottom: 0; width: 76%; height: 3px;
+        pointer-events: none;
+      }
+      .picture .glyph {
+        width: 23px;
+        height: 23px;
+        stroke-width: 1.7;
+      }
+      .picture img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+      }
+      .picture.real {
+        background: transparent;
+      }
+      .picture.real .glyph {
+        display: none;
+      }
+      .fields {
+        display: grid;
+        grid-template-columns: 1fr 1.45fr;
+        gap: 10px;
+      }
+      .fields label {
+        display: grid;
+        gap: 3px;
+        min-width: 0;
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .fields select {
+        width: 100%;
+        font-size: 13px;
+        color: var(--ink);
+      }
+      .check {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        font-size: 13px;
+      }
+      .check input {
+        margin: 0;
+        accent-color: var(--accent);
+      }
+      .picker {
+        background: var(--hover);
+        border-radius: 10px;
+        padding: 10px;
+        display: grid;
+        gap: 8px;
+      }
+      .picker input {
+        min-width: 0;
+        width: 100%;
+      }
+      .results {
+        display: grid;
+        gap: 4px;
+      }
+      .item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        width: 100%;
+        border: 0;
+        min-height: 31px;
+        text-align: left;
+        background: transparent;
+      }
+      .item .name {
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .item .picture {
+        width: 22px;
+        height: 22px;
+        flex: 0 0 22px;
+        border-radius: 5px;
+      }
+      .item .picture .glyph { width: 14px; height: 14px; }
+      .picture > * { grid-area: 1 / 1; }
+      .item .flag {
+        color: var(--accent);
+        font-size: 12px;
+      }
+      .pages {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .pages button {
+        min-height: 27px;
+        padding: 2px 8px;
+      }
+      .foot {
+        flex-wrap: wrap;
+      }
+      .foot .hint {
+        flex: 1;
+        min-width: 140px;
+      }
+      .foot button {
+        flex: none;
+      }
+      .message:empty {
+        display: none;
+      }
+      .message {
+        font-size: 12px;
+        color: var(--accent);
+      }
+      .railGrip,
+      .railEdit {
+        display: none;
+      }
+      html.widget,
+      body.widget {
+        background: transparent;
+        color: var(--ink);
+      }
+      body.widget {
+        display: block;
+        min-height: 0;
+        padding: 4px;
+        width: max-content;
+      }
+      /* The pinned shelf reuses its launcher buttons. Hide only the setup controls and captions. */
+      .widget .setup,
+      .widget .caption {
+        display: none;
+      }
+      .widget .shell {
+        display: inline-flex;
+        width: max-content;
+        max-width: none;
+        align-items: center;
+        gap: 4px;
+        padding: 5px;
+        border-radius: 13px;
+        vertical-align: top;
+      }
+      .widget .launchers {
+        display: grid;
+        gap: 3px;
+        align-items: center;
+      }
+      .widget .tile {
+        width: 40px;
+        height: 40px;
+        min-height: 0;
+        display: grid;
+        place-items: center;
+        padding: 2px;
+        gap: 0;
+      }
+      .widget .picture {
+        width: 36px;
+        height: 36px;
+        border-radius: 9px;
+      }
+      .widget[data-axis="vertical"] .shell {
+        flex-direction: column;
+      }
+      .widget[data-axis="vertical"] .launchers {
+        grid-auto-flow: column;
+        grid-template-rows: repeat(var(--tracks, 4), 40px);
+      }
+      .widget[data-axis="horizontal"] .shell {
+        flex-direction: row;
+      }
+      .widget[data-axis="horizontal"] .launchers {
+        grid-auto-flow: row;
+        grid-template-columns: repeat(var(--tracks, 4), 40px);
+      }
+      .widget .railGrip,
+      .widget .railEdit {
+        display: grid;
+        place-items: center;
+        flex: none;
+        color: var(--muted);
+        user-select: none;
+        -webkit-user-select: none;
+      }
+      .railGrip {
+        cursor: grab;
+        touch-action: none;
+      }
+      .railGrip:active {
+        cursor: grabbing;
+      }
+      .widget .railGrip {
+        width: 32px;
+        height: 20px;
+      }
+      .widget[data-axis="horizontal"] .railGrip {
+        height: 32px;
+        width: 20px;
+      }
+      .railGrip svg {
+        width: 16px;
+        height: 16px;
+        fill: currentColor;
+      }
+      .widget .railEdit {
+        border: 0;
+        background: transparent;
+        width: 30px;
+        height: 26px;
+        padding: 2px;
+        min-height: 0;
+      }
+      .railEdit .glyph {
+        width: 16px;
+        height: 16px;
+      }
+      @media (max-width: 380px) {
+        .fields {
+          gap: 7px;
+        }
+        .head {
+          gap: 8px;
+        }
+      }
+    </style>
+    <!-- Folder projects use ProjectIcon.png beside index.html for their app icon. -->
+  </head>
+  <body>
+    <!-- Define each fallback glyph once. Tiles reference these symbols when native app artwork is unavailable. -->
+    <svg class="symbols" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <symbol id="g-shelf" viewBox="0 0 24 24">
+          <path d="M4 3v17h17M9 15v-5m5 5V7m5 8v-4" />
+        </symbol>
+        <symbol id="g-calc" viewBox="0 0 24 24">
+          <rect x="5" y="2.5" width="14" height="19" rx="3" />
+          <path d="M8 7.5h8M8.5 12h1m4 0h1m-6 4h1m4 0h1" />
+        </symbol>
+        <symbol id="g-notes" viewBox="0 0 24 24">
+          <path d="M6 3.5h12a2 2 0 0 1 2 2v11l-4 4H6a2 2 0 0 1-2-2v-13a2 2 0 0 1 2-2Z" />
+          <path d="M8 9h8m-8 4h6m2 7v-4h4" />
+        </symbol>
+        <symbol id="g-calendar" viewBox="0 0 24 24">
+          <rect x="3" y="5" width="18" height="16" rx="3" />
+          <path d="M7 3v4m10-4v4M3 10h18m-13 4h2m3 0h2" />
+        </symbol>
+        <symbol id="g-editor" viewBox="0 0 24 24">
+          <path d="m4 17-.5 3.5L7 20 20 7l-3-3Z M14 7l3 3" />
+        </symbol>
+        <symbol id="g-grid" viewBox="0 0 24 24">
+          <rect x="3" y="3" width="7" height="7" rx="2" />
+          <rect x="14" y="3" width="7" height="7" rx="2" />
+          <rect x="3" y="14" width="7" height="7" rx="2" />
+          <rect x="14" y="14" width="7" height="7" rx="2" />
+        </symbol>
+        <symbol id="g-settings" viewBox="0 0 24 24">
+          <path d="M3 7h4m5 0h9M3 17h10m5 0h3" />
+          <circle cx="9.5" cy="7" r="2.5" />
+          <circle cx="15.5" cy="17" r="2.5" />
+        </symbol>
+      </defs>
+    </svg>
+    <main class="shell" id="shelf" data-htmltoapp-region>
+      <header class="head setup">
+        <span class="mark">
+          <svg class="glyph" aria-hidden="true">
+            <use href="#g-shelf" />
+          </svg>
+        </span>
+        <div>
+          <h1>Edge Shelf</h1>
+          <p>Your favorite apps, one click from the edge.</p>
+        </div>
+      </header>
+      <div class="section-head setup">
+        <h2>Your shelf</h2>
+        <button type="button" class="secondary" id="list" aria-expanded="false" aria-controls="picker" disabled>Choose apps</button>
+      </div>
+      <div class="railGrip" data-htmltoapp-drag="snap" role="img" aria-label="Drag shelf to a display edge" title="Drag to another edge">
+        <svg viewBox="0 0 16 16" aria-hidden="true">
+          <circle cx="4" cy="6" r="1.4" />
+          <circle cx="8" cy="6" r="1.4" />
+          <circle cx="12" cy="6" r="1.4" />
+          <circle cx="4" cy="10" r="1.4" />
+          <circle cx="8" cy="10" r="1.4" />
+          <circle cx="12" cy="10" r="1.4" />
+        </svg>
+      </div>
+      <div id="launchers" class="launchers" role="group" aria-label="App shortcuts"></div>
+      <button id="restore" class="railEdit" title="Edit shelf and unpin" aria-label="Edit shelf and unpin">
+        <svg class="glyph" aria-hidden="true">
+          <use href="#g-settings" />
+        </svg>
+      </button>
+      <div id="picker" class="picker setup" hidden>
+        <label>
+          <input id="search" type="search" placeholder="Find an application" aria-label="Find an application">
+        </label>
+        <div id="results" class="results"></div>
+        <div class="pages" id="pages" hidden>
+          <button id="prev">Previous</button>
+          <span class="hint" id="page"></span>
+          <button id="next">Next</button>
+        </div>
+        <p id="access" class="hint"></p>
+      </div>
+      <section class="section setup">
+        <h2>Placement</h2>
+        <div class="fields">
+          <label>
+            Edge
+            <select id="edge">
+              <option value="right">Right</option>
+              <option value="left">Left</option>
+              <option value="top">Top</option>
+              <option value="bottom">Bottom</option>
+            </select>
+          </label>
+          <label>
+            Display
+            <select id="display">
+              <option>Current display</option>
+            </select>
+          </label>
+        </div>
+        <label class="check">
+          <input type="checkbox" id="mirror">Mirror on other displays
+        </label>
+      </section>
+      <div class="section setup">
+        <div class="foot">
+          <p class="hint" id="guide">Choose apps for your shelf, then pin it to a display edge.</p>
+          <button class="primary" id="pin" disabled>Pin shelf</button>
+        </div>
+        <div class="foot">
+          <button type="button" id="art" class="secondary" hidden>Animate Dock icon</button>
+          <output class="message" id="status" aria-live="polite"></output>
+        </div>
+      </div>
+    </main>
+    <script>
+      (() => {
+        "use strict";
+        const $ = (id) => document.getElementById(id),
+          api = window.HTMLtoApp,
+          win = api?.window;
+        const base = [
+          { id: "com.apple.calculator", name: "Calculator", glyph: "calc", color: "#425575" },
+          { id: "com.apple.Notes", name: "Notes", glyph: "notes", color: "#9b6a1c" },
+          { id: "com.apple.iCal", name: "Calendar", glyph: "calendar", color: "#aa494a" },
+          { id: "com.apple.TextEdit", name: "TextEdit", glyph: "editor", color: "#38756d" }
+        ];
+        const known = new Map(base.map((a) => [a.id, a])),
+          icons = new Map(),
+          key = "edge-shelf.preferences.v1",
+          safeId = (id) => typeof id === "string" && /^[a-z\d._-]{1,255}$/i.test(id);
+        let favorites = base.slice(),
+          screens = [],
+          collection = base,
+          permissions = { list: false, open: false, dockArtwork: false };
+        let pinned = false,
+          resumePinned = false,
+          preferredDisplay = "",
+          busy = false,
+          listed = false,
+          listRequest = null,
+          page = 0,
+          current = "",
+          zoom = 1,
+          frame = 0,
+          pendingFit = 0,
+          fitting = false,
+          dirtyFit = false,
+          animation = 0,
+          drawing = false,
+          change = 0;
+        const say = (text) => {
+          $("status").textContent = text;
+        };
+        try {
+          const saved = JSON.parse(localStorage.getItem(key) || "null");
+          if (saved?.version === 1 && Array.isArray(saved.apps)) {
+            const valid = saved.apps
+              .filter((a) => a && safeId(a.id) && typeof a.name === "string" && a.name.length < 256)
+              .slice(0, 12);
+            if (valid.length)
+              favorites = Array.from(
+                new Map(
+                  valid.map((a) => [a.id, known.get(a.id) || { id: a.id, name: a.name }])
+                ).values()
+              );
+            if (["left", "right", "top", "bottom"].includes(saved.edge))
+              $("edge").value = saved.edge;
+            $("mirror").checked = saved.mirror === true;
+            resumePinned = saved.pinned === true;
+            preferredDisplay = typeof saved.display === "string" ? saved.display : "";
+          }
+        } catch {
+          say("Saved preferences could not be read. You can still use this shelf.");
+        }
+
+        function save() {
+          try {
+            localStorage.setItem(
+              key,
+              JSON.stringify({
+                version: 1,
+                apps: favorites.map(({ id, name }) => ({ id, name })),
+                edge: $("edge").value,
+                mirror: $("mirror").checked,
+                pinned: resumePinned,
+                display: preferredDisplay
+              })
+            );
+          } catch {
+            say("Your changes apply for this session.");
+          }
+        }
+        const run =
+          (fn) =>
+          async (...args) => {
+            try {
+              await fn(...args);
+            } catch (e) {
+              say(e.message || String(e));
+            }
+          };
+
+        function glyph(name) {
+          const ns = "http://www.w3.org/2000/svg",
+            svg = document.createElementNS(ns, "svg"),
+            use = document.createElementNS(ns, "use");
+          svg.setAttribute("class", "glyph");
+          svg.setAttribute("aria-hidden", "true");
+          use.setAttribute("href", "#g-" + name);
+          svg.append(use);
+          return svg;
+        }
+
+        // Draw a fallback immediately. Looking up a real app icon is optional and needs listing access.
+        function picture(app) {
+          const box = document.createElement("span"),
+            fallback = known.get(app.id);
+          box.className = "picture";
+          if (fallback) box.style.setProperty("--tile", fallback.color);
+          box.append(glyph(fallback?.glyph || "grid"));
+          if (permissions.list && typeof api?.apps?.icon === "function") {
+            if (!icons.has(app.id))
+              icons.set(
+                app.id,
+                api.apps.icon(app.id).catch(() => null)
+              );
+            const progress = document.createElement("progress");
+            progress.setAttribute("aria-label", "Loading icon for " + app.name);
+            box.setAttribute("aria-busy", "true");
+            // Cached artwork is usually instant. Only show a bar for a slow lookup.
+            const timer = setTimeout(() => box.append(progress), 150);
+            icons.get(app.id).then(async src => {
+              if (!src || !src.startsWith("data:image/png;base64,")) return;
+              const image = new Image();
+              image.alt = "";
+              image.draggable = false;
+              image.src = src;
+              await image.decode();
+              box.append(image); box.classList.add("real");
+            }).catch(() => { /* Keep the usable fallback shortcut. */ }).finally(() => {
+              clearTimeout(timer); progress.remove(); box.removeAttribute("aria-busy");
+            });
+          }
+          return box;
+        }
+
+        // Listing apps and opening them are separate export permissions. A visible tile is not a grant.
+        async function launch(app) {
+          if (!permissions.open) {
+            if (pinned) await edit();
+            say("Enable Open Installed Apps in the project's permissions to launch shortcuts.");
+            return;
+          }
+          try {
+            // Cancel is a normal outcome. Leave the shelf pinned and do not retry.
+            if ((await api.apps.open(app.id)) === false) say("App was not opened.");
+          } catch (e) {
+            if (pinned) await edit();
+            say(e.message || "This application could not be opened.");
+          }
+        }
+
+        function renderFavorites() {
+          const buttons = favorites.map((app) => {
+            const b = document.createElement("button");
+            b.className = "tile";
+            b.dataset.appId = app.id;
+            b.title = app.name;
+            b.setAttribute("aria-label", "Open " + app.name);
+            const label = document.createElement("span");
+            label.className = "caption";
+            label.textContent = app.name;
+            b.append(picture(app), label);
+            b.onclick = run(() => launch(app));
+            return b;
+          });
+          $("launchers").replaceChildren(...buttons);
+          requestFit();
+        }
+
+        function renderChoices() {
+          const q = $("search").value.trim().toLocaleLowerCase(),
+            matches = collection.filter((a) => a.name.toLocaleLowerCase().includes(q)),
+            pages = Math.max(1, Math.ceil(matches.length / 5));
+          page = Math.min(page, pages - 1);
+          $("results").replaceChildren();
+          for (const a of matches.slice(page * 5, page * 5 + 5)) {
+            const b = document.createElement("button"),
+              name = document.createElement("span"),
+              flag = document.createElement("span");
+            b.className = "item";
+            name.className = "name";
+            name.textContent = a.name;
+            flag.className = "flag";
+            function showSelection(selected) {
+              flag.textContent = selected ? "Remove" : "Add";
+              b.setAttribute("aria-pressed", String(selected));
+              b.setAttribute("aria-label", (selected ? "Remove " : "Add ") + a.name);
+            }
+            showSelection(favorites.some((x) => x.id === a.id));
+            // Only the visible page requests icons. Favorites and picker rows share the same cache.
+            b.append(picture(a), name, flag);
+            b.onclick = () => {
+              const selected = favorites.some((x) => x.id === a.id);
+              if (selected && favorites.length === 1)
+                return say("Keep at least one shortcut on your shelf.");
+              if (!selected && favorites.length >= 12)
+                return say("Your shelf holds up to 12 shortcuts.");
+              favorites = selected
+                ? favorites.filter((x) => x.id !== a.id)
+                : favorites.concat({ id: a.id, name: a.name });
+              save();
+              renderFavorites();
+              // Keep this row, its decoded artwork, and keyboard focus in place.
+              showSelection(!selected);
+            };
+            $("results").append(b);
+          }
+          if (!matches.length) $("results").textContent = "No applications match your search.";
+          $("pages").hidden = pages === 1;
+          $("page").textContent = page + 1 + " / " + pages;
+          $("prev").disabled = !page;
+          $("next").disabled = page + 1 >= pages;
+        }
+        $("list").onclick = run(async () => {
+          const open = $("picker").hidden;
+          $("picker").hidden = !open;
+          $("list").setAttribute("aria-expanded", String(open));
+          if (!open) return;
+          renderChoices();
+          $("search").focus();
+          if (!permissions.list) {
+            $("access").textContent = "These starter shortcuts work without listing your apps. Enable List Installed Apps in the project's permissions to choose others.";
+            return;
+          }
+          if (!listed) {
+            $("access").textContent = "Reading installed apps...";
+            try {
+              // Reopening the picker during a slow scan shares the same request.
+              const apps = await (listRequest ||= api.apps.list());
+              collection = apps.length ? apps : base;
+              listed = true;
+              if (!$("picker").hidden) renderChoices();
+            } catch (e) {
+              $("access").textContent = "The app list could not be read. Close and reopen the picker to try again.";
+              say(e.message);
+              return;
+            } finally { listRequest = null; }
+          }
+          $("access").textContent = "Select up to 12 shortcuts for your shelf.";
+        });
+        $("search").oninput = () => {
+          page = 0;
+          renderChoices();
+        };
+        $("prev").onclick = () => {
+          page--;
+          renderChoices();
+        };
+        $("next").onclick = () => {
+          page++;
+          renderChoices();
+        };
+
+        function selectDisplay(id) {
+          if (screens.some((s) => s.id === id)) $("display").value = id;
+        }
+
+        // Keep the display ID, not its menu position. Connecting a monitor can reorder the list.
+        async function displays() {
+          const [list, state] = await Promise.all([win.getDisplays(), win.getState()]);
+          screens = list;
+          current = state.displayId;
+          $("display").replaceChildren(
+            ...screens.map((s, i) => new Option(s.name || "Display " + (i + 1), s.id))
+          );
+          selectDisplay(current);
+          requestFit();
+        }
+
+        function axis(edge) {
+          document.body.dataset.axis = /^(top|bottom)$/.test(edge) ? "horizontal" : "vertical";
+        }
+
+        function requestFit() {
+          if (!pinned || busy) return;
+          dirtyFit = true;
+          if (pendingFit || fitting) return;
+          pendingFit = requestAnimationFrame(async () => {
+            pendingFit = 0;
+            if (!pinned || busy) return;
+            dirtyFit = false;
+            fitting = true;
+            try { await fit(); }
+            catch (e) { say(e.message); }
+            finally {
+              fitting = false;
+              if (dirtyFit) requestFit();
+            }
+          });
+        }
+
+        // Measure the rendered tiles after choosing their row or column count. Convert page units
+        // to window points so the shelf still fits when the user has changed the zoom.
+        async function fit() {
+          const ticket = change;
+          const horizontal = document.body.dataset.axis === "horizontal",
+            screen = screens.find((s) => s.id === current) || screens[0],
+            room = (horizontal ? screen?.visibleBounds?.width : screen?.visibleBounds?.height) || 600,
+            tracks = Math.min(favorites.length, Math.max(1, Math.floor((room / zoom - 90) / 43)));
+          $("shelf").style.setProperty("--tracks", tracks);
+          const r = $("shelf").getBoundingClientRect(),
+            width = Math.ceil((r.width + 8) * zoom),
+            height = Math.ceil((r.height + 8) * zoom),
+            state = await win.getState();
+          if (pinned && ticket === change &&
+              (Math.abs(state.bounds.width - width) > 1 || Math.abs(state.bounds.height - height) > 1))
+            await win.setBounds({ width, height });
+        }
+
+        function paintWidget(value) {
+          pinned = value;
+          change++;
+          document.documentElement.classList.toggle("widget", value);
+          document.body.classList.toggle("widget", value);
+          if (!value) {
+            cancelAnimationFrame(pendingFit);
+            pendingFit = 0;
+            dirtyFit = false;
+          }
+        }
+
+        async function edit() {
+          if (!pinned || busy) return;
+          busy = true;
+          try {
+            paintWidget(false);
+            await win.reset();
+            resumePinned = false;
+            save();
+            $("pin").focus();
+          } finally {
+            busy = false;
+          }
+        }
+
+        // CSS lays out the tiles. The bridge anchors their window to a physical edge and lets
+        // clicks pass through the transparent margin without disabling the buttons.
+        async function pin() {
+          if (busy || pinned || !win) return;
+          busy = true;
+          try {
+            const state = await win.getState(),
+              target = $("display").value;
+            zoom = Math.min(4, Math.max(0.25, state.bounds.width / Math.max(1, innerWidth)));
+            if (target && target !== state.displayId) await win.moveToDisplay(target);
+            current = target || state.displayId;
+            axis($("edge").value);
+            $("picker").hidden = true;
+            $("list").setAttribute("aria-expanded", "false");
+            paintWidget(true);
+            await win.configure({
+              titleBar: "borderless",
+              transparent: true,
+              clickThrough: "transparent",
+              level: "floating",
+              anchor: $("edge").value,
+              inset: 3,
+              allSpaces: true,
+              missionControl: "stationary",
+              displayMode: "single",
+              mirrorInteraction: "activateHere"
+            });
+            // Measure and resize the interactive rail before any display receives its first copy.
+            await fit();
+            if (!pinned) return;
+            if ($("mirror").checked) await win.configure({ displayMode: "mirror" });
+            resumePinned = true;
+            preferredDisplay = current;
+            save();
+            $("restore").focus({ preventScroll: true });
+          } catch (e) {
+            paintWidget(false);
+            resumePinned = false;
+            save();
+            await win.reset().catch(() => {});
+            throw e;
+          } finally {
+            busy = false;
+            requestFit();
+          }
+        }
+        $("pin").onclick = run(pin);
+        $("restore").onclick = run(edit);
+        $("edge").onchange = () => save();
+        $("mirror").onchange = () => save();
+        $("display").onchange = run(async () => {
+          const id = $("display").value;
+          if (!pinned && id && id !== current) {
+            const s = await win.moveToDisplay(id);
+            current = s.displayId;
+            selectDisplay(current);
+          }
+        });
+        addEventListener(
+          "htmltoapp-mirroractivate",
+          run(async (e) => {
+            if (!pinned) return;
+            const button = document.elementFromPoint(e.detail.x, e.detail.y)?.closest("button");
+            if (!button) return;
+            if (button === $("restore")) await edit();
+            else {
+              const app = favorites.find((a) => a.id === button.dataset.appId);
+              if (app) await launch(app);
+            }
+          })
+        );
+        addEventListener("htmltoapp-displayschange", run(displays));
+        addEventListener("htmltoapp-windowchange", (e) => {
+          const s = e.detail;
+          if (!s) return;
+          current = s.displayId;
+          selectDisplay(current);
+          if (s.userRestored && pinned) {
+            paintWidget(false);
+            resumePinned = false;
+            save();
+            say("Standard window restored.");
+          } else if (pinned) {
+            if (["left", "right", "top", "bottom"].includes(s.anchor)) {
+              axis(s.anchor);
+              const moved = $("edge").value !== s.anchor || preferredDisplay !== s.displayId;
+              $("edge").value = s.anchor;
+              preferredDisplay = s.displayId;
+              if (moved && !busy) save();
+            }
+            requestFit();
+          }
+        });
+        new ResizeObserver(requestFit).observe($("shelf"));
+        const canvas = document.createElement("canvas");
+        canvas.width = canvas.height = 96;
+        $("art").onclick = run(async () => {
+          if (animation) {
+            clearInterval(animation);
+            animation = 0;
+            await api.dock.resetIcon();
+            $("art").textContent = "Animate Dock icon";
+            return;
+          }
+          const c = canvas.getContext("2d");
+          const draw = async () => {
+            if (drawing) return;
+            drawing = true;
+            try {
+              c.clearRect(0, 0, 96, 96);
+              c.fillStyle = "#273653";
+              c.fillRect(4, 4, 88, 88);
+              c.fillStyle = "#bbd6ff";
+              for (let i = 0; i < 3; i++) {
+                const h = 18 + Math.round(20 * (1 + Math.sin(frame + i)));
+                c.fillRect(21 + i * 20, 72 - h, 12, h);
+              }
+              frame += 0.35;
+              await api.dock.setIcon(canvas);
+            } catch (e) {
+              clearInterval(animation);
+              animation = 0;
+              $("art").textContent = "Animate Dock icon";
+              say(e.message);
+            } finally {
+              drawing = false;
+            }
+          };
+          animation = setInterval(draw, 200);
+          $("art").textContent = "Stop Dock animation";
+          await draw();
+        });
+        let clicks = 0;
+        addEventListener("htmltoapp-dockclick", () => say("Dock clicks received: " + ++clicks));
+        addEventListener("pagehide", () => clearInterval(animation));
+        renderFavorites();
+        run(async () => {
+          if (!win?.getDisplays) {
+            $("list").disabled = false;
+            $("display").disabled = true;
+            $("guide").textContent = api
+              ? "Update HTML to App to pin this shelf. Choose Export App to build your launcher."
+              : "Open this example in HTML to App to pin it, then choose Export App to make your launcher.";
+            return;
+          }
+          $("guide").textContent = "Reading displays and shortcut permissions...";
+          await displays();
+          try { permissions = await api.apps.permissions(); }
+          finally { $("list").disabled = false; }
+          renderFavorites();
+          $("art").hidden = !permissions.dockArtwork;
+          $("guide").textContent = permissions.open
+            ? "Choose a shortcut to open it. You will be asked before an app opens."
+            : "Enable Open Installed Apps in the project's permissions to launch shortcuts. You can still pin and arrange this shelf.";
+          $("pin").disabled = false;
+          if (!api.isPreview && resumePinned) {
+            selectDisplay(preferredDisplay);
+            await pin();
+          }
+        })();
+      })();
+    </script>
+  </body>
+</html>

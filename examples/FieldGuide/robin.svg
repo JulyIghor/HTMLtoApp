@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 130" role="img" aria-label="Perched robin">
+  <rect width="240" height="130" rx="12" fill="#eae5cf"/>
+  <circle cx="176" cy="36" r="22" fill="#f4d4a1"/>
+  <path d="M9 116q51-24 109-15t111-12" fill="none" stroke="#807051" stroke-width="6"/>
+  <path d="m109 85-3 18m17-17 1 17" stroke="#5b4832" stroke-width="3"/>
+  <path d="M61 88 95 60q11-12 25-18 4-19 21-19 19 0 20 21l13 6-14 5q-1 25-19 35-23 15-42-5l-38 9z" fill="#68594b"/>
+  <path d="M103 73q24-4 43-25l12 8q-3 26-24 35-18 7-31-6z" fill="#c46234"/>
+  <path d="M80 82q13-26 43-29l-11 18z" fill="#413e37"/><circle cx="148" cy="39" r="5" fill="#f1dfbd"/><circle cx="149" cy="39" r="2.5" fill="#292f2b"/>
+</svg>

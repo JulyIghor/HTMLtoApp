@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en" data-theme="ink">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Tracing Paper</title>
+    <link rel="stylesheet" href="GalleryKit/spacing.css">
+    <meta name="htmltoapp:open-with" content="role=viewer; files=png,jpg,jpeg,webp; folders=false">
+    <!-- The lesson's JavaScript and sample assets live together in TracingPaper/. -->
+    <link rel="stylesheet" href="GalleryKit/interaction.css">
+    <link rel="stylesheet" href="GalleryKit/lesson.css">
+    <link rel="stylesheet" href="GalleryKit/activity.css">
+    <script defer src="GalleryKit/activity.js"></script>
+    <style>
+      #sheet { display: grid; place-items: center; padding: var(--panel-inset); border-radius: 12px; background: var(--panel); }
+      #reference { display: block; max-height: 48vh; object-fit: contain; }
+      body.overlay, html.overlay, body.overlay main, body.overlay #sheet { background: transparent; }
+      body.overlay main { padding: 0; display: block; height: 100vh; }
+      body.overlay header, body.overlay #controls { display: none; }
+      body.overlay #sheet { width: 100%; height: 100%; padding: 0; }
+      body.overlay #reference { width: 100%; height: 100%; max-height: none; }
+      #floatingBar { position: fixed; bottom: 8px; left: 8px; background: var(--panel); padding: 8px; border-radius: 8px; }
+      /* Keep the unlock directions legible over any drawing without intercepting a click. */
+      #lockNotice { position: fixed; inset: auto var(--panel-inset) var(--panel-inset); max-width: 32rem;
+        margin-inline: auto; pointer-events: none; }
+      #lockNotice:not(:empty) { padding: var(--copy-gap) var(--group-gap); border: 1px solid var(--line);
+        border-radius: 8px; background: var(--panel); color: var(--ink); font-size: .95rem; }
+      [data-htmltoapp-drag] { cursor: grab; }
+    </style>
+    <script type="module" src="TracingPaper/app.js"></script>
+    <!-- Folder projects use ProjectIcon.png beside index.html for their app icon. -->
+  </head>
+  <body>
+    <div data-gallery-activity role="status" hidden><progress aria-label="Loading"></progress><span></span></div>
+    <main>
+      <header>
+        <p class="kicker">Drawing desk / Reference</p>
+        <h1>Tracing Paper</h1>
+        <p>Float a tracing over your drawing. Lock it to send clicks through to the app underneath. <span id="unlockHelp"></span></p>
+      </header>
+      <section id="controls" class="panel stack" aria-label="Overlay controls">
+        <div class="bar">
+          <button type="button" id="openFile" aria-haspopup="dialog" aria-controls="file">Open reference image...</button>
+          <input hidden id="file" type="file" accept="image/png,image/jpeg,image/webp">
+          <button id="sample">Use lighthouse sample</button>
+        </div>
+        <div class="bar"><label>Opacity <input id="opacity" type="range" min="10" max="100" value="65"> <output id="percent">65%</output></label>
+          <button id="float" class="primary">Float reference</button><button id="lock" aria-describedby="unlockHelp">Lock overlay</button></div>
+        <p id="status" class="status" role="status">Change the opacity to try the bundled drawing.</p>
+      </section>
+      <figure id="sheet" data-htmltoapp-region><img id="reference" src="TracingPaper/lighthouse.svg" alt="Reference drawing"></figure>
+      <div id="floatingBar" class="bar" data-htmltoapp-region hidden>
+        <span data-htmltoapp-drag>Drag to move</span>
+        <label>Opacity <input id="floatingOpacity" type="range" min="10" max="100" value="65"></label>
+        <button id="lockFloating" aria-describedby="unlockHelp">Lock overlay</button><button id="edit">Edit</button>
+      </div>
+    </main>
+    <p id="lockNotice" role="status" aria-atomic="true"></p>
+  </body>
+</html>
