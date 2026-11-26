@@ -1,6 +1,6 @@
 # HTML to App examples
 
-[HTML to App](https://htmltoapp.app/) turns a local web project into a sandboxed Mac app. This repository contains editable examples from the **1.1.1** gallery, not the native builder or launcher source.
+[HTML to App](https://htmltoapp.app/) turns a local web project into a sandboxed Mac app. This repository contains editable examples from the **1.1.1** gallery and additional projects you can download here. It does not contain the native builder or launcher source.
 
 [Browse the examples and downloads](examples/README.md) · [Mac App Store](https://apps.apple.com/app/apple-store/id6796812125?pt=127627850&ct=github&mt=8) · [Setapp](https://setapp.com/apps/html-to-app)
 
@@ -10,13 +10,15 @@
 2. Choose **Export with Defaults**, or **Customize** to review the name, icon and permissions first. Field Guide needs no optional permissions. Save the app and open it.
 3. Search for `blue`. You should see the Great Blue Heron and Belted Kingfisher. The search runs against the included JSON and SVG files, without an HTTP server or an internet connection.
 
-To edit it, choose **+ > Example Gallery** in HTML to App, select **Field Guide** and choose **Create Project**. In its folder, change a field mark in `FieldGuide/birds.json`, save and choose **Run**. To edit a download instead, duplicate the `.htmltoapp` file, change the copy's extension to `.zip`, expand it in Finder and use **Add Project Folder** on the folder containing `index.html`.
+To edit it, choose **+ > Example Gallery** in HTML to App, select **Field Guide** and choose **Create Project**. In its folder, change a field mark in `FieldGuide/birds.json`, save and choose **Run**. To edit the Field Guide download instead, duplicate the `.htmltoapp` file, change the copy's extension to `.zip`, expand it in Finder and use **Add Project Folder** on the folder containing `index.html`.
 
 ## Start with an idea instead of a project
 
 The [vibe coding guide](https://htmltoapp.app/vibe-coding/) shows how to make a Mac tool in an ordinary browser chat, including free Claude without Claude Code. It includes prompts for a first working project and an updated version. You can start on your phone and send the file to your Mac. No Xcode, Terminal or local coding agent is required.
 
 Give the chat the [complete project-authoring guide](https://htmltoapp.app/documentation/agents.md) and ask for an editable `.htmltoapp` file, not an executable. HTML to App packages the web files on your Mac. Anything you send to the chat is shared with that provider, so use sample data there.
+
+For a single-file example, [download Aquarium Launchpad](https://raw.githubusercontent.com/JulyIghor/HTMLtoApp/main/packages/AquariumLaunchpad.htmltoapp) or [read its source](examples/AquariumLaunchpad.html). Search for an app by name and click its fish to launch it. The exported app even animates a fish in the Dock. Enable **List Installed Apps** and **Open Installed Apps** to use it with your own apps.
 
 ## Pick an example by what you want to learn
 
@@ -36,7 +38,7 @@ The links in this table show the HTML source. Use the [gallery download index](e
 - **Convert without a project.** Use **Convert HTML to App** in the main window, or select a file or folder in Finder and choose **Services > Convert HTML to App**. Choose the whole folder if the entry page uses neighboring files.
 - **Edit and preview.** Add a folder containing `index.html` to the workspace. **Run** opens it in WebKit. **Check Project** looks for missing static references, and **Checks & Output** shows diagnostics. Relative ES module imports and local JSON fetches work without a development server.
 - **Embed or link.** Embed a snapshot to keep web files inside the exported app. Link a source folder to load its current contents after a reload or relaunch. A portable `.htmltoapp` document always exports with embedded files.
-- **Share and update.** **Project > Share Project** saves editable source, not the app's saved records. The portable format accepts a single self-contained UTF-8 HTML file or a ZIP with `index.html` and its assets. The downloads here use ZIP so each includes its artwork. Preview and exports keep separate website data. When replacing a recognized export, **Keep Existing Data** preserves its storage. **Create a Fresh Copy** gives a separate app its own storage. **Reset Website Data** requires confirmation.
+- **Share and update.** **Project > Share Project** saves editable source, not the app's saved records. The portable format accepts a single self-contained UTF-8 HTML file or a ZIP with `index.html` and its assets. Preview and exports keep separate website data. When replacing a recognized export, **Keep Existing Data** preserves its storage. **Create a Fresh Copy** gives a separate app its own storage. **Reset Website Data** requires confirmation.
 
 ## Which features work where?
 

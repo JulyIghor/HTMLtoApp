@@ -1,0 +1,324 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Aquarium Launchpad</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="htmltoapp:icon" content="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%2362dbe8'/%3E%3Cstop offset='1' stop-color='%2306344f'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect x='3' y='3' width='58' height='58' rx='14' fill='url(%23g)'/%3E%3Cpath d='M18 32 6 22v20z' fill='%23ff5c7a'/%3E%3Cellipse cx='33' cy='32' rx='17' ry='11' fill='%23ff8a3d'/%3E%3Ccircle cx='42' cy='29' r='2.4' fill='%23fff'/%3E%3C/svg%3E">
+<meta name="htmltoapp:open-with" content="listInstalledApps=true; openInstalledApps=true">
+<style>
+*{box-sizing:border-box;margin:0}
+[hidden]{display:none!important}
+:root{--ink:#eafcff;font-family:ui-rounded,"SF Pro Rounded",-apple-system,BlinkMacSystemFont,"Helvetica Neue",sans-serif}
+html,body{height:100%;overflow:hidden;background:transparent;color:var(--ink);-webkit-user-select:none;user-select:none;-webkit-font-smoothing:antialiased}
+html.web,html.web body{background:#041c2c}
+body{padding:clamp(6px,1.2vmin,14px)}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
+.panel{position:relative;height:100%;display:grid;grid-template-rows:auto 1fr auto;overflow:hidden;isolation:isolate;border-radius:clamp(16px,3.4vmin,36px);background:linear-gradient(#5fd9e6,#1996b8 18%,#0c6a95 48%,#07435f 78%,#052c44);box-shadow:0 0 0 1px rgba(255,255,255,.3) inset,0 8px 26px rgba(0,20,40,.55);animation:in .7s cubic-bezier(.2,.9,.25,1.1) both}
+@keyframes in{from{opacity:0;transform:scale(.94)}}
+.bg{position:absolute;inset:0;z-index:-1;pointer-events:none}
+.ray{position:absolute;top:-20%;width:16%;height:130%;background:linear-gradient(rgba(255,255,255,.4),transparent 70%);filter:blur(14px);transform-origin:top;opacity:.5;animation:sway 9s ease-in-out infinite alternate}
+@keyframes sway{from{transform:rotate(var(--a))}to{transform:rotate(calc(var(--a) + 7deg))}}
+#fx{position:absolute;inset:0;width:100%;height:100%}
+.sand{position:absolute;left:-5%;right:-5%;bottom:-3%;height:clamp(36px,12%,110px);border-radius:50% 50% 0 0/70% 70% 0 0;background:radial-gradient(120% 150% at 50% 130%,#f6e0a6,#d8b878 50%,#9c7c52)}
+.weed{position:absolute;bottom:2%;width:34px;transform-origin:50% 100%;animation:weed 4s ease-in-out infinite alternate}
+@keyframes weed{from{transform:skewX(-7deg)}to{transform:skewX(7deg)}}
+.top{display:grid;grid-template-columns:1fr minmax(170px,480px) 1fr;gap:12px;align-items:center;padding:clamp(10px,2vmin,22px) clamp(12px,2.4vmin,26px) 0}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:clamp(14px,2.2vmin,20px);letter-spacing:.2px;text-shadow:0 1px 6px rgba(0,40,70,.5);min-height:36px}
+.chip{font-size:11px;font-weight:600;padding:2px 8px;border-radius:99px;background:rgba(255,255,255,.22)}
+.search{display:flex;align-items:center;gap:8px;height:clamp(36px,5.4vmin,46px);padding:0 14px;border-radius:99px;background:rgba(4,38,60,.42);border:1px solid rgba(255,255,255,.28);box-shadow:0 2px 12px rgba(0,30,50,.25)}
+.search:focus-within{border-color:#8ff4ee;box-shadow:0 0 0 3px rgba(143,244,238,.3)}
+.search svg{flex:none;width:17px;opacity:.85}
+.search input{flex:1;min-width:0;background:none;border:0;outline:0;color:var(--ink);font:inherit;font-size:clamp(13px,2vmin,16px);-webkit-user-select:text;user-select:text}
+.search input::placeholder{color:rgba(234,252,255,.6)}
+.search input::-webkit-search-cancel-button{display:none}
+.tools{display:flex;align-items:center;justify-content:flex-end;gap:6px}
+.sp{flex:1;align-self:stretch;min-height:36px}
+.ib{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;background:rgba(4,38,60,.35);border:1px solid rgba(255,255,255,.22);transition:.2s}
+.ib:hover{background:rgba(255,255,255,.25)}
+.ib svg{width:15px}
+.ib.on{background:#8ff4ee;color:#03324a}
+.pond{position:relative;min-height:0}
+#school{position:absolute;inset:0;--fw:140px}
+.fish{position:absolute;left:0;top:0;width:var(--fw);aspect-ratio:220/136;outline:0;will-change:transform;animation:fi .6s both;transition:opacity .6s}
+.fish.out{opacity:0;pointer-events:none}
+@keyframes fi{from{opacity:0}}
+.pop,.sw,.fl{display:block;width:100%;height:100%;position:relative}
+.pop{transition:transform .25s cubic-bezier(.2,.9,.3,1.4),filter .25s;filter:drop-shadow(0 8px 10px rgba(0,25,45,.35))}
+.fish:hover .pop,.fish:focus-visible .pop{transform:scale(1.1);filter:drop-shadow(0 10px 14px rgba(0,25,45,.45)) brightness(1.08)}
+.fish:focus-visible .pop{outline:2px solid #fff;outline-offset:4px;border-radius:40%}
+.fish.go .pop{animation:pulse .5s ease-in-out infinite alternate}
+@keyframes pulse{to{transform:scale(1.18)}}
+.fish svg{display:block;width:100%;height:100%;overflow:visible}
+.tail{transform-origin:56px 68px;animation:wag var(--wag) ease-in-out infinite alternate}
+@keyframes wag{from{transform:rotate(-15deg)}to{transform:rotate(15deg)}}
+.slot{position:absolute;left:52.7%;top:50%;width:38%;aspect-ratio:1;transform:translate(-50%,-50%)}
+.slot img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 3px 5px rgba(0,0,0,.35));pointer-events:none}
+.gl{display:grid;place-items:center;width:100%;height:100%;border-radius:24%;background:rgba(255,255,255,.85);color:#0b4766;font-weight:800;font-size:calc(var(--fw)*.17)}
+.label{position:absolute;left:50%;top:100%;transform:translateX(-50%);max-width:150%;padding:2px 10px;border-radius:99px;background:rgba(3,30,48,.5);font-size:clamp(10px,calc(var(--fw)*.085),13px);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:.2s}
+.fish:hover .label,.fish:focus-visible .label{background:rgba(255,255,255,.9);color:#05364f}
+.msg{position:absolute;inset:0;display:grid;place-content:center;justify-items:center;gap:10px;text-align:center;padding:24px;text-shadow:0 1px 6px rgba(0,40,70,.5)}
+.msg h2{font-size:clamp(16px,3vmin,24px)}
+.msg p{max-width:46ch;font-size:clamp(12px,1.9vmin,15px);opacity:.85;line-height:1.45}
+.msg button{padding:8px 18px;border-radius:99px;background:#8ff4ee;color:#03324a;font-weight:700}
+.pager{display:flex;align-items:center;justify-content:center;gap:12px;padding:0 12px clamp(10px,2vmin,20px)}
+.pager .box{display:flex;align-items:center;gap:10px;padding:5px 8px;border-radius:99px;background:rgba(4,38,60,.5);border:1px solid rgba(255,255,255,.22);backdrop-filter:blur(8px)}
+.pager .ib:disabled{opacity:.3;cursor:default}
+#dots{display:flex;gap:7px;align-items:center}
+.dot{width:8px;height:8px;padding:0;border-radius:99px;background:rgba(255,255,255,.4);transition:.25s}
+.dot.on{width:22px;background:#8ff4ee}
+#info{font-size:12px;font-weight:600;opacity:.85;padding:0 6px;white-space:nowrap}
+#toast{position:absolute;left:50%;bottom:clamp(60px,10vmin,84px);transform:translate(-50%,20px);max-width:88%;padding:9px 16px;border-radius:14px;background:rgba(3,30,48,.88);font-size:13px;opacity:0;pointer-events:none;transition:.3s;text-align:center}
+#toast.show{opacity:1;transform:translate(-50%,0)}
+@media (max-width:620px){.brand span,#info{display:none}.top{grid-template-columns:auto 1fr auto}}
+@media (max-height:420px){.pager .box{padding:2px 6px}}
+</style>
+</head>
+<body>
+<main class="panel" id="panel" data-htmltoapp-region>
+  <div class="bg" aria-hidden="true">
+    <div class="ray" style="left:6%;--a:14deg"></div><div class="ray" style="left:34%;--a:8deg;animation-delay:-3s"></div><div class="ray" style="left:62%;--a:16deg;animation-delay:-6s"></div>
+    <canvas id="fx"></canvas><div id="plants"></div><div class="sand"></div>
+  </div>
+  <header class="top">
+    <div class="brand" data-htmltoapp-drag>
+      <svg width="28" viewBox="0 0 220 136" aria-hidden="true"><path d="M56 68C38 48 20 30 4 22c10 28 10 64 0 92 18-8 36-26 52-46Z" fill="#ff5c7a"/><ellipse cx="124" cy="68" rx="80" ry="52" fill="#ffa23a"/><circle cx="186" cy="54" r="9" fill="#fff"/><circle cx="188" cy="54" r="4.5" fill="#10243a"/></svg>
+      <span>Aquarium</span><b class="chip" id="demo" hidden>Demo</b>
+    </div>
+    <label class="search">
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="8.5" cy="8.5" r="5.5"/><path d="m13 13 4 4"/></svg>
+      <input id="q" type="search" placeholder="Search apps" autocomplete="off" spellcheck="false" aria-label="Search apps">
+      <button class="ib" id="clr" type="button" hidden aria-label="Clear search" style="width:22px;height:22px"><svg viewBox="0 0 12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m2 2 8 8M10 2l-8 8"/></svg></button>
+    </label>
+    <div class="tools">
+      <div class="sp" data-htmltoapp-drag></div>
+      <button class="ib" id="pin" type="button" title="Keep open after launching" aria-label="Keep open after launching"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 1.5 14.5 6.5 12 7 9.5 9.5l.5 3-2 .5-4-4 .5-2L7 6.5 7.5 4 9.5 1.5ZM4 12l-2.5 2.5"/></svg></button>
+      <button class="ib" id="hide" type="button" title="Hide (Esc)" aria-label="Hide window"><svg viewBox="0 0 12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 6h8"/></svg></button>
+      <button class="ib" id="quit" type="button" title="Quit (⌘Q)" aria-label="Quit"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M8 1.5v6M4.5 3.8a5.5 5.5 0 1 0 7 0"/></svg></button>
+    </div>
+  </header>
+  <section class="pond" id="pond" aria-live="polite">
+    <div id="school"></div>
+    <div class="msg" id="msg" hidden><h2 id="mh"></h2><p id="mp"></p><button id="mb" type="button" hidden>Try again</button></div>
+  </section>
+  <footer class="pager"><div class="box">
+    <button class="ib" id="prev" type="button" aria-label="Previous page"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m8 2-4 4 4 4"/></svg></button>
+    <div id="dots"></div><span id="info"></span>
+    <button class="ib" id="next" type="button" aria-label="Next page"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m4 2 4 4-4 4"/></svg></button>
+  </div></footer>
+  <div id="toast" role="status"></div>
+</main>
+<script>
+const api = window.HTMLtoApp, $ = s => document.querySelector(s), clamp = (v, a, b) => Math.min(b, Math.max(a, v)), rnd = (a, b) => a + Math.random() * (b - a);
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const S = {apps: [], q: "", page: 0, cap: 12, fw: 140, keep: false, demo: false, dir: 1}, P = {w: 800, h: 400};
+try { S.keep = localStorage.getItem("keep") === "1"; } catch {}
+if (!api) document.documentElement.classList.add("web");
+const norm = s => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+// palette: light, mid, dark, fin
+const PAL = [["#ffe08a","#ffa23a","#ff5f4a","#ff4d6d"],["#9bf0ff","#2d9cff","#6a5cff","#7ee8fa"],["#fff2a0","#ffc22b","#ff7a3c","#ffd86b"],["#b8ffd9","#27c4a1","#0f7f8d","#9bf6c3"],["#ffc2e0","#ff6fb0","#b83280","#ff9ecb"],["#dcc8ff","#9a6cff","#4c2fbf","#c7a6ff"],["#f9ffa0","#9be15d","#1fa971","#f9f871"],["#ffd0c4","#ff7a7a","#c0392b","#ffb3a7"]];
+let fish = [], uid = 0;
+
+/* ---------- toast & messages ---------- */
+let tt; function toast(m) { const t = $("#toast"); t.textContent = m; t.classList.add("show"); clearTimeout(tt); tt = setTimeout(() => t.classList.remove("show"), 3200); }
+function msg(h, p, retry) { $("#mh").textContent = h; $("#mp").textContent = p; $("#mb").hidden = !retry; $("#msg").hidden = !h; }
+
+/* ---------- icons ---------- */
+const IC = new Map(), queue = []; let run = 0;
+function showIcon(f) { const u = IC.get(f.app.id); if (u) { f.im.src = u; f.im.hidden = false; f.gl.hidden = true; } }
+function loadIcons(list) { if (!api?.apps?.icon || S.demo) return; for (const a of list) if (!IC.has(a.id) && !a.p) { a.p = 1; queue.push(a); } pump(); }
+function pump() { while (run < 3 && queue.length) { const a = queue.shift(); run++; (async () => { let u = null; try { u = await api.apps.icon(a.id); } catch {} IC.set(a.id, u); fish.forEach(f => f.app === a && showIcon(f)); })().finally(() => { run--; pump(); }); } }
+
+/* ---------- fish ---------- */
+function spawn(app, dir) {
+  const h = [...app.name].reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 7), p = PAL[h % PAL.length], id = "b" + uid++;
+  const el = document.createElement("button"); el.type = "button"; el.className = "fish"; el.setAttribute("aria-label", "Open " + app.name);
+  el.style.cssText = `--l:${p[0]};--m:${p[1]};--d:${p[2]};--f:${p[3]};--wag:${(.45 + (h % 7) / 12).toFixed(2)}s`;
+  el.innerHTML = `<span class="pop"><span class="sw"><span class="fl"><svg viewBox="0 0 220 136" aria-hidden="true"><defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--d)"/><stop offset=".55" style="stop-color:var(--m)"/><stop offset="1" style="stop-color:var(--l)"/></linearGradient><clipPath id="${id}c"><ellipse cx="124" cy="68" rx="80" ry="52"/></clipPath></defs>
+<g class="tail"><path d="M56 68C38 48 20 30 4 22c10 28 10 64 0 92 18-8 36-26 52-46Z" fill="var(--f)" opacity=".9"/></g>
+<path d="M84 30C98 4 140 2 156 28c-22-8-48-8-72 2Z" fill="var(--f)" opacity=".9"/><path d="M104 108c4 24 34 26 46 10-14 0-30-4-34-14Z" fill="var(--f)" opacity=".9"/>
+<ellipse cx="124" cy="68" rx="80" ry="52" fill="url(#${id})" stroke="rgba(255,255,255,.4)" stroke-width="2"/>
+<g clip-path="url(#${id}c)"><circle cx="116" cy="68" r="46" fill="rgba(255,255,255,.22)"/><path d="M90 26c20-6 60-6 80 8-30-6-60-6-80-8Z" fill="#fff" opacity=".3"/></g>
+<path d="M168 44c8 14 8 34 0 48" fill="none" stroke="#fff" stroke-opacity=".35" stroke-width="3" stroke-linecap="round"/><circle cx="186" cy="54" r="7" fill="#fff"/><circle cx="188" cy="54" r="3.6" fill="#10243a"/><path d="M203 72c-4 3-8 3-11 1" fill="none" stroke="#10243a" stroke-opacity=".5" stroke-width="2" stroke-linecap="round"/></svg><span class="slot"><b class="gl"></b><img alt="" draggable="false" hidden></span></span></span></span><span class="label"></span>`;
+  el.querySelector(".label").textContent = app.name; el.querySelector(".gl").textContent = ([...app.name][0] || "?").toUpperCase();
+  $("#school").append(el);
+  const f = {app, el, sw: el.querySelector(".sw"), fl: el.querySelector(".fl"), sl: el.querySelector(".slot"), im: el.querySelector("img"), gl: el.querySelector(".gl"),
+    x: dir > 0 ? P.w + S.fw : -S.fw, y: rnd(S.fw * .4, Math.max(S.fw, P.h - S.fw)), vx: 0, vy: 0, tx: 0, ty: 0, rt: 0, fs: dir > 0 ? -1 : 1, dir: dir > 0 ? -1 : 1, k: 1, hov: false, sp: S.fw * rnd(.22, .42), ph: rnd(0, 6.3), dead: false};
+  el.onmouseenter = el.onfocus = () => f.hov = true; el.onmouseleave = el.onblur = () => f.hov = false;
+  el.onclick = () => open(f); pick(f, performance.now()); showIcon(f); return f;
+}
+function bounds() { const fh = S.fw * .618; return {x0: S.fw / 2 + 8, x1: Math.max(S.fw / 2 + 9, P.w - S.fw / 2 - 8), y0: fh / 2 + 6, y1: Math.max(fh / 2 + 7, P.h - fh / 2 - 28)}; }
+function pick(f, now) { const b = bounds(); f.tx = rnd(b.x0, b.x1); f.ty = rnd(b.y0, b.y1); f.rt = now + rnd(3500, 8000); }
+function leave(f, dir) { f.dead = true; f.rm = performance.now() + 650; f.tx = dir > 0 ? -S.fw * 2 : P.w + S.fw * 2; f.ty = f.y; f.el.classList.add("out"); setTimeout(() => f.el.remove(), 650); }
+
+/* ---------- paging & search ---------- */
+function filtered() { const q = norm(S.q.trim()); return q ? S.apps.filter(a => a.n.includes(q)).sort((a, b) => b.n.startsWith(q) - a.n.startsWith(q)) : S.apps; }
+function render(dir = S.dir) {
+  const list = filtered(), pages = Math.max(1, Math.ceil(list.length / S.cap)); S.page = clamp(S.page, 0, pages - 1);
+  const slice = list.slice(S.page * S.cap, S.page * S.cap + S.cap), keep = new Set(slice.map(a => a.id));
+  for (const f of fish) if (!f.dead && !keep.has(f.app.id)) leave(f, dir);
+  for (const a of slice) if (!fish.some(f => !f.dead && f.app.id === a.id)) fish.push(spawn(a, dir));
+  $("#prev").disabled = S.page <= 0; $("#next").disabled = S.page >= pages - 1;
+  const d = $("#dots"); d.textContent = "";
+  if (pages > 1 && pages <= 9) for (let i = 0; i < pages; i++) { const b = document.createElement("button"); b.type = "button"; b.className = "dot" + (i === S.page ? " on" : ""); b.setAttribute("aria-label", "Page " + (i + 1)); b.onclick = () => go(i); d.append(b); }
+  $("#info").textContent = list.length ? `${S.page + 1} / ${pages} · ${list.length} app${list.length === 1 ? "" : "s"}` : "";
+  if (S.ready) msg(list.length ? "" : "No fish found", list.length ? "" : `Nothing matches “${S.q.trim()}”. Try another name.`);
+  $("#q").placeholder = S.apps.length ? `Search ${S.apps.length} apps` : "Search apps";
+  loadIcons(slice);
+}
+function go(i) { const pages = Math.ceil(filtered().length / S.cap) || 1; i = clamp(i, 0, pages - 1); if (i === S.page) return; S.dir = i > S.page ? 1 : -1; S.page = i; render(S.dir); }
+function layout() {
+  const r = $("#pond").getBoundingClientRect(); P.w = r.width; P.h = r.height; const a = P.w * P.h, first = S.page * S.cap;
+  S.cap = clamp(Math.floor(a / 34000), 3, 12); S.fw = Math.min(clamp(Math.sqrt(a / S.cap) * .68, 80, 170), P.w * .42);
+  $("#school").style.setProperty("--fw", S.fw + "px"); S.page = Math.floor(first / S.cap); fish.forEach(f => f.sp = Math.max(f.sp, S.fw * .22));
+  sizeFx(); if (S.ready) render();
+}
+
+/* ---------- opening apps ---------- */
+async function open(f) {
+  const a = f.app;
+  if (S.demo) return toast("Demo fish can’t open apps. Export this project as a Mac app to launch yours.");
+  if (!api?.apps?.open) return toast("Opening apps isn’t available here.");
+  f.el.classList.add("go");
+  try {
+    const ok = await api.apps.open(a.id); f.el.classList.remove("go");
+    if (ok) { burst(f.x, f.y); if (!S.keep) setTimeout(() => api.hideWindow?.(), 260); }
+  } catch (e) { f.el.classList.remove("go"); toast("Couldn’t open " + a.name + (e?.message ? ": " + e.message : "")); }
+}
+
+/* ---------- loading apps ---------- */
+const DEMO = "Safari Mail Calendar Notes Music Maps Photos Messages Terminal Xcode Figma Slack Notion Spotify Chrome Firefox Pages Numbers Keynote Preview Reminders Podcasts Books Weather Clock Stocks Home Shortcuts Dictionary Calculator".split(" ");
+const mapApps = l => { const seen = new Set(); return l.filter(a => a?.id && !seen.has(a.id) && seen.add(a.id)).map(a => { const name = String(a.name || a.id).replace(/\.app$/i, ""); return {id: a.id, name, n: norm(name)}; }).sort((a, b) => a.name.localeCompare(b.name, undefined, {sensitivity: "base"})); };
+async function loadApps(quiet) {
+  if (!quiet) msg("Waking up the fish…", "Looking for your apps.");
+  if (!api?.apps?.list) { S.demo = true; $("#demo").hidden = false; S.apps = mapApps(DEMO.map((n, i) => ({id: "demo." + i, name: n}))); S.ready = true; msg(""); return render(); }
+  try {
+    const perms = await api.apps.permissions?.().catch(() => null);
+    if (perms && perms.list === false) { S.ready = true; return msg("Aquarium needs to see your apps", "Turn on “List installed apps” (and “Open installed apps”) in the export or Preview settings, then run it again."); }
+    const apps = mapApps(await api.apps.list());
+    if (quiet && apps.length === S.apps.length) return;
+    S.apps = apps; S.ready = true; msg(apps.length ? "" : "No apps found", apps.length ? "" : "No installed apps were reported to the app."); render(1);
+  } catch (e) { if (!quiet) { S.ready = true; msg("Couldn’t list your apps", (e?.message || "Something went wrong.") + " Check that “List installed apps” is enabled.", true); } }
+}
+$("#mb").onclick = () => loadApps();
+
+/* ---------- background fx ---------- */
+const cv = $("#fx"), cx = cv.getContext("2d"); let B = [], W = 0, H = 0;
+const nb = init => ({x: Math.random() * W, y: init ? Math.random() * H : H + 10, r: 1.5 + Math.random() * 5, v: 14 + Math.random() * 30, ph: rnd(0, 6.3), m: Math.random() < .35});
+function sizeFx() {
+  const r = $("#panel").getBoundingClientRect(), d = devicePixelRatio || 1; W = r.width; H = r.height; cv.width = W * d; cv.height = H * d; cx.setTransform(d, 0, 0, d, 0, 0);
+  const n = clamp(W * H / 20000, 12, 60) | 0, amb = B.filter(b => !b.once); while (amb.length < n) amb.push(nb(true)); B = amb.slice(0, n);
+  const c = Math.max(2, Math.floor(W / 150)); let s = "";
+  for (let i = 0; i < c; i++) s += `<svg class="weed" viewBox="0 0 40 100" preserveAspectRatio="none" style="left:${rnd(2, 96).toFixed(1)}%;height:${Math.round(clamp(H * rnd(.12, .28), 50, 200))}px;animation-delay:${-rnd(0, 4).toFixed(1)}s"><path d="M20 100C4 76 36 58 20 32S24 6 20 0" fill="none" stroke="hsl(${Math.round(rnd(135, 175))} 55% ${Math.round(rnd(30, 45))}%)" stroke-width="7" stroke-linecap="round"/></svg>`;
+  $("#plants").innerHTML = s;
+}
+function burst(x, y) { const b = $("#pond").getBoundingClientRect(), p = $("#panel").getBoundingClientRect(); for (let i = 0; i < 14; i++) B.push({x: x + b.left - p.left + rnd(-20, 20), y: y + b.top - p.top + rnd(-10, 20), r: rnd(2, 6), v: rnd(50, 110), ph: rnd(0, 6.3), m: false, once: true}); }
+function bubbles(dt, t) {
+  cx.clearRect(0, 0, W, H);
+  for (let i = B.length - 1; i >= 0; i--) {
+    const b = B[i]; b.y -= b.v * dt * (b.m ? .3 : 1); b.x += Math.sin(t * 1.3 + b.ph) * .25;
+    if (b.y < -10) { if (b.once) { B.splice(i, 1); continue; } Object.assign(b, nb()); }
+    cx.beginPath();
+    if (b.m) { cx.arc(b.x, b.y, b.r * .35, 0, 6.3); cx.fillStyle = "rgba(255,255,255,.35)"; cx.fill(); }
+    else { cx.arc(b.x, b.y, b.r, 0, 6.3); cx.fillStyle = "rgba(255,255,255,.08)"; cx.fill(); cx.strokeStyle = "rgba(255,255,255,.55)"; cx.lineWidth = 1; cx.stroke(); cx.beginPath(); cx.arc(b.x - b.r * .3, b.y - b.r * .3, b.r * .25, 0, 6.3); cx.fillStyle = "rgba(255,255,255,.8)"; cx.fill(); }
+  }
+}
+
+/* ---------- swimming loop ---------- */
+let last = performance.now();
+function tick(now) {
+  const dt = Math.min(.05, (now - last) / 1000), t = now / 1000, mv = reduce ? .4 : 1, fh = S.fw * .618, b = bounds(); last = now;
+  fish = fish.filter(f => !(f.dead && now > f.rm));
+  for (const f of fish) {
+    f.k += ((f.hov && !f.dead ? 0 : 1) - f.k) * Math.min(1, dt * 6);
+    const dx = f.tx - f.x, dy = f.ty - f.y, d = Math.hypot(dx, dy) || 1;
+    if (!f.dead && (d < 30 || now > f.rt)) pick(f, now);
+    const sp = f.sp * f.k * mv * (f.dead ? 5 : 1), e = Math.min(1, dt * 1.6);
+    f.vx += (dx / d * sp - f.vx) * e; f.vy += (dy / d * sp * .6 - f.vy) * e;
+    if (!f.dead) {
+      for (const g of fish) { if (g === f || g.dead) continue; const ex = f.x - g.x, ey = (f.y - g.y) * 1.6, m = Math.hypot(ex, ey) || 1, r = S.fw * .8; if (m < r) { const k = (r - m) / r * S.fw * 4.5 * dt; f.vx += ex / m * k; f.vy += ey / m * k * .6; } }
+      f.vx += (clamp(f.x, b.x0, b.x1) - f.x) * dt * 2; f.vy += (clamp(f.y, b.y0, b.y1) - f.y) * dt * 3;
+    }
+    f.x += f.vx * dt; f.y += f.vy * dt;
+    if (Math.abs(f.vx) > 6) f.dir = Math.sign(f.vx);
+    f.fs += (f.dir - f.fs) * Math.min(1, dt * 7);
+    const ang = clamp(Math.atan2(f.vy, Math.abs(f.vx) + 25) * 57.3, -20, 20) * Math.sign(f.fs || 1);
+    f.el.style.transform = `translate3d(${f.x - S.fw / 2}px,${f.y - fh / 2 + Math.sin(t * 1.6 + f.ph) * 3}px,0)`;
+    f.sw.style.transform = `rotate(${ang}deg)`; f.fl.style.transform = `scaleX(${f.fs})`; f.sl.style.transform = `translate(-50%,-50%) scaleX(${f.fs})`;
+  }
+  bubbles(dt, t); requestAnimationFrame(tick);
+}
+
+/* ---------- controls ---------- */
+const q = $("#q");
+q.addEventListener("input", () => { S.q = q.value; S.page = 0; S.dir = 1; $("#clr").hidden = !q.value; render(); });
+$("#clr").onclick = () => { q.value = ""; q.dispatchEvent(new Event("input")); q.focus(); };
+$("#prev").onclick = () => go(S.page - 1); $("#next").onclick = () => go(S.page + 1);
+$("#hide").onclick = () => api?.hideWindow?.(); $("#quit").onclick = () => api?.quit?.();
+const pin = $("#pin"); const setPin = () => { pin.classList.toggle("on", S.keep); pin.setAttribute("aria-pressed", S.keep); };
+pin.onclick = () => { S.keep = !S.keep; try { localStorage.setItem("keep", S.keep ? "1" : "0"); } catch {} setPin(); toast(S.keep ? "Aquarium stays open after launching." : "Aquarium hides after launching."); }; setPin();
+q.addEventListener("keydown", e => { if (e.key === "Enter" && S.q.trim()) { const f = fish.find(f => !f.dead); const first = filtered()[0]; const t = fish.find(f => !f.dead && f.app === first) || f; if (t) open(t); } });
+addEventListener("keydown", e => {
+  if (e.key === "Escape") { if (q.value) $("#clr").click(); else api?.hideWindow?.(); return; }
+  if (e.metaKey || e.ctrlKey || e.altKey) { if ((e.key === "f" || e.key === "k") && (e.metaKey || e.ctrlKey)) { e.preventDefault(); q.focus(); } return; }
+  const inField = document.activeElement === q;
+  if (e.key === "PageDown" || (!inField && e.key === "ArrowRight") || (inField && !q.value && e.key === "ArrowRight")) go(S.page + 1);
+  else if (e.key === "PageUp" || (!inField && e.key === "ArrowLeft") || (inField && !q.value && e.key === "ArrowLeft")) go(S.page - 1);
+  else if (!inField && e.key.length === 1 && !/\s/.test(e.key) && document.activeElement.tagName !== "BUTTON") q.focus();
+  else if (!inField && e.key === "/") q.focus();
+});
+let wx = 0, wt = 0; addEventListener("wheel", e => { if (Math.abs(e.deltaX) < Math.abs(e.deltaY) || Date.now() - wt < 600) return; wx += e.deltaX; if (Math.abs(wx) > 40) { go(S.page + Math.sign(wx)); wx = 0; wt = Date.now(); } }, {passive: true});
+new ResizeObserver(() => requestAnimationFrame(layout)).observe($("#pond"));
+
+/* ---------- window & Dock ---------- */
+async function place() {
+  const w = api?.window; if (!w?.getDisplays) return;
+  try {
+    const [st, ds] = await Promise.all([w.getState(), w.getDisplays()]); if (st.userRestored) return;
+    const d = ds.find(x => x.id === st.displayId) || ds.find(x => x.primary) || ds[0], v = d.visibleBounds;
+    const ww = Math.round(Math.min(v.width - 24, clamp(v.width * .8, 640, 1360))), hh = Math.round(Math.min(v.height - 24, clamp(v.height * .8, 460, 860)));
+    await w.setBounds({x: Math.round(v.x + (v.width - ww) / 2), y: Math.round(v.y + (v.height - hh) / 2), width: ww, height: hh});
+  } catch (e) { console.warn(e); }
+}
+async function setupWindow() { const w = api?.window; if (!w) return; try { await w.configure({titleBar: "borderless", transparent: true, level: "floating"}); } catch (e) { console.warn(e); } await place(); }
+let lastRefresh = Date.now();
+function reopen() { api?.showWindow?.(); place(); q.focus(); if (Date.now() - lastRefresh > 30000) { lastRefresh = Date.now(); loadApps(true); } }
+addEventListener("htmltoapp-displayschange", place);
+if (typeof api?.dock?.onClick === "function") api.dock.onClick(reopen); else addEventListener("htmltoapp-dockclick", reopen);
+
+// Animated Dock icon: a clownfish swimming in a tiny aquarium
+function dockFrame(c, t) {
+  const S = 256; c.clearRect(0, 0, S, S); c.save();
+  c.beginPath(); c.roundRect ? c.roundRect(22, 22, 212, 212, 50) : c.rect(22, 22, 212, 212); c.clip();
+  let g = c.createLinearGradient(0, 22, 0, 234); g.addColorStop(0, "#62dbe8"); g.addColorStop(.35, "#1a98bb"); g.addColorStop(.72, "#0a5b86"); g.addColorStop(1, "#06344f"); c.fillStyle = g; c.fillRect(0, 0, S, S);
+  for (let i = 0; i < 3; i++) { c.save(); c.translate(60 + i * 62, 14); c.rotate(.28 + Math.sin(t * .5 + i) * .05); g = c.createLinearGradient(0, 0, 0, 200); g.addColorStop(0, "rgba(255,255,255,.35)"); g.addColorStop(1, "rgba(255,255,255,0)"); c.fillStyle = g; c.fillRect(-12, 0, 24, 230); c.restore(); }
+  c.fillStyle = "#e3c88c"; c.beginPath(); c.ellipse(128, 262, 150, 48, 0, 0, 6.3); c.fill();
+  c.lineCap = "round"; c.lineWidth = 7;
+  [[62, 52, 0], [190, 64, 2], [92, 38, 4]].forEach(([x, h, p]) => { const s = Math.sin(t * 1.6 + p) * 9; c.strokeStyle = "#2fae7c"; c.beginPath(); c.moveTo(x, 228); c.bezierCurveTo(x - 8 + s * .3, 228 - h * .3, x + 10 + s * .7, 228 - h * .6, x + s, 228 - h); c.stroke(); });
+  c.fillStyle = "rgba(255,255,255,.28)"; c.strokeStyle = "rgba(255,255,255,.7)"; c.lineWidth = 1.5;
+  for (let i = 0; i < 6; i++) { const y = 230 - ((t * 30 + i * 41) % 200), x = 70 + i * 24 + Math.sin(t * 2 + i) * 6; c.beginPath(); c.arc(x, y, 3 + i % 3 * 2, 0, 6.3); c.fill(); c.stroke(); }
+  const x = 128 + Math.sin(t * .9) * 36, y = 118 + Math.sin(t * 1.8) * 8, face = Math.tanh(4 * Math.cos(t * .9));
+  c.save(); c.translate(x, y); c.scale(face, 1); c.rotate(Math.cos(t * 1.8) * .06);
+  c.save(); c.translate(-38, 0); c.rotate(Math.sin(t * 9) * .35); c.fillStyle = "#ff5c7a"; c.beginPath(); c.moveTo(4, 0); c.bezierCurveTo(-14, -16, -30, -30, -44, -34); c.bezierCurveTo(-36, -8, -36, 8, -44, 34); c.bezierCurveTo(-30, 30, -14, 16, 4, 0); c.fill(); c.restore();
+  c.fillStyle = "#ff8a3d"; c.beginPath(); c.moveTo(-14, -24); c.bezierCurveTo(-6, -46, 20, -48, 28, -22); c.fill();
+  g = c.createLinearGradient(0, -31, 0, 31); g.addColorStop(0, "#ff5f4a"); g.addColorStop(.5, "#ffa23a"); g.addColorStop(1, "#ffe08a"); c.fillStyle = g; c.beginPath(); c.ellipse(0, 0, 46, 31, 0, 0, 6.3); c.fill();
+  c.save(); c.clip(); c.fillStyle = "rgba(255,255,255,.92)"; c.fillRect(8, -34, 9, 68); c.fillRect(-24, -34, 8, 68); c.restore();
+  c.fillStyle = "#fff"; c.beginPath(); c.arc(32, -8, 6.5, 0, 6.3); c.fill(); c.fillStyle = "#10243a"; c.beginPath(); c.arc(34, -8, 3.4, 0, 6.3); c.fill(); c.restore();
+  g = c.createLinearGradient(22, 22, 130, 130); g.addColorStop(0, "rgba(255,255,255,.28)"); g.addColorStop(.5, "rgba(255,255,255,0)"); c.fillStyle = g; c.fillRect(0, 0, S, S); c.restore();
+}
+async function startDock() {
+  const dock = api?.dock; if (!dock) return;
+  try { if (!(await dock.isAvailable())) return; } catch { return; }
+  const cvs = document.createElement("canvas"); cvs.width = cvs.height = 256; const c = cvs.getContext("2d"); let bad = 0;
+  const id = setInterval(async () => { try { dockFrame(c, performance.now() / 1000); await dock.setIcon(cvs); bad = 0; } catch { if (++bad > 5) clearInterval(id); } }, 125);
+}
+
+/* ---------- start ---------- */
+(async function main() {
+  const release = api?.window?.deferInitialPresentation?.() || (() => {});
+  try { await setupWindow(); } finally { release(); }
+  layout(); requestAnimationFrame(tick); startDock(); await loadApps(); q.focus();
+})();
+</script>
+</body>
+</html>

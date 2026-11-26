@@ -20,6 +20,12 @@ PUBLIC = set("""
     ScreenRuler SubtitleRepair TextEditor TracingPaper VideoPlayer
 """.split())
 
+# These projects live in this repository, not in the released app's catalog.
+SINGLE_FILE_EXTRAS = (
+    {"file": "AquariumLaunchpad.html", "name": "Aquarium Launchpad",
+     "summary": "Search a school of swimming app icons and click a fish to launch its app. The exported app also draws a swimming fish in the Dock."},
+)
+
 
 def read_file(root, relative):
     path = root / relative
@@ -78,27 +84,41 @@ def archive(members):
     return result.getvalue()
 
 
+def project_table(rows):
+    entries = ["| Example source | What you can try | Project |", "| --- | --- | --- |"]
+    entries.extend(f"| [{r['name']}]({r['file']}) | {r['summary']} | "
+                   f"[Download]({RAW}/{Path(r['file']).stem}.htmltoapp) |" for r in rows)
+    return "\n".join(entries)
+
+
 def index(rows):
     intro = """# Example gallery
 
 Each download is an editable project for HTML to App 1.1.1. Click **Download**, then double-click the saved `.htmltoapp` file in Finder. Choose **Export with Defaults** to try it, or **Customize** to review its settings first.
 
-To edit a downloaded project, duplicate the file, rename the copy to `.zip` and expand it. Use **Add Project Folder** on the folder containing `index.html`, then choose **Run**. You can also choose **Create Project** in HTML to App's built-in Example Gallery.
+## Single-file examples from GitHub
 
-| Example source | What you can try | Project |
-| --- | --- | --- |
+These examples are not in the built-in gallery. Each download is the HTML source itself. To edit one, save a copy as `index.html` in its own folder and choose **Add Project Folder**. There is nothing to unzip.
+
 """
-    entries = [f"| [{r['name']}]({r['file']}) | {r['summary']} | "
-               f"[Download]({RAW}/{Path(r['file']).stem}.htmltoapp) |" for r in rows]
+    bundled = """
+
+For Aquarium Launchpad, enable **List Installed Apps** to see your applications and **Open Installed Apps** to launch one. In a regular browser, you can search and page through sample fish without opening any apps.
+
+## Built-in gallery examples
+
+Choose **Create Project** in the app's Example Gallery to make an editable copy. To edit one of the downloads below, duplicate it, rename the copy to `.zip`, expand it and choose **Add Project Folder** on the folder containing `index.html`.
+
+"""
     end = """
 
 ## How the source is organized
 
-The linked HTML files keep their original gallery names. Each download puts its entry page at `index.html`, its icon at `ProjectIcon.png` and the resources it needs alongside them. Download the complete package, not just the HTML source or the entire repository ZIP. Some projects import modules, load local JSON or use the shared [GalleryKit](GalleryKit/) styles and file helpers.
+The built-in examples keep their original gallery filenames here. Their ZIP downloads contain an `index.html`, a `ProjectIcon.png` and the resources each example needs. Some import modules, load local JSON or use the shared [GalleryKit](GalleryKit/) styles and file helpers. For those, download the complete package, not just the HTML source or the entire repository ZIP. Single-file examples carry their artwork in the HTML instead.
 
-You can read the [public catalog](Catalog.plist) to see each example's title, instructions and resource list. The [vibe coding guide](https://htmltoapp.app/vibe-coding/) shows how to ask a browser chat for a new project or an updated copy.
+You can read the [public catalog](Catalog.plist) to see the built-in examples' titles, instructions and resource lists. The [vibe coding guide](https://htmltoapp.app/vibe-coding/) shows how to ask a browser chat for a new project or an updated copy.
 """
-    return (intro + "\n".join(entries) + end).encode()
+    return (intro + project_table(SINGLE_FILE_EXTRAS) + bundled + project_table(rows) + end).encode()
 
 
 def check_inventory(folder, expected):
@@ -137,13 +157,21 @@ def main():
                 files[src] = read_file(source, src)
             members[dest] = files[src]
         packages[Path(row["file"]).stem + ".htmltoapp"] = archive(members)
+    for extra in SINGLE_FILE_EXTRAS:
+        name = extra["file"]
+        download = Path(name).stem + ".htmltoapp"
+        if name in files or download in packages:
+            raise ValueError(f"Duplicate gallery example {name}")
+        # Plain HTML is a supported portable document. Keep the download byte-identical
+        # to the repository source, including when refreshing built-ins from an app.
+        files[name] = packages[download] = read_file(EXAMPLES, name)
     outputs = [(EXAMPLES, files), (DOWNLOADS, packages)]
     for directory, expected in outputs:
         check_inventory(directory, set(expected))
     for directory, expected in outputs:
         for name, data in expected.items():
             output(directory / name, data, args.write)
-    print(f"{'Refreshed' if args.write else 'Verified'} {len(rows)} public examples, their file inventories, index and portable packages.")
+    print(f"{'Refreshed' if args.write else 'Verified'} the gallery ({len(rows)} built-in, {len(SINGLE_FILE_EXTRAS)} single-file), its index and downloads.")
 
 
 if __name__ == "__main__":

@@ -1,6 +1,6 @@
 # Maintaining the gallery
 
-The HTML files and their resources mirror the public examples from the released app. Keep the native builder, internal demos, personal files and build artifacts out of this repository. The allowlist in `scripts/gallery.py` is intentional.
+The built-in examples mirror the released app. The gallery also lists additional single-file projects published only here. Keep the native builder, internal demos, personal files and build artifacts out of this repository. The allowlists in `scripts/gallery.py` are intentional.
 
 To verify a checkout, run the following from its root. No network or third-party Python packages are needed.
 
@@ -15,6 +15,8 @@ python3 scripts/gallery.py --upstream "/Applications/HTML to App.app/Contents/Re
 python3 scripts/gallery.py --upstream "/Applications/HTML to App.app/Contents/Resources/Examples"
 ```
 
-The second command is read-only. It compares every published entry page, artwork file and resource with the release and reconstructs each package in memory. A clean match means the published package is byte-for-byte reproducible. Unlisted resources are not copied. Unexpected files are reported, not deleted.
+The second command is read-only. It compares the built-in entry pages, artwork and resources with the release and reconstructs their ZIP files in memory. It also verifies that each single-file download matches its repository source byte for byte. Unlisted resources are not copied. Unexpected files are reported, not deleted.
+
+For a new single-file example, put its original HTML in `examples/`, list it in `SINGLE_FILE_EXTRAS` and run `python3 scripts/gallery.py --write`. The download keeps the original HTML and embedded artwork with the `.htmltoapp` extension. Do not add repository-only projects to the released app's catalog.
 
 Before publishing, open the downloads with the matching HTML to App release, check representative projects in Preview and review the README against the [authoring guide](https://htmltoapp.app/documentation/authoring/) and [public bridge reference](https://htmltoapp.app/documentation/bridge/). Keep the existing HTML filenames so incoming links still work.
